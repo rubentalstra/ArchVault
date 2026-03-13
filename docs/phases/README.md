@@ -10,6 +10,8 @@
 | 1d    | Platform Admin               | Not Started | 1c           |
 | 1e    | Organizations & Teams        | Not Started | 1c           |
 | 1f    | Workspaces                   | Not Started | 1e           |
+| 1g    | ESLint                       | Not Started | 1a           |
+| 1h    | Internationalization (i18n)  | Not Started | 1a, 1c       |
 | 2a    | Elements                     | Not Started | 1f           |
 | 2b    | Relationships                | Not Started | 2a           |
 | 2c    | Tags                         | Not Started | 2b           |
@@ -39,6 +41,9 @@ graph TD
     1c --> 1d["1d: Platform Admin"]
     1c --> 1e["1e: Organizations & Teams"]
     1e --> 1f["1f: Workspaces"]
+    1a --> 1g["1g: ESLint"]
+    1a --> 1h["1h: i18n"]
+    1c --> 1h
     1f --> 2a["2a: Elements"]
     2a --> 2b["2b: Relationships"]
     2b --> 2c["2c: Tags"]
@@ -74,6 +79,8 @@ graph TD
     style 1d fill: #e0e7ff, stroke: #4f46e5
     style 1e fill: #e0e7ff, stroke: #4f46e5
     style 1f fill: #e0e7ff, stroke: #4f46e5
+    style 1g fill: #e0e7ff, stroke: #4f46e5
+    style 1h fill: #e0e7ff, stroke: #4f46e5
     style 2a fill: #dcfce7, stroke: #16a34a
     style 2b fill: #dcfce7, stroke: #16a34a
     style 2c fill: #dcfce7, stroke: #16a34a
