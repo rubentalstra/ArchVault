@@ -1184,13 +1184,3 @@ Full block ecosystem: browse, install, create.
 
 ### Deliverable
 Shippable, self-hosted C4 architecture platform.
-
----
-
-# Part 13 — Future Considerations
-
-| Technology | When to adopt | What it enables |
-|---|---|---|
-| **TanStack DB** | When real-time collaboration or large dataset performance becomes a priority | Live queries across elements/relationships, sub-ms reactivity, optimistic mutations at scale |
-| **TanStack Store** | When it reaches 1.0 stable | Could replace Zustand for editor state if it adds undo/computed patterns |
-| **TanStack AI** | When AI-assisted architecture features are scoped | "Generate C4 from description" or architecture suggestions |
