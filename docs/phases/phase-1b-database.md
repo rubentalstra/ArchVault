@@ -1,6 +1,6 @@
 # Phase 1b — Database & Docker
 
-## Status: Not Started
+## Status: Complete
 
 ## Goal
 Set up PostgreSQL 16 via Docker Compose, Drizzle ORM, and the initial database connection.
@@ -9,15 +9,15 @@ Set up PostgreSQL 16 via Docker Compose, Drizzle ORM, and the initial database c
 - Phase 1a (Project Scaffold) — complete
 
 ## Tasks
-- [ ] Create `compose.yaml` with app + PostgreSQL 16 services
-- [ ] Create `.env.example` with all required environment variables
-- [ ] Create `.env` (gitignored) from `.env.example`
-- [ ] Install Drizzle: `pnpm add drizzle-orm pg` + `pnpm add -D drizzle-kit @types/pg`
-- [ ] Create `src/lib/database.ts` (Drizzle + pg Pool)
-- [ ] Create `drizzle.config.ts`
-- [ ] Create initial `src/lib/schema/index.ts` barrel export
-- [ ] Run first migration to verify database connection
-- [ ] Add `Dockerfile` for the app (multi-stage build)
+- [x]Create `compose.yaml` with app + PostgreSQL 16 services
+- [x]Create `.env.example` with all required environment variables
+- [x]Create `.env` (gitignored) from `.env.example`
+- [x]Install Drizzle: `pnpm add drizzle-orm pg` + `pnpm add -D drizzle-kit @types/pg`
+- [x]Create `src/lib/database.ts` (Drizzle + pg Pool)
+- [x]Create `drizzle.config.ts`
+- [x]Create initial `src/lib/schema/index.ts` barrel export
+- [x]Run first migration to verify database connection
+- [x]Add `Dockerfile` for the app (multi-stage build)
 
 ## CLI Commands
 ```bash
@@ -37,7 +37,7 @@ pnpm drizzle-kit migrate
 - `src/lib/schema/index.ts` — schema barrel export
 
 ## Verification
-- [ ] `docker compose up -d db` → PostgreSQL starts and is reachable
-- [ ] Drizzle migration runs successfully
-- [ ] `src/lib/database.ts` exports a working `db` instance
-- [ ] `pnpm dev` still works
+- [x]`docker compose up -d db` → PostgreSQL starts and is reachable
+- [x]Drizzle migration runs successfully
+- [x]`src/lib/database.ts` exports a working `db` instance
+- [x]`pnpm dev` still works
