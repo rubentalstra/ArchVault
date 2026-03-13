@@ -18,7 +18,11 @@ import { Route as ProtectedRouteImport } from './routes/_protected'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProtectedSettingsRouteImport } from './routes/_protected/settings'
 import { Route as ProtectedDashboardRouteImport } from './routes/_protected/dashboard'
+import { Route as ProtectedAdminRouteImport } from './routes/_protected/admin'
+import { Route as ProtectedAdminIndexRouteImport } from './routes/_protected/admin/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ProtectedAdminUsersRouteImport } from './routes/_protected/admin/users'
+import { Route as ProtectedAdminUserUserIdRouteImport } from './routes/_protected/admin/user.$userId'
 
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
   id: '/verify-email',
@@ -64,11 +68,32 @@ const ProtectedDashboardRoute = ProtectedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => ProtectedRoute,
 } as any)
+const ProtectedAdminRoute = ProtectedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedAdminIndexRoute = ProtectedAdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ProtectedAdminRoute,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProtectedAdminUsersRoute = ProtectedAdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => ProtectedAdminRoute,
+} as any)
+const ProtectedAdminUserUserIdRoute =
+  ProtectedAdminUserUserIdRouteImport.update({
+    id: '/user/$userId',
+    path: '/user/$userId',
+    getParentRoute: () => ProtectedAdminRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -77,9 +102,13 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/two-factor': typeof TwoFactorRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/admin': typeof ProtectedAdminRouteWithChildren
   '/dashboard': typeof ProtectedDashboardRoute
   '/settings': typeof ProtectedSettingsRoute
+  '/admin/users': typeof ProtectedAdminUsersRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/admin/': typeof ProtectedAdminIndexRoute
+  '/admin/user/$userId': typeof ProtectedAdminUserUserIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -90,7 +119,10 @@ export interface FileRoutesByTo {
   '/verify-email': typeof VerifyEmailRoute
   '/dashboard': typeof ProtectedDashboardRoute
   '/settings': typeof ProtectedSettingsRoute
+  '/admin/users': typeof ProtectedAdminUsersRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/admin': typeof ProtectedAdminIndexRoute
+  '/admin/user/$userId': typeof ProtectedAdminUserUserIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -101,9 +133,13 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/two-factor': typeof TwoFactorRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/_protected/admin': typeof ProtectedAdminRouteWithChildren
   '/_protected/dashboard': typeof ProtectedDashboardRoute
   '/_protected/settings': typeof ProtectedSettingsRoute
+  '/_protected/admin/users': typeof ProtectedAdminUsersRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/_protected/admin/': typeof ProtectedAdminIndexRoute
+  '/_protected/admin/user/$userId': typeof ProtectedAdminUserUserIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -114,9 +150,13 @@ export interface FileRouteTypes {
     | '/signup'
     | '/two-factor'
     | '/verify-email'
+    | '/admin'
     | '/dashboard'
     | '/settings'
+    | '/admin/users'
     | '/api/auth/$'
+    | '/admin/'
+    | '/admin/user/$userId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -127,7 +167,10 @@ export interface FileRouteTypes {
     | '/verify-email'
     | '/dashboard'
     | '/settings'
+    | '/admin/users'
     | '/api/auth/$'
+    | '/admin'
+    | '/admin/user/$userId'
   id:
     | '__root__'
     | '/'
@@ -137,9 +180,13 @@ export interface FileRouteTypes {
     | '/signup'
     | '/two-factor'
     | '/verify-email'
+    | '/_protected/admin'
     | '/_protected/dashboard'
     | '/_protected/settings'
+    | '/_protected/admin/users'
     | '/api/auth/$'
+    | '/_protected/admin/'
+    | '/_protected/admin/user/$userId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -218,6 +265,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedDashboardRouteImport
       parentRoute: typeof ProtectedRoute
     }
+    '/_protected/admin': {
+      id: '/_protected/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof ProtectedAdminRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/admin/': {
+      id: '/_protected/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof ProtectedAdminIndexRouteImport
+      parentRoute: typeof ProtectedAdminRoute
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -225,15 +286,47 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_protected/admin/users': {
+      id: '/_protected/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof ProtectedAdminUsersRouteImport
+      parentRoute: typeof ProtectedAdminRoute
+    }
+    '/_protected/admin/user/$userId': {
+      id: '/_protected/admin/user/$userId'
+      path: '/user/$userId'
+      fullPath: '/admin/user/$userId'
+      preLoaderRoute: typeof ProtectedAdminUserUserIdRouteImport
+      parentRoute: typeof ProtectedAdminRoute
+    }
   }
 }
 
+interface ProtectedAdminRouteChildren {
+  ProtectedAdminUsersRoute: typeof ProtectedAdminUsersRoute
+  ProtectedAdminIndexRoute: typeof ProtectedAdminIndexRoute
+  ProtectedAdminUserUserIdRoute: typeof ProtectedAdminUserUserIdRoute
+}
+
+const ProtectedAdminRouteChildren: ProtectedAdminRouteChildren = {
+  ProtectedAdminUsersRoute: ProtectedAdminUsersRoute,
+  ProtectedAdminIndexRoute: ProtectedAdminIndexRoute,
+  ProtectedAdminUserUserIdRoute: ProtectedAdminUserUserIdRoute,
+}
+
+const ProtectedAdminRouteWithChildren = ProtectedAdminRoute._addFileChildren(
+  ProtectedAdminRouteChildren,
+)
+
 interface ProtectedRouteChildren {
+  ProtectedAdminRoute: typeof ProtectedAdminRouteWithChildren
   ProtectedDashboardRoute: typeof ProtectedDashboardRoute
   ProtectedSettingsRoute: typeof ProtectedSettingsRoute
 }
 
 const ProtectedRouteChildren: ProtectedRouteChildren = {
+  ProtectedAdminRoute: ProtectedAdminRouteWithChildren,
   ProtectedDashboardRoute: ProtectedDashboardRoute,
   ProtectedSettingsRoute: ProtectedSettingsRoute,
 }

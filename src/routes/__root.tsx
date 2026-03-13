@@ -10,6 +10,7 @@ import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import { TooltipProvider } from '#/components/ui/tooltip'
 import { Toaster } from '#/components/ui/sonner'
+import { ImpersonationBanner } from '#/components/admin/impersonation-banner'
 
 import appCss from '../styles.css?url'
 
@@ -40,6 +41,7 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
         <HeadContent />
       </head>
       <body className="font-sans antialiased">
+        <ImpersonationBanner />
         <TooltipProvider>
           {children}
         </TooltipProvider>
