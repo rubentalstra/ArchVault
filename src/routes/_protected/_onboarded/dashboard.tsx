@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { authClient } from "#/lib/auth-client";
 import { Button } from "#/components/ui/button";
 import {
@@ -10,13 +10,14 @@ import {
 } from "#/components/ui/card";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_protected/dashboard")({
+export const Route = createFileRoute("/_protected/_onboarded/dashboard")({
   component: DashboardPage,
 });
 
 function DashboardPage() {
   const { user } = Route.useRouteContext();
   const navigate = useNavigate();
+  const { data: activeOrg } = authClient.useActiveOrganization();
 
   const handleSignOut = async () => {
     await authClient.signOut({
@@ -40,13 +41,26 @@ function DashboardPage() {
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
           <p className="text-sm text-muted-foreground">{user.email}</p>
-          <div className="flex gap-2">
+          {activeOrg && (
+            <p className="text-sm">
+              Active organization: <strong>{activeOrg.name}</strong>
+            </p>
+          )}
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" asChild>
+              <Link to="/org/members">Manage Organization</Link>
+            </Button>
             <Button
               variant="outline"
-              onClick={() => navigate({ to: "/_protected/settings" })}
+              onClick={() => navigate({ to: "/settings" })}
             >
               Settings
             </Button>
+            {user.role === "admin" && (
+              <Button variant="outline" asChild>
+                <Link to="/admin/users">Admin</Link>
+              </Button>
+            )}
             <Button variant="ghost" onClick={handleSignOut}>
               Sign Out
             </Button>

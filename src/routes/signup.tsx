@@ -70,14 +70,14 @@ function SignUpPage() {
       }
 
       toast.success("Account created!");
-      navigate({ to: "/_protected/dashboard" });
+      navigate({ to: "/dashboard" });
     },
   });
 
   const handleSocial = (provider: "github" | "google" | "microsoft") => {
     authClient.signIn.social({
       provider,
-      callbackURL: "/_protected/dashboard",
+      callbackURL: "/dashboard",
     });
   };
 

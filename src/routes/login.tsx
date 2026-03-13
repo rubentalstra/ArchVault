@@ -41,7 +41,7 @@ function LoginPage() {
     if (redirectTo) {
       window.location.href = redirectTo;
     } else {
-      navigate({ to: "/_protected/dashboard" });
+      navigate({ to: "/dashboard" });
     }
   };
 
@@ -107,7 +107,7 @@ function LoginPage() {
   const handleSocial = (provider: "github" | "google" | "microsoft") => {
     authClient.signIn.social({
       provider,
-      callbackURL: redirectTo ?? "/_protected/dashboard",
+      callbackURL: redirectTo ?? "/dashboard",
     });
   };
 

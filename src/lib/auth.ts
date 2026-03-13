@@ -13,7 +13,7 @@ import { createElement } from "react";
 import { db } from "./database";
 import { platformAc, platformRoles, orgAc, orgRoles } from "./permissions";
 import { sendEmail } from "./email";
-import { OtpEmail } from "@archvault/transactional";
+import { OtpEmail, InvitationEmail } from "@archvault/transactional";
 
 export const auth = betterAuth({
   appName: "Archvault",
@@ -40,7 +40,24 @@ export const auth = betterAuth({
   plugins: [
     tanstackStartCookies(),
     admin({ ac: platformAc, roles: platformRoles }),
-    organization({ ac: orgAc, roles: orgRoles }),
+    organization({
+      ac: orgAc,
+      roles: orgRoles,
+      teams: { enabled: true },
+      async sendInvitationEmail(data) {
+        const inviteUrl = `${process.env.BETTER_AUTH_URL}/accept-invitation/${data.id}`;
+        await sendEmail({
+          to: data.email,
+          subject: `Archvault — You've been invited to ${data.organization.name}`,
+          react: createElement(InvitationEmail, {
+            organizationName: data.organization.name,
+            inviterName: data.inviter.user.name,
+            role: data.role,
+            inviteUrl,
+          }),
+        });
+      },
+    }),
     twoFactor(),
     emailOTP({
       async sendVerificationOTP({ email, otp, type }) {

@@ -11,7 +11,7 @@ import { platformAc, platformRoles, orgAc, orgRoles } from "./permissions";
 export const authClient = createAuthClient({
   plugins: [
     adminClient({ ac: platformAc, roles: platformRoles }),
-    organizationClient({ ac: orgAc, roles: orgRoles }),
+    organizationClient({ ac: orgAc, roles: orgRoles, teams: { enabled: true } }),
     twoFactorClient(),
     emailOTPClient(),
     lastLoginMethodClient(),

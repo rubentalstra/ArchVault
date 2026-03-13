@@ -35,7 +35,7 @@ function TwoFactorPage() {
     if (redirectTo) {
       window.location.href = redirectTo;
     } else {
-      navigate({ to: "/_protected/dashboard" });
+      navigate({ to: "/dashboard" });
     }
   };
 

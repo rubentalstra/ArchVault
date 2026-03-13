@@ -17,12 +17,20 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as ProtectedRouteImport } from './routes/_protected'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProtectedSettingsRouteImport } from './routes/_protected/settings'
-import { Route as ProtectedDashboardRouteImport } from './routes/_protected/dashboard'
+import { Route as ProtectedOnboardingRouteImport } from './routes/_protected/onboarding'
 import { Route as ProtectedAdminRouteImport } from './routes/_protected/admin'
+import { Route as ProtectedOnboardedRouteImport } from './routes/_protected/_onboarded'
 import { Route as ProtectedAdminIndexRouteImport } from './routes/_protected/admin/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ProtectedAdminUsersRouteImport } from './routes/_protected/admin/users'
+import { Route as ProtectedAcceptInvitationInvitationIdRouteImport } from './routes/_protected/accept-invitation.$invitationId'
+import { Route as ProtectedOnboardedOrgRouteImport } from './routes/_protected/_onboarded/org'
+import { Route as ProtectedOnboardedDashboardRouteImport } from './routes/_protected/_onboarded/dashboard'
+import { Route as ProtectedOnboardedOrgIndexRouteImport } from './routes/_protected/_onboarded/org/index'
 import { Route as ProtectedAdminUserUserIdRouteImport } from './routes/_protected/admin/user.$userId'
+import { Route as ProtectedOnboardedOrgTeamsRouteImport } from './routes/_protected/_onboarded/org/teams'
+import { Route as ProtectedOnboardedOrgSettingsRouteImport } from './routes/_protected/_onboarded/org/settings'
+import { Route as ProtectedOnboardedOrgMembersRouteImport } from './routes/_protected/_onboarded/org/members'
 
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
   id: '/verify-email',
@@ -63,14 +71,18 @@ const ProtectedSettingsRoute = ProtectedSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => ProtectedRoute,
 } as any)
-const ProtectedDashboardRoute = ProtectedDashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
+const ProtectedOnboardingRoute = ProtectedOnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
   getParentRoute: () => ProtectedRoute,
 } as any)
 const ProtectedAdminRoute = ProtectedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedOnboardedRoute = ProtectedOnboardedRouteImport.update({
+  id: '/_onboarded',
   getParentRoute: () => ProtectedRoute,
 } as any)
 const ProtectedAdminIndexRoute = ProtectedAdminIndexRouteImport.update({
@@ -88,11 +100,52 @@ const ProtectedAdminUsersRoute = ProtectedAdminUsersRouteImport.update({
   path: '/users',
   getParentRoute: () => ProtectedAdminRoute,
 } as any)
+const ProtectedAcceptInvitationInvitationIdRoute =
+  ProtectedAcceptInvitationInvitationIdRouteImport.update({
+    id: '/accept-invitation/$invitationId',
+    path: '/accept-invitation/$invitationId',
+    getParentRoute: () => ProtectedRoute,
+  } as any)
+const ProtectedOnboardedOrgRoute = ProtectedOnboardedOrgRouteImport.update({
+  id: '/org',
+  path: '/org',
+  getParentRoute: () => ProtectedOnboardedRoute,
+} as any)
+const ProtectedOnboardedDashboardRoute =
+  ProtectedOnboardedDashboardRouteImport.update({
+    id: '/dashboard',
+    path: '/dashboard',
+    getParentRoute: () => ProtectedOnboardedRoute,
+  } as any)
+const ProtectedOnboardedOrgIndexRoute =
+  ProtectedOnboardedOrgIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => ProtectedOnboardedOrgRoute,
+  } as any)
 const ProtectedAdminUserUserIdRoute =
   ProtectedAdminUserUserIdRouteImport.update({
     id: '/user/$userId',
     path: '/user/$userId',
     getParentRoute: () => ProtectedAdminRoute,
+  } as any)
+const ProtectedOnboardedOrgTeamsRoute =
+  ProtectedOnboardedOrgTeamsRouteImport.update({
+    id: '/teams',
+    path: '/teams',
+    getParentRoute: () => ProtectedOnboardedOrgRoute,
+  } as any)
+const ProtectedOnboardedOrgSettingsRoute =
+  ProtectedOnboardedOrgSettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => ProtectedOnboardedOrgRoute,
+  } as any)
+const ProtectedOnboardedOrgMembersRoute =
+  ProtectedOnboardedOrgMembersRouteImport.update({
+    id: '/members',
+    path: '/members',
+    getParentRoute: () => ProtectedOnboardedOrgRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -103,12 +156,19 @@ export interface FileRoutesByFullPath {
   '/two-factor': typeof TwoFactorRoute
   '/verify-email': typeof VerifyEmailRoute
   '/admin': typeof ProtectedAdminRouteWithChildren
-  '/dashboard': typeof ProtectedDashboardRoute
+  '/onboarding': typeof ProtectedOnboardingRoute
   '/settings': typeof ProtectedSettingsRoute
+  '/dashboard': typeof ProtectedOnboardedDashboardRoute
+  '/org': typeof ProtectedOnboardedOrgRouteWithChildren
+  '/accept-invitation/$invitationId': typeof ProtectedAcceptInvitationInvitationIdRoute
   '/admin/users': typeof ProtectedAdminUsersRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/admin/': typeof ProtectedAdminIndexRoute
+  '/org/members': typeof ProtectedOnboardedOrgMembersRoute
+  '/org/settings': typeof ProtectedOnboardedOrgSettingsRoute
+  '/org/teams': typeof ProtectedOnboardedOrgTeamsRoute
   '/admin/user/$userId': typeof ProtectedAdminUserUserIdRoute
+  '/org/': typeof ProtectedOnboardedOrgIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -117,12 +177,18 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/two-factor': typeof TwoFactorRoute
   '/verify-email': typeof VerifyEmailRoute
-  '/dashboard': typeof ProtectedDashboardRoute
+  '/onboarding': typeof ProtectedOnboardingRoute
   '/settings': typeof ProtectedSettingsRoute
+  '/dashboard': typeof ProtectedOnboardedDashboardRoute
+  '/accept-invitation/$invitationId': typeof ProtectedAcceptInvitationInvitationIdRoute
   '/admin/users': typeof ProtectedAdminUsersRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/admin': typeof ProtectedAdminIndexRoute
+  '/org/members': typeof ProtectedOnboardedOrgMembersRoute
+  '/org/settings': typeof ProtectedOnboardedOrgSettingsRoute
+  '/org/teams': typeof ProtectedOnboardedOrgTeamsRoute
   '/admin/user/$userId': typeof ProtectedAdminUserUserIdRoute
+  '/org': typeof ProtectedOnboardedOrgIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -133,13 +199,21 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/two-factor': typeof TwoFactorRoute
   '/verify-email': typeof VerifyEmailRoute
+  '/_protected/_onboarded': typeof ProtectedOnboardedRouteWithChildren
   '/_protected/admin': typeof ProtectedAdminRouteWithChildren
-  '/_protected/dashboard': typeof ProtectedDashboardRoute
+  '/_protected/onboarding': typeof ProtectedOnboardingRoute
   '/_protected/settings': typeof ProtectedSettingsRoute
+  '/_protected/_onboarded/dashboard': typeof ProtectedOnboardedDashboardRoute
+  '/_protected/_onboarded/org': typeof ProtectedOnboardedOrgRouteWithChildren
+  '/_protected/accept-invitation/$invitationId': typeof ProtectedAcceptInvitationInvitationIdRoute
   '/_protected/admin/users': typeof ProtectedAdminUsersRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_protected/admin/': typeof ProtectedAdminIndexRoute
+  '/_protected/_onboarded/org/members': typeof ProtectedOnboardedOrgMembersRoute
+  '/_protected/_onboarded/org/settings': typeof ProtectedOnboardedOrgSettingsRoute
+  '/_protected/_onboarded/org/teams': typeof ProtectedOnboardedOrgTeamsRoute
   '/_protected/admin/user/$userId': typeof ProtectedAdminUserUserIdRoute
+  '/_protected/_onboarded/org/': typeof ProtectedOnboardedOrgIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -151,12 +225,19 @@ export interface FileRouteTypes {
     | '/two-factor'
     | '/verify-email'
     | '/admin'
-    | '/dashboard'
+    | '/onboarding'
     | '/settings'
+    | '/dashboard'
+    | '/org'
+    | '/accept-invitation/$invitationId'
     | '/admin/users'
     | '/api/auth/$'
     | '/admin/'
+    | '/org/members'
+    | '/org/settings'
+    | '/org/teams'
     | '/admin/user/$userId'
+    | '/org/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -165,12 +246,18 @@ export interface FileRouteTypes {
     | '/signup'
     | '/two-factor'
     | '/verify-email'
-    | '/dashboard'
+    | '/onboarding'
     | '/settings'
+    | '/dashboard'
+    | '/accept-invitation/$invitationId'
     | '/admin/users'
     | '/api/auth/$'
     | '/admin'
+    | '/org/members'
+    | '/org/settings'
+    | '/org/teams'
     | '/admin/user/$userId'
+    | '/org'
   id:
     | '__root__'
     | '/'
@@ -180,13 +267,21 @@ export interface FileRouteTypes {
     | '/signup'
     | '/two-factor'
     | '/verify-email'
+    | '/_protected/_onboarded'
     | '/_protected/admin'
-    | '/_protected/dashboard'
+    | '/_protected/onboarding'
     | '/_protected/settings'
+    | '/_protected/_onboarded/dashboard'
+    | '/_protected/_onboarded/org'
+    | '/_protected/accept-invitation/$invitationId'
     | '/_protected/admin/users'
     | '/api/auth/$'
     | '/_protected/admin/'
+    | '/_protected/_onboarded/org/members'
+    | '/_protected/_onboarded/org/settings'
+    | '/_protected/_onboarded/org/teams'
     | '/_protected/admin/user/$userId'
+    | '/_protected/_onboarded/org/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -258,11 +353,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedSettingsRouteImport
       parentRoute: typeof ProtectedRoute
     }
-    '/_protected/dashboard': {
-      id: '/_protected/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof ProtectedDashboardRouteImport
+    '/_protected/onboarding': {
+      id: '/_protected/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof ProtectedOnboardingRouteImport
       parentRoute: typeof ProtectedRoute
     }
     '/_protected/admin': {
@@ -270,6 +365,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof ProtectedAdminRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/_onboarded': {
+      id: '/_protected/_onboarded'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof ProtectedOnboardedRouteImport
       parentRoute: typeof ProtectedRoute
     }
     '/_protected/admin/': {
@@ -293,6 +395,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedAdminUsersRouteImport
       parentRoute: typeof ProtectedAdminRoute
     }
+    '/_protected/accept-invitation/$invitationId': {
+      id: '/_protected/accept-invitation/$invitationId'
+      path: '/accept-invitation/$invitationId'
+      fullPath: '/accept-invitation/$invitationId'
+      preLoaderRoute: typeof ProtectedAcceptInvitationInvitationIdRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/_onboarded/org': {
+      id: '/_protected/_onboarded/org'
+      path: '/org'
+      fullPath: '/org'
+      preLoaderRoute: typeof ProtectedOnboardedOrgRouteImport
+      parentRoute: typeof ProtectedOnboardedRoute
+    }
+    '/_protected/_onboarded/dashboard': {
+      id: '/_protected/_onboarded/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof ProtectedOnboardedDashboardRouteImport
+      parentRoute: typeof ProtectedOnboardedRoute
+    }
+    '/_protected/_onboarded/org/': {
+      id: '/_protected/_onboarded/org/'
+      path: '/'
+      fullPath: '/org/'
+      preLoaderRoute: typeof ProtectedOnboardedOrgIndexRouteImport
+      parentRoute: typeof ProtectedOnboardedOrgRoute
+    }
     '/_protected/admin/user/$userId': {
       id: '/_protected/admin/user/$userId'
       path: '/user/$userId'
@@ -300,8 +430,61 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedAdminUserUserIdRouteImport
       parentRoute: typeof ProtectedAdminRoute
     }
+    '/_protected/_onboarded/org/teams': {
+      id: '/_protected/_onboarded/org/teams'
+      path: '/teams'
+      fullPath: '/org/teams'
+      preLoaderRoute: typeof ProtectedOnboardedOrgTeamsRouteImport
+      parentRoute: typeof ProtectedOnboardedOrgRoute
+    }
+    '/_protected/_onboarded/org/settings': {
+      id: '/_protected/_onboarded/org/settings'
+      path: '/settings'
+      fullPath: '/org/settings'
+      preLoaderRoute: typeof ProtectedOnboardedOrgSettingsRouteImport
+      parentRoute: typeof ProtectedOnboardedOrgRoute
+    }
+    '/_protected/_onboarded/org/members': {
+      id: '/_protected/_onboarded/org/members'
+      path: '/members'
+      fullPath: '/org/members'
+      preLoaderRoute: typeof ProtectedOnboardedOrgMembersRouteImport
+      parentRoute: typeof ProtectedOnboardedOrgRoute
+    }
   }
 }
+
+interface ProtectedOnboardedOrgRouteChildren {
+  ProtectedOnboardedOrgMembersRoute: typeof ProtectedOnboardedOrgMembersRoute
+  ProtectedOnboardedOrgSettingsRoute: typeof ProtectedOnboardedOrgSettingsRoute
+  ProtectedOnboardedOrgTeamsRoute: typeof ProtectedOnboardedOrgTeamsRoute
+  ProtectedOnboardedOrgIndexRoute: typeof ProtectedOnboardedOrgIndexRoute
+}
+
+const ProtectedOnboardedOrgRouteChildren: ProtectedOnboardedOrgRouteChildren = {
+  ProtectedOnboardedOrgMembersRoute: ProtectedOnboardedOrgMembersRoute,
+  ProtectedOnboardedOrgSettingsRoute: ProtectedOnboardedOrgSettingsRoute,
+  ProtectedOnboardedOrgTeamsRoute: ProtectedOnboardedOrgTeamsRoute,
+  ProtectedOnboardedOrgIndexRoute: ProtectedOnboardedOrgIndexRoute,
+}
+
+const ProtectedOnboardedOrgRouteWithChildren =
+  ProtectedOnboardedOrgRoute._addFileChildren(
+    ProtectedOnboardedOrgRouteChildren,
+  )
+
+interface ProtectedOnboardedRouteChildren {
+  ProtectedOnboardedDashboardRoute: typeof ProtectedOnboardedDashboardRoute
+  ProtectedOnboardedOrgRoute: typeof ProtectedOnboardedOrgRouteWithChildren
+}
+
+const ProtectedOnboardedRouteChildren: ProtectedOnboardedRouteChildren = {
+  ProtectedOnboardedDashboardRoute: ProtectedOnboardedDashboardRoute,
+  ProtectedOnboardedOrgRoute: ProtectedOnboardedOrgRouteWithChildren,
+}
+
+const ProtectedOnboardedRouteWithChildren =
+  ProtectedOnboardedRoute._addFileChildren(ProtectedOnboardedRouteChildren)
 
 interface ProtectedAdminRouteChildren {
   ProtectedAdminUsersRoute: typeof ProtectedAdminUsersRoute
@@ -320,15 +503,20 @@ const ProtectedAdminRouteWithChildren = ProtectedAdminRoute._addFileChildren(
 )
 
 interface ProtectedRouteChildren {
+  ProtectedOnboardedRoute: typeof ProtectedOnboardedRouteWithChildren
   ProtectedAdminRoute: typeof ProtectedAdminRouteWithChildren
-  ProtectedDashboardRoute: typeof ProtectedDashboardRoute
+  ProtectedOnboardingRoute: typeof ProtectedOnboardingRoute
   ProtectedSettingsRoute: typeof ProtectedSettingsRoute
+  ProtectedAcceptInvitationInvitationIdRoute: typeof ProtectedAcceptInvitationInvitationIdRoute
 }
 
 const ProtectedRouteChildren: ProtectedRouteChildren = {
+  ProtectedOnboardedRoute: ProtectedOnboardedRouteWithChildren,
   ProtectedAdminRoute: ProtectedAdminRouteWithChildren,
-  ProtectedDashboardRoute: ProtectedDashboardRoute,
+  ProtectedOnboardingRoute: ProtectedOnboardingRoute,
   ProtectedSettingsRoute: ProtectedSettingsRoute,
+  ProtectedAcceptInvitationInvitationIdRoute:
+    ProtectedAcceptInvitationInvitationIdRoute,
 }
 
 const ProtectedRouteWithChildren = ProtectedRoute._addFileChildren(
