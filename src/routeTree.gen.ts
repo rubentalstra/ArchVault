@@ -16,7 +16,6 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ProtectedRouteImport } from './routes/_protected'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ProtectedSettingsRouteImport } from './routes/_protected/settings'
 import { Route as ProtectedOnboardingRouteImport } from './routes/_protected/onboarding'
 import { Route as ProtectedAdminRouteImport } from './routes/_protected/admin'
 import { Route as ProtectedOnboardedRouteImport } from './routes/_protected/_onboarded'
@@ -35,11 +34,14 @@ import { Route as ProtectedOnboardedOrgWorkspacesRouteImport } from './routes/_p
 import { Route as ProtectedOnboardedOrgTeamsRouteImport } from './routes/_protected/_onboarded/org/teams'
 import { Route as ProtectedOnboardedOrgSettingsRouteImport } from './routes/_protected/_onboarded/org/settings'
 import { Route as ProtectedOnboardedOrgMembersRouteImport } from './routes/_protected/_onboarded/org/members'
+import { Route as ProtectedOnboardedOrgAccountRouteImport } from './routes/_protected/_onboarded/org/account'
 import { Route as ProtectedOnboardedWorkspaceWorkspaceSlugIndexRouteImport } from './routes/_protected/_onboarded/workspace/$workspaceSlug/index'
+import { Route as ProtectedOnboardedOrgAccountIndexRouteImport } from './routes/_protected/_onboarded/org/account/index'
 import { Route as ProtectedOnboardedWorkspaceWorkspaceSlugSettingsRouteImport } from './routes/_protected/_onboarded/workspace/$workspaceSlug/settings'
 import { Route as ProtectedOnboardedWorkspaceWorkspaceSlugRelationshipsRouteImport } from './routes/_protected/_onboarded/workspace/$workspaceSlug/relationships'
 import { Route as ProtectedOnboardedWorkspaceWorkspaceSlugElementsRouteImport } from './routes/_protected/_onboarded/workspace/$workspaceSlug/elements'
 import { Route as ProtectedOnboardedWorkspaceWorkspaceSlugDiagramsRouteImport } from './routes/_protected/_onboarded/workspace/$workspaceSlug/diagrams'
+import { Route as ProtectedOnboardedOrgAccountSecurityRouteImport } from './routes/_protected/_onboarded/org/account/security'
 
 const VerifyEmailRoute = VerifyEmailRouteImport.update({
   id: '/verify-email',
@@ -74,11 +76,6 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
-} as any)
-const ProtectedSettingsRoute = ProtectedSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => ProtectedRoute,
 } as any)
 const ProtectedOnboardingRoute = ProtectedOnboardingRouteImport.update({
   id: '/onboarding',
@@ -178,11 +175,23 @@ const ProtectedOnboardedOrgMembersRoute =
     path: '/members',
     getParentRoute: () => ProtectedOnboardedOrgRoute,
   } as any)
+const ProtectedOnboardedOrgAccountRoute =
+  ProtectedOnboardedOrgAccountRouteImport.update({
+    id: '/account',
+    path: '/account',
+    getParentRoute: () => ProtectedOnboardedOrgRoute,
+  } as any)
 const ProtectedOnboardedWorkspaceWorkspaceSlugIndexRoute =
   ProtectedOnboardedWorkspaceWorkspaceSlugIndexRouteImport.update({
     id: '/',
     path: '/',
     getParentRoute: () => ProtectedOnboardedWorkspaceWorkspaceSlugRoute,
+  } as any)
+const ProtectedOnboardedOrgAccountIndexRoute =
+  ProtectedOnboardedOrgAccountIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => ProtectedOnboardedOrgAccountRoute,
   } as any)
 const ProtectedOnboardedWorkspaceWorkspaceSlugSettingsRoute =
   ProtectedOnboardedWorkspaceWorkspaceSlugSettingsRouteImport.update({
@@ -208,6 +217,12 @@ const ProtectedOnboardedWorkspaceWorkspaceSlugDiagramsRoute =
     path: '/diagrams',
     getParentRoute: () => ProtectedOnboardedWorkspaceWorkspaceSlugRoute,
   } as any)
+const ProtectedOnboardedOrgAccountSecurityRoute =
+  ProtectedOnboardedOrgAccountSecurityRouteImport.update({
+    id: '/security',
+    path: '/security',
+    getParentRoute: () => ProtectedOnboardedOrgAccountRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -218,7 +233,6 @@ export interface FileRoutesByFullPath {
   '/verify-email': typeof VerifyEmailRoute
   '/admin': typeof ProtectedAdminRouteWithChildren
   '/onboarding': typeof ProtectedOnboardingRoute
-  '/settings': typeof ProtectedSettingsRoute
   '/dashboard': typeof ProtectedOnboardedDashboardRoute
   '/org': typeof ProtectedOnboardedOrgRouteWithChildren
   '/accept-invitation/$invitationId': typeof ProtectedAcceptInvitationInvitationIdRoute
@@ -227,6 +241,7 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof ProtectedAdminUsersRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/admin/': typeof ProtectedAdminIndexRoute
+  '/org/account': typeof ProtectedOnboardedOrgAccountRouteWithChildren
   '/org/members': typeof ProtectedOnboardedOrgMembersRoute
   '/org/settings': typeof ProtectedOnboardedOrgSettingsRoute
   '/org/teams': typeof ProtectedOnboardedOrgTeamsRoute
@@ -234,10 +249,12 @@ export interface FileRoutesByFullPath {
   '/workspace/$workspaceSlug': typeof ProtectedOnboardedWorkspaceWorkspaceSlugRouteWithChildren
   '/admin/user/$userId': typeof ProtectedAdminUserUserIdRoute
   '/org/': typeof ProtectedOnboardedOrgIndexRoute
+  '/org/account/security': typeof ProtectedOnboardedOrgAccountSecurityRoute
   '/workspace/$workspaceSlug/diagrams': typeof ProtectedOnboardedWorkspaceWorkspaceSlugDiagramsRoute
   '/workspace/$workspaceSlug/elements': typeof ProtectedOnboardedWorkspaceWorkspaceSlugElementsRoute
   '/workspace/$workspaceSlug/relationships': typeof ProtectedOnboardedWorkspaceWorkspaceSlugRelationshipsRoute
   '/workspace/$workspaceSlug/settings': typeof ProtectedOnboardedWorkspaceWorkspaceSlugSettingsRoute
+  '/org/account/': typeof ProtectedOnboardedOrgAccountIndexRoute
   '/workspace/$workspaceSlug/': typeof ProtectedOnboardedWorkspaceWorkspaceSlugIndexRoute
 }
 export interface FileRoutesByTo {
@@ -248,7 +265,6 @@ export interface FileRoutesByTo {
   '/two-factor': typeof TwoFactorRoute
   '/verify-email': typeof VerifyEmailRoute
   '/onboarding': typeof ProtectedOnboardingRoute
-  '/settings': typeof ProtectedSettingsRoute
   '/dashboard': typeof ProtectedOnboardedDashboardRoute
   '/accept-invitation/$invitationId': typeof ProtectedAcceptInvitationInvitationIdRoute
   '/admin/scim': typeof ProtectedAdminScimRoute
@@ -262,10 +278,12 @@ export interface FileRoutesByTo {
   '/org/workspaces': typeof ProtectedOnboardedOrgWorkspacesRoute
   '/admin/user/$userId': typeof ProtectedAdminUserUserIdRoute
   '/org': typeof ProtectedOnboardedOrgIndexRoute
+  '/org/account/security': typeof ProtectedOnboardedOrgAccountSecurityRoute
   '/workspace/$workspaceSlug/diagrams': typeof ProtectedOnboardedWorkspaceWorkspaceSlugDiagramsRoute
   '/workspace/$workspaceSlug/elements': typeof ProtectedOnboardedWorkspaceWorkspaceSlugElementsRoute
   '/workspace/$workspaceSlug/relationships': typeof ProtectedOnboardedWorkspaceWorkspaceSlugRelationshipsRoute
   '/workspace/$workspaceSlug/settings': typeof ProtectedOnboardedWorkspaceWorkspaceSlugSettingsRoute
+  '/org/account': typeof ProtectedOnboardedOrgAccountIndexRoute
   '/workspace/$workspaceSlug': typeof ProtectedOnboardedWorkspaceWorkspaceSlugIndexRoute
 }
 export interface FileRoutesById {
@@ -280,7 +298,6 @@ export interface FileRoutesById {
   '/_protected/_onboarded': typeof ProtectedOnboardedRouteWithChildren
   '/_protected/admin': typeof ProtectedAdminRouteWithChildren
   '/_protected/onboarding': typeof ProtectedOnboardingRoute
-  '/_protected/settings': typeof ProtectedSettingsRoute
   '/_protected/_onboarded/dashboard': typeof ProtectedOnboardedDashboardRoute
   '/_protected/_onboarded/org': typeof ProtectedOnboardedOrgRouteWithChildren
   '/_protected/accept-invitation/$invitationId': typeof ProtectedAcceptInvitationInvitationIdRoute
@@ -289,6 +306,7 @@ export interface FileRoutesById {
   '/_protected/admin/users': typeof ProtectedAdminUsersRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_protected/admin/': typeof ProtectedAdminIndexRoute
+  '/_protected/_onboarded/org/account': typeof ProtectedOnboardedOrgAccountRouteWithChildren
   '/_protected/_onboarded/org/members': typeof ProtectedOnboardedOrgMembersRoute
   '/_protected/_onboarded/org/settings': typeof ProtectedOnboardedOrgSettingsRoute
   '/_protected/_onboarded/org/teams': typeof ProtectedOnboardedOrgTeamsRoute
@@ -296,10 +314,12 @@ export interface FileRoutesById {
   '/_protected/_onboarded/workspace/$workspaceSlug': typeof ProtectedOnboardedWorkspaceWorkspaceSlugRouteWithChildren
   '/_protected/admin/user/$userId': typeof ProtectedAdminUserUserIdRoute
   '/_protected/_onboarded/org/': typeof ProtectedOnboardedOrgIndexRoute
+  '/_protected/_onboarded/org/account/security': typeof ProtectedOnboardedOrgAccountSecurityRoute
   '/_protected/_onboarded/workspace/$workspaceSlug/diagrams': typeof ProtectedOnboardedWorkspaceWorkspaceSlugDiagramsRoute
   '/_protected/_onboarded/workspace/$workspaceSlug/elements': typeof ProtectedOnboardedWorkspaceWorkspaceSlugElementsRoute
   '/_protected/_onboarded/workspace/$workspaceSlug/relationships': typeof ProtectedOnboardedWorkspaceWorkspaceSlugRelationshipsRoute
   '/_protected/_onboarded/workspace/$workspaceSlug/settings': typeof ProtectedOnboardedWorkspaceWorkspaceSlugSettingsRoute
+  '/_protected/_onboarded/org/account/': typeof ProtectedOnboardedOrgAccountIndexRoute
   '/_protected/_onboarded/workspace/$workspaceSlug/': typeof ProtectedOnboardedWorkspaceWorkspaceSlugIndexRoute
 }
 export interface FileRouteTypes {
@@ -313,7 +333,6 @@ export interface FileRouteTypes {
     | '/verify-email'
     | '/admin'
     | '/onboarding'
-    | '/settings'
     | '/dashboard'
     | '/org'
     | '/accept-invitation/$invitationId'
@@ -322,6 +341,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/api/auth/$'
     | '/admin/'
+    | '/org/account'
     | '/org/members'
     | '/org/settings'
     | '/org/teams'
@@ -329,10 +349,12 @@ export interface FileRouteTypes {
     | '/workspace/$workspaceSlug'
     | '/admin/user/$userId'
     | '/org/'
+    | '/org/account/security'
     | '/workspace/$workspaceSlug/diagrams'
     | '/workspace/$workspaceSlug/elements'
     | '/workspace/$workspaceSlug/relationships'
     | '/workspace/$workspaceSlug/settings'
+    | '/org/account/'
     | '/workspace/$workspaceSlug/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -343,7 +365,6 @@ export interface FileRouteTypes {
     | '/two-factor'
     | '/verify-email'
     | '/onboarding'
-    | '/settings'
     | '/dashboard'
     | '/accept-invitation/$invitationId'
     | '/admin/scim'
@@ -357,10 +378,12 @@ export interface FileRouteTypes {
     | '/org/workspaces'
     | '/admin/user/$userId'
     | '/org'
+    | '/org/account/security'
     | '/workspace/$workspaceSlug/diagrams'
     | '/workspace/$workspaceSlug/elements'
     | '/workspace/$workspaceSlug/relationships'
     | '/workspace/$workspaceSlug/settings'
+    | '/org/account'
     | '/workspace/$workspaceSlug'
   id:
     | '__root__'
@@ -374,7 +397,6 @@ export interface FileRouteTypes {
     | '/_protected/_onboarded'
     | '/_protected/admin'
     | '/_protected/onboarding'
-    | '/_protected/settings'
     | '/_protected/_onboarded/dashboard'
     | '/_protected/_onboarded/org'
     | '/_protected/accept-invitation/$invitationId'
@@ -383,6 +405,7 @@ export interface FileRouteTypes {
     | '/_protected/admin/users'
     | '/api/auth/$'
     | '/_protected/admin/'
+    | '/_protected/_onboarded/org/account'
     | '/_protected/_onboarded/org/members'
     | '/_protected/_onboarded/org/settings'
     | '/_protected/_onboarded/org/teams'
@@ -390,10 +413,12 @@ export interface FileRouteTypes {
     | '/_protected/_onboarded/workspace/$workspaceSlug'
     | '/_protected/admin/user/$userId'
     | '/_protected/_onboarded/org/'
+    | '/_protected/_onboarded/org/account/security'
     | '/_protected/_onboarded/workspace/$workspaceSlug/diagrams'
     | '/_protected/_onboarded/workspace/$workspaceSlug/elements'
     | '/_protected/_onboarded/workspace/$workspaceSlug/relationships'
     | '/_protected/_onboarded/workspace/$workspaceSlug/settings'
+    | '/_protected/_onboarded/org/account/'
     | '/_protected/_onboarded/workspace/$workspaceSlug/'
   fileRoutesById: FileRoutesById
 }
@@ -458,13 +483,6 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/_protected/settings': {
-      id: '/_protected/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof ProtectedSettingsRouteImport
-      parentRoute: typeof ProtectedRoute
     }
     '/_protected/onboarding': {
       id: '/_protected/onboarding'
@@ -592,12 +610,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedOnboardedOrgMembersRouteImport
       parentRoute: typeof ProtectedOnboardedOrgRoute
     }
+    '/_protected/_onboarded/org/account': {
+      id: '/_protected/_onboarded/org/account'
+      path: '/account'
+      fullPath: '/org/account'
+      preLoaderRoute: typeof ProtectedOnboardedOrgAccountRouteImport
+      parentRoute: typeof ProtectedOnboardedOrgRoute
+    }
     '/_protected/_onboarded/workspace/$workspaceSlug/': {
       id: '/_protected/_onboarded/workspace/$workspaceSlug/'
       path: '/'
       fullPath: '/workspace/$workspaceSlug/'
       preLoaderRoute: typeof ProtectedOnboardedWorkspaceWorkspaceSlugIndexRouteImport
       parentRoute: typeof ProtectedOnboardedWorkspaceWorkspaceSlugRoute
+    }
+    '/_protected/_onboarded/org/account/': {
+      id: '/_protected/_onboarded/org/account/'
+      path: '/'
+      fullPath: '/org/account/'
+      preLoaderRoute: typeof ProtectedOnboardedOrgAccountIndexRouteImport
+      parentRoute: typeof ProtectedOnboardedOrgAccountRoute
     }
     '/_protected/_onboarded/workspace/$workspaceSlug/settings': {
       id: '/_protected/_onboarded/workspace/$workspaceSlug/settings'
@@ -627,10 +659,36 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedOnboardedWorkspaceWorkspaceSlugDiagramsRouteImport
       parentRoute: typeof ProtectedOnboardedWorkspaceWorkspaceSlugRoute
     }
+    '/_protected/_onboarded/org/account/security': {
+      id: '/_protected/_onboarded/org/account/security'
+      path: '/security'
+      fullPath: '/org/account/security'
+      preLoaderRoute: typeof ProtectedOnboardedOrgAccountSecurityRouteImport
+      parentRoute: typeof ProtectedOnboardedOrgAccountRoute
+    }
   }
 }
 
+interface ProtectedOnboardedOrgAccountRouteChildren {
+  ProtectedOnboardedOrgAccountSecurityRoute: typeof ProtectedOnboardedOrgAccountSecurityRoute
+  ProtectedOnboardedOrgAccountIndexRoute: typeof ProtectedOnboardedOrgAccountIndexRoute
+}
+
+const ProtectedOnboardedOrgAccountRouteChildren: ProtectedOnboardedOrgAccountRouteChildren =
+  {
+    ProtectedOnboardedOrgAccountSecurityRoute:
+      ProtectedOnboardedOrgAccountSecurityRoute,
+    ProtectedOnboardedOrgAccountIndexRoute:
+      ProtectedOnboardedOrgAccountIndexRoute,
+  }
+
+const ProtectedOnboardedOrgAccountRouteWithChildren =
+  ProtectedOnboardedOrgAccountRoute._addFileChildren(
+    ProtectedOnboardedOrgAccountRouteChildren,
+  )
+
 interface ProtectedOnboardedOrgRouteChildren {
+  ProtectedOnboardedOrgAccountRoute: typeof ProtectedOnboardedOrgAccountRouteWithChildren
   ProtectedOnboardedOrgMembersRoute: typeof ProtectedOnboardedOrgMembersRoute
   ProtectedOnboardedOrgSettingsRoute: typeof ProtectedOnboardedOrgSettingsRoute
   ProtectedOnboardedOrgTeamsRoute: typeof ProtectedOnboardedOrgTeamsRoute
@@ -639,6 +697,8 @@ interface ProtectedOnboardedOrgRouteChildren {
 }
 
 const ProtectedOnboardedOrgRouteChildren: ProtectedOnboardedOrgRouteChildren = {
+  ProtectedOnboardedOrgAccountRoute:
+    ProtectedOnboardedOrgAccountRouteWithChildren,
   ProtectedOnboardedOrgMembersRoute: ProtectedOnboardedOrgMembersRoute,
   ProtectedOnboardedOrgSettingsRoute: ProtectedOnboardedOrgSettingsRoute,
   ProtectedOnboardedOrgTeamsRoute: ProtectedOnboardedOrgTeamsRoute,
@@ -718,7 +778,6 @@ interface ProtectedRouteChildren {
   ProtectedOnboardedRoute: typeof ProtectedOnboardedRouteWithChildren
   ProtectedAdminRoute: typeof ProtectedAdminRouteWithChildren
   ProtectedOnboardingRoute: typeof ProtectedOnboardingRoute
-  ProtectedSettingsRoute: typeof ProtectedSettingsRoute
   ProtectedAcceptInvitationInvitationIdRoute: typeof ProtectedAcceptInvitationInvitationIdRoute
 }
 
@@ -726,7 +785,6 @@ const ProtectedRouteChildren: ProtectedRouteChildren = {
   ProtectedOnboardedRoute: ProtectedOnboardedRouteWithChildren,
   ProtectedAdminRoute: ProtectedAdminRouteWithChildren,
   ProtectedOnboardingRoute: ProtectedOnboardingRoute,
-  ProtectedSettingsRoute: ProtectedSettingsRoute,
   ProtectedAcceptInvitationInvitationIdRoute:
     ProtectedAcceptInvitationInvitationIdRoute,
 }

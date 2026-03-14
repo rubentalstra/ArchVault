@@ -123,7 +123,7 @@ export function NavUser({ user }: NavUserProps) {
             )}
             <DropdownMenuGroup>
               <DropdownMenuItem
-                onClick={() => navigate({ to: "/settings" })}
+                onClick={() => navigate({ to: "/org/account" })}
               >
                 <Settings />
                 {m.org_nav_profile()}
