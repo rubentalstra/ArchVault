@@ -7,4 +7,6 @@ export * from "./workspaces";
 export * from "./elements";
 export * from "./element-technologies";
 export * from "./element-links";
+// Phase 2b: relationships
+export * from "./relationships";
 // Phase 3a: diagrams, diagram_elements, diagram_relationships, diagram_revisions

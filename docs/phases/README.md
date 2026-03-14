@@ -15,7 +15,7 @@
 | 1i    | SSO (Single Sign-On)         | Complete    | 1c           |
 | 1j    | SCIM Provisioning            | Complete    | 1i           |
 | 2a    | Elements                     | Complete    | 1f           |
-| 2b    | Relationships                | Not Started | 2a           |
+| 2b    | Relationships                | Complete    | 2a           |
 | 2c    | Tags                         | Not Started | 2b           |
 | 3a    | Diagram CRUD & Schema        | Not Started | 2a           |
 | 3b    | Canvas Rendering             | Not Started | 3a           |
