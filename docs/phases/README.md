@@ -43,7 +43,7 @@ Archvault uses the same terminology as IcePanel:
 | 2c    | Tags                           | Complete    | 2b           |
 | 2d    | Naming Migration & Store Type  | Not Started | 2a, 2b, 2c   |
 | 2e    | Groups                         | Complete    | 2d           |
-| 2f    | Technology Rewrite             | Not Started | 2a, 2b       |
+| 2f    | Technology Rewrite             | Complete    | 2a, 2b       |
 | 3a    | Diagram CRUD & Schema          | Complete    | 2a, 2b       |
 | 3b    | Canvas Rendering (React Flow)  | Complete    | 3a           |
 | 3c    | Editor Interactions & Panel    | Complete    | 3b           |
@@ -143,7 +143,7 @@ graph TD
     style 2c fill: #dcfce7, stroke: #16a34a
     style 2d fill: #fef9c3, stroke: #ca8a04
     style 2e fill: #dcfce7, stroke: #16a34a
-    style 2f fill: #fef9c3, stroke: #ca8a04
+    style 2f fill: #dcfce7, stroke: #16a34a
     style 3a fill: #dcfce7, stroke: #16a34a
     style 3b fill: #dcfce7, stroke: #16a34a
     style 3c fill: #dcfce7, stroke: #16a34a

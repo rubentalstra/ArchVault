@@ -41,6 +41,7 @@ import {
 import { Separator } from "#/components/ui/separator";
 import { SidebarTrigger } from "#/components/ui/sidebar";
 import { MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
+import { TechIcon } from "#/components/technologies/tech-icon";
 import { m } from "#/paraglide/messages";
 
 export const Route = createFileRoute(
@@ -79,9 +80,7 @@ function getTechColumns({
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
           {row.original.iconSlug && (
-            <Badge variant="outline" className="text-xs">
-              {row.original.iconSlug}
-            </Badge>
+            <TechIcon slug={row.original.iconSlug} className="size-5 shrink-0" />
           )}
           <span className="font-medium">{row.original.name}</span>
         </div>
