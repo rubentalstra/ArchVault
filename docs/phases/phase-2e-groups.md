@@ -1,6 +1,6 @@
 # Phase 2e — Groups
 
-## Status: Not Started
+## Status: Complete
 
 ## Goal
 

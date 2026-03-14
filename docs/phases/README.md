@@ -42,7 +42,8 @@ Archvault uses the same terminology as IcePanel:
 | 2b    | Connections (Relationships)    | Complete    | 2a           |
 | 2c    | Tags                           | Complete    | 2b           |
 | 2d    | Naming Migration & Store Type  | Not Started | 2a, 2b, 2c   |
-| 2e    | Groups                         | Not Started | 2d           |
+| 2e    | Groups                         | Complete    | 2d           |
+| 2f    | Technology Rewrite             | Not Started | 2a, 2b       |
 | 3a    | Diagram CRUD & Schema          | Complete    | 2a, 2b       |
 | 3b    | Canvas Rendering (React Flow)  | Complete    | 3a           |
 | 3c    | Editor Interactions & Panel    | Complete    | 3b           |
@@ -59,7 +60,7 @@ Archvault uses the same terminology as IcePanel:
 | 6a    | Versions & Timeline            | Not Started | 3f           |
 | 6b    | Share Links                    | Not Started | 5b           |
 | 7a    | Import & Export                | Not Started | 6a           |
-| 7b    | Technology Catalog             | Not Started | 2d           |
+| 7b    | Technology Catalog             | Not Started | 2f           |
 | 7c    | Activity Log & Audit           | Not Started | 6a           |
 | 7d    | Trash UI & Permanent Delete    | Not Started | 2d           |
 | 7e    | Docker Self-Hosting            | Not Started | 7a           |
@@ -92,6 +93,8 @@ graph TD
     2b --> 2d
     2c --> 2d
     2d --> 2e["2e: Groups"]
+    2a --> 2f["2f: Tech Rewrite"]
+    2b --> 2f
     2a --> 3a["3a: Diagram CRUD"]
     2b --> 3a
     3a --> 3b["3b: Canvas"]
@@ -100,6 +103,7 @@ graph TD
     2d --> 3d
     3d --> 3e["3e: Groups on Canvas"]
     2e --> 3e
+    2f["2f: Tech Rewrite"] --> 7b
     3d --> 3f["3f: Autosave & Hotkeys"]
     3d --> 4a["4a: Flow Schema"]
     4a --> 4b["4b: Flow Steps"]
@@ -113,7 +117,7 @@ graph TD
     3f --> 6a["6a: Versions"]
     5b --> 6b["6b: Share Links"]
     6a --> 7a["7a: Import & Export"]
-    2e --> 7b["7b: Tech Catalog"]
+    2f --> 7b["7b: Tech Catalog"]
     6a --> 7c["7c: Activity Log"]
     2e --> 7d["7d: Trash UI"]
     7a --> 7e["7e: Docker Deploy"]
@@ -138,7 +142,8 @@ graph TD
     style 2b fill: #dcfce7, stroke: #16a34a
     style 2c fill: #dcfce7, stroke: #16a34a
     style 2d fill: #fef9c3, stroke: #ca8a04
-    style 2e fill: #fef9c3, stroke: #ca8a04
+    style 2e fill: #dcfce7, stroke: #16a34a
+    style 2f fill: #fef9c3, stroke: #ca8a04
     style 3a fill: #dcfce7, stroke: #16a34a
     style 3b fill: #dcfce7, stroke: #16a34a
     style 3c fill: #dcfce7, stroke: #16a34a
