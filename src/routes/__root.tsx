@@ -1,10 +1,11 @@
 /// <reference types="vite/client" />
 import type { ReactNode } from 'react'
+import type { QueryClient } from '@tanstack/react-query'
 import {
   Outlet,
   HeadContent,
   Scripts,
-  createRootRoute,
+  createRootRouteWithContext,
 } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
@@ -14,7 +15,9 @@ import { ImpersonationBanner } from '#/components/admin/impersonation-banner'
 
 import appCss from '../styles.css?url'
 
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<{
+  queryClient: QueryClient
+}>()({
   head: () => ({
     meta: [
       { charSet: 'utf-8' },

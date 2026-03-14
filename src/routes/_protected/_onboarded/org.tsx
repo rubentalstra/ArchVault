@@ -1,5 +1,5 @@
 import { Link, Outlet, createFileRoute } from "@tanstack/react-router";
-import { Users, Settings, Layers, ArrowLeft } from "lucide-react";
+import { Users, Settings, Layers, ArrowLeft, FolderOpen } from "lucide-react";
 import { cn } from "#/lib/utils";
 import { OrgSwitcher } from "#/components/org/org-switcher";
 import { getActiveOrganization } from "#/lib/org.functions";
@@ -29,6 +29,18 @@ function OrgLayout() {
         </div>
 
         <nav className="flex flex-col gap-1">
+          <Link
+            to="/dashboard"
+            className={cn(
+              "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
+            )}
+            activeProps={{
+              className: "bg-accent text-accent-foreground",
+            }}
+          >
+            <FolderOpen className="size-4" />
+            Workspaces
+          </Link>
           <Link
             to="/org/members"
             className={cn(

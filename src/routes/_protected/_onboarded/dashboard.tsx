@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from "#/components/ui/card";
 import { toast } from "sonner";
+import { WorkspaceList } from "#/components/workspace/workspace-list";
 
 export const Route = createFileRoute("/_protected/_onboarded/dashboard")({
   component: DashboardPage,
@@ -67,6 +68,7 @@ function DashboardPage() {
           </div>
         </CardContent>
       </Card>
+      {activeOrg && <WorkspaceList />}
     </main>
   );
 }
