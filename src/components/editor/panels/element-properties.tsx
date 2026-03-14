@@ -245,6 +245,8 @@ export function ElementProperties({ node }: { node: AppNode }) {
                   workspaceId={workspaceId}
                   technologies={element.technologies}
                   iconTechnologyId={element.iconTechnologyId}
+                  nodeId={node.id}
+                  updateNodeData={updateNodeData}
                 />
                 <Separator />
                 <TagsSection elementId={element.id} workspaceId={workspaceId} />
@@ -303,11 +305,15 @@ function TechnologiesSection({
   workspaceId,
   technologies,
   iconTechnologyId,
+  nodeId,
+  updateNodeData,
 }: {
   elementId: string;
   workspaceId: string | null;
   technologies: Array<{ technologyId: string; name: string; iconSlug: string | null }>;
   iconTechnologyId: string | null;
+  nodeId: string;
+  updateNodeData: (nodeId: string, data: Record<string, unknown>) => void;
 }) {
   const queryClient = useQueryClient();
   const getTechnologiesFn = useServerFn(getTechnologies);
@@ -328,27 +334,42 @@ function TechnologiesSection({
       try {
         if (assignedIds.has(technologyId)) {
           await removeElementTechnologyFn({ data: { elementId, technologyId } });
+          // Update canvas node technologies
+          const updatedTechs = technologies.filter((t) => t.technologyId !== technologyId).map((t) => t.name);
+          updateNodeData(nodeId, { technologies: updatedTechs });
+          // Clear icon if removed tech was the icon
+          if (iconTechnologyId === technologyId) {
+            updateNodeData(nodeId, { iconTechSlug: null });
+          }
         } else {
           await addElementTechnologyFn({ data: { elementId, technologyId } });
+          const addedTech = allTechs?.find((t) => t.id === technologyId);
+          if (addedTech) {
+            const updatedTechs = [...technologies.map((t) => t.name), addedTech.name];
+            updateNodeData(nodeId, { technologies: updatedTechs });
+          }
         }
         queryClient.invalidateQueries({ queryKey: ["element", elementId] });
       } catch {
         toast.error(m.editor_panel_save_failed());
       }
     },
-    [elementId, assignedIds, addElementTechnologyFn, removeElementTechnologyFn, queryClient],
+    [elementId, assignedIds, addElementTechnologyFn, removeElementTechnologyFn, queryClient, technologies, nodeId, updateNodeData, allTechs, iconTechnologyId],
   );
 
   const handleSetIcon = useCallback(
     async (technologyId: string | null) => {
       try {
         await setElementIconTechnologyFn({ data: { elementId, technologyId } });
+        // Update canvas node icon
+        const tech = technologyId ? technologies.find((t) => t.technologyId === technologyId) : null;
+        updateNodeData(nodeId, { iconTechSlug: tech?.iconSlug ?? null });
         queryClient.invalidateQueries({ queryKey: ["element", elementId] });
       } catch {
         toast.error(m.editor_panel_save_failed());
       }
     },
-    [elementId, setElementIconTechnologyFn, queryClient],
+    [elementId, setElementIconTechnologyFn, queryClient, technologies, nodeId, updateNodeData],
   );
 
   return (
