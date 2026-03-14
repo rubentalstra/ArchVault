@@ -38,7 +38,7 @@ function shouldAutoParent(
   scopeElementId: string | null,
 ): boolean {
   if (!scopeElementId) return false;
-  if (diagramType === "app" && (elementType === "app" || elementType === "store")) return true;
+  if (diagramType === "container" && (elementType === "app" || elementType === "store")) return true;
   if (diagramType === "component" && elementType === "component") return true;
   return false;
 }

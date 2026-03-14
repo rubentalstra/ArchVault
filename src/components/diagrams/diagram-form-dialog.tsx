@@ -50,14 +50,26 @@ interface DiagramFormDialogProps {
 }
 
 const TYPE_LABELS: Record<DiagramType, () => string> = {
-  context: () => m.diagram_type_context(),
-  app: () => m.diagram_type_app(),
-  component: () => m.diagram_type_component(),
+  system_context: () => `${m.diagram_level_1()} — ${m.diagram_type_system_context()}`,
+  container: () => `${m.diagram_level_2()} — ${m.diagram_type_container()}`,
+  component: () => `${m.diagram_level_3()} — ${m.diagram_type_component()}`,
 };
 
-const SCOPE_FILTER: Record<DiagramType, ElementType[]> = {
-  context: ["system"],
-  app: ["system"],
+const TYPE_DESCRIPTIONS: Record<DiagramType, () => string> = {
+  system_context: () => m.diagram_level_1_description(),
+  container: () => m.diagram_level_2_description(),
+  component: () => m.diagram_level_3_description(),
+};
+
+const SCOPE_LABELS: Record<DiagramType, (() => string) | null> = {
+  system_context: null,
+  container: () => m.diagram_scope_system(),
+  component: () => m.diagram_scope_app(),
+};
+
+const SCOPE_FILTER: Record<DiagramType, ElementType[] | null> = {
+  system_context: null,
+  container: ["system"],
   component: ["app"],
 };
 
@@ -72,12 +84,12 @@ export function DiagramFormDialog({
   const isEdit = !!editDiagram;
   const [scopeError, setScopeError] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<DiagramType>(
-    editDiagram?.diagramType ?? "context",
+    editDiagram?.diagramType ?? "system_context",
   );
 
   const form = useForm({
     defaultValues: {
-      diagramType: editDiagram?.diagramType ?? ("context" as DiagramType),
+      diagramType: editDiagram?.diagramType ?? ("system_context" as DiagramType),
       name: editDiagram?.name ?? "",
       description: editDiagram?.description ?? "",
       scopeElementId: editDiagram?.scopeElementId ?? "",
@@ -146,23 +158,26 @@ export function DiagramFormDialog({
     },
   });
 
+  const showScope = SCOPE_FILTER[selectedType] !== null;
+
   const filteredScopeOptions = useMemo(() => {
     const allowedTypes = SCOPE_FILTER[selectedType];
+    if (!allowedTypes) return [];
     return scopeElementOptions.filter((e) => allowedTypes.includes(e.elementType));
   }, [selectedType, scopeElementOptions]);
 
   const handleTypeChange = (newType: DiagramType) => {
     form.setFieldValue("diagramType", newType);
     setSelectedType(newType);
-    // Clear scope if current selection is invalid for new type
+    // Clear scope if type doesn't support it or current selection is invalid
     const currentScope = form.getFieldValue("scopeElementId");
-    if (currentScope) {
+    const allowed = SCOPE_FILTER[newType];
+    if (!allowed) {
+      form.setFieldValue("scopeElementId", "");
+    } else if (currentScope) {
       const scopeEl = scopeElementOptions.find((e) => e.id === currentScope);
-      if (scopeEl) {
-        const allowed = SCOPE_FILTER[newType];
-        if (!allowed.includes(scopeEl.elementType)) {
-          form.setFieldValue("scopeElementId", "");
-        }
+      if (scopeEl && !allowed.includes(scopeEl.elementType)) {
+        form.setFieldValue("scopeElementId", "");
       }
     }
     setScopeError(null);
@@ -192,7 +207,7 @@ export function DiagramFormDialog({
             <form.Field name="diagramType">
               {(field) => (
                 <div className="flex flex-col gap-1.5">
-                  <Label>{m.diagram_label_type()}</Label>
+                  <Label>{m.diagram_label_level()}</Label>
                   <select
                     className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                     value={field.state.value}
@@ -204,6 +219,9 @@ export function DiagramFormDialog({
                       </option>
                     ))}
                   </select>
+                  <p className="text-xs text-muted-foreground">
+                    {TYPE_DESCRIPTIONS[field.state.value]()}
+                  </p>
                 </div>
               )}
             </form.Field>
@@ -239,32 +257,34 @@ export function DiagramFormDialog({
             )}
           </form.Field>
 
-          {/* Scope Element */}
-          <form.Field name="scopeElementId">
-            {(field) => (
-              <div className="flex flex-col gap-1.5">
-                <Label>{m.diagram_label_scope()}</Label>
-                <select
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                  value={field.state.value}
-                  onChange={(e) => {
-                    field.handleChange(e.target.value);
-                    setScopeError(null);
-                  }}
-                >
-                  <option value="">{m.diagram_no_scope()}</option>
-                  {filteredScopeOptions.map((el) => (
-                    <option key={el.id} value={el.id}>
-                      {el.name}
-                    </option>
-                  ))}
-                </select>
-                {scopeError && (
-                  <p className="text-xs text-destructive">{scopeError}</p>
-                )}
-              </div>
-            )}
-          </form.Field>
+          {/* Scope Element (hidden for Level 1) */}
+          {showScope && (
+            <form.Field name="scopeElementId">
+              {(field) => (
+                <div className="flex flex-col gap-1.5">
+                  <Label>{SCOPE_LABELS[selectedType]?.() ?? m.diagram_label_scope()}</Label>
+                  <select
+                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                    value={field.state.value}
+                    onChange={(e) => {
+                      field.handleChange(e.target.value);
+                      setScopeError(null);
+                    }}
+                  >
+                    <option value="">{m.diagram_no_scope()}</option>
+                    {filteredScopeOptions.map((el) => (
+                      <option key={el.id} value={el.id}>
+                        {el.name}
+                      </option>
+                    ))}
+                  </select>
+                  {scopeError && (
+                    <p className="text-xs text-destructive">{scopeError}</p>
+                  )}
+                </div>
+              )}
+            </form.Field>
+          )}
 
           {/* Grid Size */}
           <form.Field name="gridSize">

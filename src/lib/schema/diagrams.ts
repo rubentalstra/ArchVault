@@ -14,8 +14,8 @@ import {user} from "./auth-schema";
 import {diagramRevision} from "./diagram-revisions";
 
 export const diagramTypeEnum = pgEnum("diagram_type", [
-    "context",
-    "app",
+    "system_context",
+    "container",
     "component",
 ]);
 

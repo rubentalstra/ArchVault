@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
 import type { ElementType } from "./element.validators";
 
-export const diagramTypes = ["context", "app", "component"] as const;
+export const diagramTypes = ["system_context", "container", "component"] as const;
 export type DiagramType = (typeof diagramTypes)[number];
 
 export const pathTypes = ["straight", "curved", "orthogonal"] as const;
@@ -109,14 +109,14 @@ export const removeDiagramConnectionSchema = z.object({
 // ── Scope validation ────────────────────────────────────────────────
 
 const VALID_SCOPE_TYPES: Record<DiagramType, ElementType[] | null> = {
-  context: ["system"],
-  app: ["system"],
+  system_context: null,
+  container: ["system"],
   component: ["app"],
 };
 
 const SCOPE_REQUIRED: Record<DiagramType, boolean> = {
-  context: false,
-  app: true,
+  system_context: false,
+  container: true,
   component: true,
 };
 
@@ -129,13 +129,17 @@ export function validateDiagramScope(
 
   if (!scopeElementType) {
     if (required) {
-      const needed = diagramType === "app" ? "system" : "app";
+      const needed = diagramType === "container" ? "system" : "app";
       return { valid: false, message: `A ${diagramType} diagram requires a ${needed} as its scope element.` };
     }
     return { valid: true };
   }
 
-  if (allowedTypes && !allowedTypes.includes(scopeElementType)) {
+  if (!allowedTypes) {
+    return { valid: false, message: `A ${diagramType} diagram cannot have a scope element.` };
+  }
+
+  if (!allowedTypes.includes(scopeElementType)) {
     const needed = allowedTypes.join(" or ");
     return { valid: false, message: `A ${diagramType} diagram scope must be a ${needed}, not a ${scopeElementType}.` };
   }
@@ -146,8 +150,8 @@ export function validateDiagramScope(
 // ── Element-for-diagram validation ──────────────────────────────────
 
 const ALLOWED_ELEMENT_TYPES: Record<DiagramType, ElementType[]> = {
-  context: ["actor", "system"],
-  app: ["actor", "system", "app", "store"],
+  system_context: ["actor", "system"],
+  container: ["actor", "system", "app", "store"],
   component: ["actor", "system", "app", "store", "component"],
 };
 

@@ -37,13 +37,13 @@ export interface DiagramTableActions {
 }
 
 const TYPE_LABELS: Record<DiagramType, () => string> = {
-  context: () => m.diagram_type_context(),
-  container: () => m.diagram_type_container(),
-  component: () => m.diagram_type_component(),
+  system_context: () => `${m.diagram_level_1()} — ${m.diagram_type_system_context()}`,
+  container: () => `${m.diagram_level_2()} — ${m.diagram_type_container()}`,
+  component: () => `${m.diagram_level_3()} — ${m.diagram_type_component()}`,
 };
 
 const TYPE_COLORS: Record<DiagramType, string> = {
-  context: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+  system_context: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
   container: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
   component: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
 };
