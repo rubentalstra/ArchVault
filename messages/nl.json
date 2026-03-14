@@ -605,5 +605,9 @@
   "workspace_edit_title": "Werkruimte bewerken",
   "workspace_edit_description": "Werk de details van deze werkruimte bij.",
   "workspace_edit_success": "Werkruimte bijgewerkt",
-  "workspace_edit_failed": "Werkruimte bijwerken mislukt"
+  "workspace_edit_failed": "Werkruimte bijwerken mislukt",
+  "admin_nav_users": "Gebruikers",
+  "admin_nav_sso": "SSO-providers",
+  "admin_nav_scim": "SCIM",
+  "admin_nav_back": "Terug naar dashboard"
 }

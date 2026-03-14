@@ -31,6 +31,14 @@ import {
 } from "#/components/ui/table";
 import { Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbPage,
+} from "#/components/ui/breadcrumb";
+import { Separator } from "#/components/ui/separator";
+import { SidebarTrigger } from "#/components/ui/sidebar";
+import {
   getUserColumns,
   type AdminUser,
 } from "#/components/admin/user-table-columns";
@@ -185,7 +193,7 @@ function UsersPage() {
         toast.error(error.message ?? m.admin_impersonate_failed());
         return;
       }
-      navigate({ to: "/dashboard" });
+      navigate({ to: "/org" });
     },
     onRevokeSessions: (user) => setRevokeUser(user),
     onRemove: (user) => setRemoveUser(user),
@@ -233,9 +241,23 @@ function UsersPage() {
   });
 
   return (
-    <div className="flex flex-col gap-4 p-6">
+    <>
+      <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+        <div className="flex items-center gap-2 px-4">
+          <SidebarTrigger className="-ml-1" />
+          <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbPage>{m.admin_users_title()}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
+      </header>
+    <div className="flex flex-col gap-4 p-4 pt-0">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{m.admin_users_title()}</h1>
+        <h2 className="text-2xl font-bold">{m.admin_users_title()}</h2>
         <Button onClick={() => setCreateOpen(true)}>
           <Plus className="size-4" />
           {m.admin_create_user_title()}
@@ -448,5 +470,6 @@ function UsersPage() {
         onSuccess={refetchUsers}
       />
     </div>
+    </>
   );
 }

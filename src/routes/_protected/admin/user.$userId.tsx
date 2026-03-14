@@ -29,7 +29,6 @@ import {
   TooltipTrigger,
 } from "#/components/ui/tooltip";
 import {
-  ArrowLeft,
   UserCog,
   Ban,
   UserCheck,
@@ -37,6 +36,16 @@ import {
   UserX,
   Shield,
 } from "lucide-react";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "#/components/ui/breadcrumb";
+import { Separator } from "#/components/ui/separator";
+import { SidebarTrigger } from "#/components/ui/sidebar";
 import { toast } from "sonner";
 import { formatRelativeDate } from "#/lib/admin.utils";
 import { adminUsersDefaultSearch } from "./users";
@@ -136,19 +145,31 @@ function UserDetailPage() {
       toast.error(error.message ?? m.admin_impersonate_failed());
       return;
     }
-    navigate({ to: "/dashboard" });
+    navigate({ to: "/org" });
   };
 
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <Link
-        to="/admin/users"
-        search={adminUsersDefaultSearch}
-        className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground w-fit"
-      >
-        <ArrowLeft className="size-4" />
-        {m.admin_back_to_users()}
-      </Link>
+    <>
+      <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+        <div className="flex items-center gap-2 px-4">
+          <SidebarTrigger className="-ml-1" />
+          <Separator orientation="vertical" className="mr-2 data-[orientation=vertical]:h-4" />
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem className="hidden md:block">
+                <BreadcrumbLink render={<Link to="/admin/users" search={adminUsersDefaultSearch} />}>
+                  {m.admin_users_title()}
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator className="hidden md:block" />
+              <BreadcrumbItem>
+                <BreadcrumbPage>{user.name}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
+      </header>
+    <div className="flex flex-col gap-6 p-4 pt-0">
 
       {/* Header Card */}
       <Card>
@@ -388,5 +409,6 @@ function UserDetailPage() {
         onSuccess={refetchUser}
       />
     </div>
+    </>
   );
 }

@@ -1,73 +1,121 @@
 import { Link, Outlet, createFileRoute, redirect } from "@tanstack/react-router";
-import { Users, ArrowLeft, KeyRound, RefreshCw } from "lucide-react";
-import { cn } from "#/lib/utils";
+import {
+  Users,
+  KeyRound,
+  RefreshCw,
+  ShieldCheck,
+  ArrowLeft,
+} from "lucide-react";
+import { NavUser } from "#/components/org/nav-user";
 import { adminUsersDefaultSearch } from "./admin/users";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarRail,
+} from "#/components/ui/sidebar";
+import { m } from "#/paraglide/messages";
 
 export const Route = createFileRoute("/_protected/admin")({
   beforeLoad: ({ context }) => {
     if (context.user.role !== "admin") {
-      throw redirect({ to: "/dashboard" });
+      throw redirect({ to: "/org" });
     }
   },
   component: AdminLayout,
 });
 
 function AdminLayout() {
+  const { user } = Route.useRouteContext();
+
   return (
-    <div className="flex min-h-screen">
-      <aside className="flex w-56 shrink-0 flex-col border-r bg-muted/30 p-4">
-        <Link
-          to="/dashboard"
-          className="mb-6 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="size-4" />
-          Back to Dashboard
-        </Link>
+    <SidebarProvider>
+      <Sidebar collapsible="icon">
+        <SidebarHeader>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                size="lg"
+                tooltip={m.admin_nav_back()}
+                render={<Link to="/org" />}
+              >
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                  <ShieldCheck className="size-4" />
+                </div>
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate font-medium">
+                    {m.org_nav_admin()}
+                  </span>
+                  <span className="flex items-center gap-1 truncate text-xs text-muted-foreground">
+                    <ArrowLeft className="size-3" />
+                    {m.admin_nav_back()}
+                  </span>
+                </div>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarHeader>
 
-        <nav className="flex flex-col gap-1">
-          <Link
-            to="/admin/users"
-            search={adminUsersDefaultSearch}
-            className={cn(
-              "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
-            )}
-            activeProps={{
-              className: "bg-accent text-accent-foreground",
-            }}
-          >
-            <Users className="size-4" />
-            Users
-          </Link>
-          <Link
-            to="/admin/sso"
-            className={cn(
-              "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
-            )}
-            activeProps={{
-              className: "bg-accent text-accent-foreground",
-            }}
-          >
-            <KeyRound className="size-4" />
-            SSO Providers
-          </Link>
-          <Link
-            to="/admin/scim"
-            className={cn(
-              "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
-            )}
-            activeProps={{
-              className: "bg-accent text-accent-foreground",
-            }}
-          >
-            <RefreshCw className="size-4" />
-            SCIM
-          </Link>
-        </nav>
-      </aside>
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupLabel>{m.org_nav_admin()}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    tooltip={m.admin_nav_users()}
+                    render={
+                      <Link
+                        to="/admin/users"
+                        search={adminUsersDefaultSearch}
+                      />
+                    }
+                  >
+                    <Users />
+                    <span>{m.admin_nav_users()}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    tooltip={m.admin_nav_sso()}
+                    render={<Link to="/admin/sso" />}
+                  >
+                    <KeyRound />
+                    <span>{m.admin_nav_sso()}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    tooltip={m.admin_nav_scim()}
+                    render={<Link to="/admin/scim" />}
+                  >
+                    <RefreshCw />
+                    <span>{m.admin_nav_scim()}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
 
-      <main className="flex-1 overflow-auto">
+        <SidebarFooter>
+          <NavUser user={user} />
+        </SidebarFooter>
+        <SidebarRail />
+      </Sidebar>
+
+      <SidebarInset>
         <Outlet />
-      </main>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }

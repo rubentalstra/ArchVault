@@ -605,5 +605,9 @@
   "workspace_edit_title": "Edit Workspace",
   "workspace_edit_description": "Update this workspace's details.",
   "workspace_edit_success": "Workspace updated",
-  "workspace_edit_failed": "Failed to update workspace"
+  "workspace_edit_failed": "Failed to update workspace",
+  "admin_nav_users": "Users",
+  "admin_nav_sso": "SSO Providers",
+  "admin_nav_scim": "SCIM",
+  "admin_nav_back": "Back to Dashboard"
 }
