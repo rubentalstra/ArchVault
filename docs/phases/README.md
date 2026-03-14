@@ -19,7 +19,7 @@
 | 2c    | Tags                                | Complete    | 2b           |
 | 3a    | Diagram CRUD & Schema               | Complete    | 2a, 2b       |
 | 3b    | Canvas Rendering (React Flow)       | Complete    | 3a           |
-| 3c    | Editor Interactions & Panel         | Not Started | 3b           |
+| 3c    | Editor Interactions & Panel         | Complete    | 3b           |
 | 3d    | Canvas Relationships                | Not Started | 3b, 3c       |
 | 3e    | Autosave, Hotkeys, Undo/Redo        | Not Started | 3c, 3d       |
 | 3f    | Revisions                           | Not Started | 3e           |

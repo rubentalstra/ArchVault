@@ -5,19 +5,36 @@ import {
   MiniMap,
   BackgroundVariant,
   SelectionMode,
+  ConnectionMode,
 } from "@xyflow/react";
-import type { OnSelectionChangeFunc } from "@xyflow/react";
+import type {
+  OnSelectionChangeFunc,
+  IsValidConnection,
+  OnConnect,
+  Connection,
+} from "@xyflow/react";
 import { useServerFn } from "@tanstack/react-start";
 import { useCallback } from "react";
+import { toast } from "sonner";
 import { useEditorStore } from "#/stores/editor-store";
 import { nodeTypes } from "#/components/editor/nodes";
-import { updateDiagramElement, removeDiagramElement } from "#/lib/diagram.functions";
-import { removeDiagramRelationship } from "#/lib/diagram.functions";
+import {
+  updateDiagramElement,
+  removeDiagramElement,
+  removeDiagramRelationship,
+  addDiagramRelationship,
+} from "#/lib/diagram.functions";
+import { createRelationship } from "#/lib/relationship.functions";
 import { flowNodeToUpdate } from "#/lib/converters/flow-to-diagram";
+import { EditorToolbar } from "#/components/editor/editor-toolbar";
+import { EditorContextMenu } from "#/components/editor/context-menu";
+import { useAddElement } from "#/components/editor/use-add-element";
+import { m } from "#/paraglide/messages";
 import type { AppNode, AppEdge } from "#/lib/types/diagram-nodes";
 
 interface DiagramCanvasProps {
   readOnly?: boolean;
+  onNodeDoubleClick?: (event: React.MouseEvent, node: AppNode) => void;
 }
 
 const NODE_COLOR_MAP: Record<string, string> = {
@@ -32,7 +49,7 @@ function getNodeColor(node: { type?: string }) {
   return NODE_COLOR_MAP[node.type ?? ""] ?? "#94a3b8";
 }
 
-export function DiagramCanvas({ readOnly = false }: DiagramCanvasProps) {
+export function DiagramCanvas({ readOnly = false, onNodeDoubleClick }: DiagramCanvasProps) {
   const nodes = useEditorStore((s) => s.nodes);
   const edges = useEditorStore((s) => s.edges);
   const onNodesChange = useEditorStore((s) => s.onNodesChange);
@@ -40,11 +57,19 @@ export function DiagramCanvas({ readOnly = false }: DiagramCanvasProps) {
   const mode = useEditorStore((s) => s.mode);
   const gridSize = useEditorStore((s) => s.gridSize);
   const snapToGrid = useEditorStore((s) => s.snapToGrid);
+  const showGrid = useEditorStore((s) => s.showGrid);
+  const showMinimap = useEditorStore((s) => s.showMinimap);
   const setSelection = useEditorStore((s) => s.setSelection);
+  const setContextMenu = useEditorStore((s) => s.setContextMenu);
+  const addEdge = useEditorStore((s) => s.addEdge);
+
+  const { onPaneClick: onAddElementPaneClick, isAddMode } = useAddElement();
 
   const updateDiagramElementFn = useServerFn(updateDiagramElement);
   const removeDiagramElementFn = useServerFn(removeDiagramElement);
   const removeDiagramRelationshipFn = useServerFn(removeDiagramRelationship);
+  const createRelationshipFn = useServerFn(createRelationship);
+  const addDiagramRelationshipFn = useServerFn(addDiagramRelationship);
 
   const onNodeDragStop = useCallback(
     (_event: React.MouseEvent, node: AppNode) => {
@@ -86,6 +111,117 @@ export function DiagramCanvas({ readOnly = false }: DiagramCanvasProps) {
     [setSelection],
   );
 
+  const isValidConnection: IsValidConnection = useCallback(
+    (connection: Connection | { source: string; target: string }) => {
+      // Prevent self-connections
+      if (connection.source === connection.target) return false;
+      // Prevent duplicate edges
+      const existing = useEditorStore.getState().edges;
+      return !existing.some(
+        (e) => e.source === connection.source && e.target === connection.target,
+      );
+    },
+    [],
+  );
+
+  const onConnect: OnConnect = useCallback(
+    async (connection) => {
+      const store = useEditorStore.getState();
+      if (!store.workspaceId || !store.diagramId) return;
+
+      const sourceNode = store.nodes.find((n) => n.id === connection.source);
+      const targetNode = store.nodes.find((n) => n.id === connection.target);
+      if (!sourceNode || !targetNode) return;
+
+      try {
+        const rel = await createRelationshipFn({
+          data: {
+            workspaceId: store.workspaceId,
+            sourceElementId: sourceNode.data.elementId,
+            targetElementId: targetNode.data.elementId,
+          },
+        });
+
+        const diagramRel = await addDiagramRelationshipFn({
+          data: {
+            diagramId: store.diagramId,
+            relationshipId: rel.id,
+          },
+        });
+
+        const newEdge: AppEdge = {
+          id: diagramRel.id,
+          source: connection.source,
+          target: connection.target,
+          type: "default",
+          markerEnd: { type: "arrowclosed" as const },
+          data: {
+            diagramRelationshipId: diagramRel.id,
+            relationshipId: rel.id,
+            description: null,
+            technology: null,
+            direction: "outgoing",
+            lineStyle: "solid",
+            sourceAnchor: "auto",
+            targetAnchor: "auto",
+            labelPosition: 0.5,
+          },
+        } as AppEdge;
+
+        addEdge(newEdge);
+      } catch {
+        toast.error(m.editor_panel_save_failed());
+      }
+    },
+    [createRelationshipFn, addDiagramRelationshipFn, addEdge],
+  );
+
+  const onNodeContextMenu = useCallback(
+    (event: React.MouseEvent, node: AppNode) => {
+      event.preventDefault();
+      setContextMenu({
+        type: "node",
+        position: { x: event.clientX, y: event.clientY },
+        nodeId: node.id,
+      });
+    },
+    [setContextMenu],
+  );
+
+  const onEdgeContextMenu = useCallback(
+    (event: React.MouseEvent, edge: AppEdge) => {
+      event.preventDefault();
+      setContextMenu({
+        type: "edge",
+        position: { x: event.clientX, y: event.clientY },
+        edgeId: edge.id,
+      });
+    },
+    [setContextMenu],
+  );
+
+  const onPaneContextMenu = useCallback(
+    (event: React.MouseEvent) => {
+      event.preventDefault();
+      setContextMenu({
+        type: "pane",
+        position: { x: event.clientX, y: event.clientY },
+      });
+    },
+    [setContextMenu],
+  );
+
+  const handlePaneClick = useCallback(
+    (event: React.MouseEvent) => {
+      setContextMenu(null);
+      if (isAddMode) {
+        onAddElementPaneClick(event);
+      }
+    },
+    [setContextMenu, isAddMode, onAddElementPaneClick],
+  );
+
+  // Unused for now but keeping the callback reference for future NodeResizer onResizeEnd
   const onResizeEnd = useCallback(
     (_event: unknown, { id }: { id: string }) => {
       const node = useEditorStore.getState().nodes.find((n) => n.id === id);
@@ -96,12 +232,11 @@ export function DiagramCanvas({ readOnly = false }: DiagramCanvasProps) {
     },
     [updateDiagramElementFn],
   );
-
-  // Unused for now but keeping the callback reference for future NodeResizer onResizeEnd
   void onResizeEnd;
 
   return (
     <ReactFlow
+      className={isAddMode ? "cursor-crosshair" : ""}
       nodes={nodes}
       edges={edges}
       nodeTypes={nodeTypes}
@@ -110,7 +245,15 @@ export function DiagramCanvas({ readOnly = false }: DiagramCanvasProps) {
       onNodeDragStop={readOnly ? undefined : onNodeDragStop}
       onNodesDelete={readOnly ? undefined : onNodesDelete}
       onEdgesDelete={readOnly ? undefined : onEdgesDelete}
+      onConnect={readOnly ? undefined : onConnect}
       onSelectionChange={onSelectionChange}
+      onNodeContextMenu={readOnly ? undefined : onNodeContextMenu}
+      onEdgeContextMenu={readOnly ? undefined : onEdgeContextMenu}
+      onPaneContextMenu={readOnly ? undefined : onPaneContextMenu}
+      onPaneClick={handlePaneClick}
+      onNodeDoubleClick={onNodeDoubleClick}
+      isValidConnection={isValidConnection}
+      connectionMode={ConnectionMode.Loose}
       colorMode="system"
       snapToGrid={snapToGrid}
       snapGrid={[gridSize, gridSize]}
@@ -122,13 +265,20 @@ export function DiagramCanvas({ readOnly = false }: DiagramCanvasProps) {
       deleteKeyCode={readOnly ? null : "Backspace"}
       selectionKeyCode="Shift"
       panActivationKeyCode="Space"
-      nodesDraggable={!readOnly}
-      nodesConnectable={!readOnly}
+      nodesDraggable={mode === "select" && !readOnly}
+      nodesConnectable={mode === "add_relationship" && !readOnly}
       elementsSelectable={!readOnly}
+      elevateEdgesOnSelect
     >
-      <Background variant={BackgroundVariant.Dots} gap={gridSize} />
+      {showGrid && (
+        <Background variant={BackgroundVariant.Dots} gap={gridSize} />
+      )}
+      {!readOnly && <EditorToolbar />}
       <Controls showInteractive={false} />
-      <MiniMap nodeColor={getNodeColor} zoomable pannable />
+      {showMinimap && (
+        <MiniMap nodeColor={getNodeColor} zoomable pannable />
+      )}
+      <EditorContextMenu />
     </ReactFlow>
   );
 }

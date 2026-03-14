@@ -1,8 +1,10 @@
-import { useEffect } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { useCallback, useEffect } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ReactFlowProvider } from "@xyflow/react";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { authClient } from "#/lib/auth-client";
-import { getDiagramData } from "#/lib/diagram.functions";
+import { getDiagramData, getDiagrams } from "#/lib/diagram.functions";
 import { useEditorStore } from "#/stores/editor-store";
 import {
   toFlowNodes,
@@ -10,7 +12,8 @@ import {
   buildElementIdToNodeIdMap,
 } from "#/lib/converters/diagram-to-flow";
 import { DiagramCanvas } from "#/components/editor/diagram-canvas";
-import { Button } from "#/components/ui/button";
+import { PropertiesPanel } from "#/components/editor/properties-panel";
+import { Badge } from "#/components/ui/badge";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -21,11 +24,9 @@ import {
 } from "#/components/ui/breadcrumb";
 import { Separator } from "#/components/ui/separator";
 import { SidebarTrigger } from "#/components/ui/sidebar";
-import { Toggle } from "#/components/ui/toggle";
-import { Badge } from "#/components/ui/badge";
-import { MousePointer2, Hand } from "lucide-react";
 import { m } from "#/paraglide/messages";
 import type { DiagramType } from "#/lib/diagram.validators";
+import type { AppNode } from "#/lib/types/diagram-nodes";
 
 export const Route = createFileRoute(
   "/_protected/_onboarded/workspace/$workspaceSlug/diagram/$diagramId",
@@ -44,11 +45,20 @@ function DiagramEditorPage() {
   const { data: activeMember } = authClient.useActiveMember();
   const initDiagram = useEditorStore((s) => s.initDiagram);
   const reset = useEditorStore((s) => s.reset);
-  const mode = useEditorStore((s) => s.mode);
-  const setMode = useEditorStore((s) => s.setMode);
+  const propertiesPanelOpen = useEditorStore((s) => s.propertiesPanelOpen);
+  const workspaceId = useEditorStore((s) => s.workspaceId);
+  const navigate = useNavigate();
 
   const memberRole = activeMember?.role;
   const readOnly = !["owner", "admin", "editor"].includes(memberRole ?? "");
+
+  const getDiagramsFn = useServerFn(getDiagrams);
+
+  const { data: diagrams } = useQuery({
+    queryKey: ["diagrams", workspaceId],
+    queryFn: () => getDiagramsFn({ data: { workspaceId: workspaceId! } }),
+    enabled: !!workspaceId,
+  });
 
   useEffect(() => {
     const nodes = toFlowNodes(
@@ -61,6 +71,9 @@ function DiagramEditorPage() {
 
     initDiagram({
       diagramId: diagramData.diagram.id,
+      diagramType: diagramData.diagram.diagramType as DiagramType,
+      workspaceId: diagramData.diagram.workspaceId,
+      scopeElementId: diagramData.diagram.scopeElementId,
       nodes,
       edges,
       gridSize: diagramData.diagram.gridSize,
@@ -71,6 +84,22 @@ function DiagramEditorPage() {
       reset();
     };
   }, [diagramData, initDiagram, reset]);
+
+  const onNodeDoubleClick = useCallback(
+    (_event: React.MouseEvent, node: AppNode) => {
+      if (!diagrams) return;
+      const childDiagram = diagrams.find(
+        (d) => d.scopeElementId === node.data.elementId,
+      );
+      if (childDiagram) {
+        navigate({
+          to: "/workspace/$workspaceSlug/diagram/$diagramId",
+          params: { workspaceSlug: workspace.slug, diagramId: childDiagram.id },
+        });
+      }
+    },
+    [diagrams, navigate, workspace.slug],
+  );
 
   return (
     <div className="flex h-full flex-col">
@@ -119,34 +148,27 @@ function DiagramEditorPage() {
             {readOnly && (
               <Badge variant="secondary">{m.canvas_readonly()}</Badge>
             )}
-            {!readOnly && (
-              <div className="flex items-center gap-1 rounded-lg border bg-card p-0.5">
-                <Toggle
-                  size="sm"
-                  pressed={mode === "select"}
-                  onPressedChange={() => setMode("select")}
-                  aria-label={m.canvas_mode_select()}
-                >
-                  <MousePointer2 className="size-4" />
-                </Toggle>
-                <Toggle
-                  size="sm"
-                  pressed={mode === "pan"}
-                  onPressedChange={() => setMode("pan")}
-                  aria-label={m.canvas_mode_pan()}
-                >
-                  <Hand className="size-4" />
-                </Toggle>
-              </div>
-            )}
           </div>
         </div>
       </header>
 
-      <div className="flex-1">
-        <ReactFlowProvider>
-          <DiagramCanvas readOnly={readOnly} />
-        </ReactFlowProvider>
+      <div className="flex flex-1 overflow-hidden">
+        <div className="flex-1">
+          <ReactFlowProvider>
+            <DiagramCanvas
+              readOnly={readOnly}
+              onNodeDoubleClick={onNodeDoubleClick}
+            />
+          </ReactFlowProvider>
+        </div>
+        {propertiesPanelOpen && (
+          <div className="nowheel nopan w-80 shrink-0 border-l overflow-y-auto">
+            <PropertiesPanel
+              diagramName={diagramData.diagram.name}
+              diagramDescription={diagramData.diagram.description}
+            />
+          </div>
+        )}
       </div>
     </div>
   );
