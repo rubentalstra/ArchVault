@@ -9,6 +9,13 @@
     },
     "better-auth": {
       "url": "https://mcp.inkeep.com/better-auth/mcp"
+    },
+    "ESLint": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "@eslint/mcp@latest"
+      ]
     }
   }
 }

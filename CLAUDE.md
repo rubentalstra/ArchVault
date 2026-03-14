@@ -21,6 +21,10 @@ pnpm vitest <file>  # Run a single test file
 pnpm drizzle-kit generate   # Generate migration from schema changes
 pnpm drizzle-kit migrate    # Apply migrations
 docker compose up -d db     # Start PostgreSQL
+
+# Linting
+pnpm lint            # Run ESLint on entire project
+pnpm lint:fix        # Run ESLint with auto-fix
 ```
 
 ## Tech Stack
