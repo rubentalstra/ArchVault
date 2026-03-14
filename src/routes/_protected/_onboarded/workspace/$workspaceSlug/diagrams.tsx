@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -29,6 +29,16 @@ import {
   TableHeader,
   TableRow,
 } from "#/components/ui/table";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "#/components/ui/breadcrumb";
+import { Separator } from "#/components/ui/separator";
+import { SidebarTrigger } from "#/components/ui/sidebar";
 import { Plus } from "lucide-react";
 import { m } from "#/paraglide/messages";
 import type { ElementType } from "#/lib/element.validators";
@@ -100,7 +110,6 @@ function DiagramsPage() {
         scopeElementName: d.scopeElementName,
         elementCount: Number(d.elementCount),
         updatedAt: d.updatedAt,
-        // Keep extra fields for edit dialog
         description: d.description,
         scopeElementId: d.scopeElementId,
         gridSize: d.gridSize,
@@ -128,119 +137,167 @@ function DiagramsPage() {
   });
 
   return (
-    <div className="flex flex-1 flex-col overflow-auto p-6">
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{m.diagram_page_title()}</h1>
-        {canEdit && (
-          <Button onClick={() => setCreateOpen(true)}>
-            <Plus className="size-4" />
-            {m.diagram_create_title()}
-          </Button>
-        )}
-      </div>
-
-      <div className="mb-4 flex items-center gap-2">
-        <Input
-          value={globalFilter}
-          onChange={(e) => setGlobalFilter(e.target.value)}
-          placeholder={m.diagram_search_placeholder()}
-          className="max-w-sm"
-        />
-      </div>
-
-      {isLoading ? (
-        <p className="text-sm text-muted-foreground">{m.common_loading()}</p>
-      ) : diagrams.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{m.diagram_empty()}</p>
-      ) : (
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <TableHead
-                      key={header.id}
-                      className={
-                        header.column.getCanSort()
-                          ? "cursor-pointer select-none"
-                          : ""
-                      }
-                      onClick={header.column.getToggleSortingHandler()}
-                    >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                      {header.column.getIsSorted() === "asc" && " \u2191"}
-                      {header.column.getIsSorted() === "desc" && " \u2193"}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+    <>
+      <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+        <div className="flex items-center gap-2 px-4">
+          <SidebarTrigger className="-ml-1" />
+          <Separator
+            orientation="vertical"
+            className="mr-2 data-[orientation=vertical]:h-4"
+          />
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem className="hidden md:block">
+                <BreadcrumbLink
+                  render={
+                    <Link
+                      to="/workspace/$workspaceSlug"
+                      params={{ workspaceSlug: workspace.slug }}
+                    />
+                  }
+                >
+                  {workspace.name}
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator className="hidden md:block" />
+              <BreadcrumbItem>
+                <BreadcrumbPage>{m.diagram_nav_title()}</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
         </div>
-      )}
+      </header>
 
-      {/* Create / Edit Dialog */}
-      {(createOpen || editDiagram) && (
-        <DiagramFormDialog
-          open={createOpen || !!editDiagram}
-          onOpenChange={(open) => {
-            if (!open) {
-              setCreateOpen(false);
-              setEditDiagram(null);
+      <div className="flex flex-1 flex-col overflow-auto p-4 pt-0">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-2xl font-bold">{m.diagram_page_title()}</h2>
+          {canEdit && (
+            <Button onClick={() => setCreateOpen(true)}>
+              <Plus className="size-4" />
+              {m.diagram_create_title()}
+            </Button>
+          )}
+        </div>
+
+        <div className="mb-4 flex items-center gap-2">
+          <Input
+            value={globalFilter}
+            onChange={(e) => setGlobalFilter(e.target.value)}
+            placeholder={m.diagram_search_placeholder()}
+            className="max-w-sm"
+          />
+        </div>
+
+        {isLoading ? (
+          <p className="text-sm text-muted-foreground">
+            {m.common_loading()}
+          </p>
+        ) : diagrams.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{m.diagram_empty()}</p>
+        ) : (
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <TableHead
+                        key={header.id}
+                        className={
+                          header.column.getCanSort()
+                            ? "cursor-pointer select-none"
+                            : ""
+                        }
+                        onClick={header.column.getToggleSortingHandler()}
+                      >
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
+                        {header.column.getIsSorted() === "asc" && " \u2191"}
+                        {header.column.getIsSorted() === "desc" && " \u2193"}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+
+        {/* Create / Edit Dialog */}
+        {(createOpen || editDiagram) && (
+          <DiagramFormDialog
+            open={createOpen || !!editDiagram}
+            onOpenChange={(open) => {
+              if (!open) {
+                setCreateOpen(false);
+                setEditDiagram(null);
+              }
+            }}
+            workspaceId={workspace.id}
+            diagram={
+              editDiagram
+                ? {
+                    id: editDiagram.id,
+                    name: editDiagram.name,
+                    description:
+                      (
+                        editDiagram as unknown as {
+                          description: string | null;
+                        }
+                      ).description ?? null,
+                    diagramType: editDiagram.diagramType,
+                    scopeElementId:
+                      (
+                        editDiagram as unknown as {
+                          scopeElementId: string | null;
+                        }
+                      ).scopeElementId ?? null,
+                    gridSize:
+                      (editDiagram as unknown as { gridSize: number })
+                        .gridSize ?? 20,
+                    snapToGrid:
+                      (editDiagram as unknown as { snapToGrid: boolean })
+                        .snapToGrid ?? true,
+                  }
+                : undefined
             }
+            scopeElementOptions={scopeElementOptions}
+            onSuccess={invalidate}
+          />
+        )}
+
+        {/* Delete Dialog */}
+        <DeleteDiagramDialog
+          open={!!deleteTarget}
+          onOpenChange={(open) => {
+            if (!open) setDeleteTarget(null);
           }}
-          workspaceId={workspace.id}
           diagram={
-            editDiagram
-              ? {
-                  id: editDiagram.id,
-                  name: editDiagram.name,
-                  description: (editDiagram as unknown as { description: string | null }).description ?? null,
-                  diagramType: editDiagram.diagramType,
-                  scopeElementId: (editDiagram as unknown as { scopeElementId: string | null }).scopeElementId ?? null,
-                  gridSize: (editDiagram as unknown as { gridSize: number }).gridSize ?? 20,
-                  snapToGrid: (editDiagram as unknown as { snapToGrid: boolean }).snapToGrid ?? true,
-                }
-              : undefined
+            deleteTarget
+              ? { id: deleteTarget.id, name: deleteTarget.name }
+              : null
           }
-          scopeElementOptions={scopeElementOptions}
           onSuccess={invalidate}
         />
-      )}
-
-      {/* Delete Dialog */}
-      <DeleteDiagramDialog
-        open={!!deleteTarget}
-        onOpenChange={(open) => {
-          if (!open) setDeleteTarget(null);
-        }}
-        diagram={
-          deleteTarget
-            ? { id: deleteTarget.id, name: deleteTarget.name }
-            : null
-        }
-        onSuccess={invalidate}
-      />
-    </div>
+      </div>
+    </>
   );
 }

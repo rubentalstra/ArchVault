@@ -1,7 +1,30 @@
 import { Link, Outlet, createFileRoute } from "@tanstack/react-router";
-import { LayoutDashboard, Settings, ArrowLeft, Boxes, ArrowLeftRight, PanelsTopLeft } from "lucide-react";
-import { cn } from "#/lib/utils";
+import {
+  LayoutDashboard,
+  Settings,
+  Boxes,
+  ArrowLeftRight,
+  PanelsTopLeft,
+  ArrowLeft,
+  FolderOpen,
+} from "lucide-react";
+import { NavUser } from "#/components/org/nav-user";
 import { getWorkspaceBySlug } from "#/lib/workspace.functions";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarRail,
+} from "#/components/ui/sidebar";
 import { m } from "#/paraglide/messages";
 
 export const Route = createFileRoute(
@@ -17,101 +40,86 @@ export const Route = createFileRoute(
 });
 
 function WorkspaceLayout() {
-  const { workspace } = Route.useRouteContext();
+  const { workspace, user } = Route.useRouteContext();
+
+  const navItems = [
+    { to: "/workspace/$workspaceSlug", icon: LayoutDashboard, label: () => m.workspace_nav_dashboard(), exact: true },
+    { to: "/workspace/$workspaceSlug/elements", icon: Boxes, label: () => m.element_nav_title() },
+    { to: "/workspace/$workspaceSlug/relationships", icon: ArrowLeftRight, label: () => m.relationship_nav_title() },
+    { to: "/workspace/$workspaceSlug/diagrams", icon: PanelsTopLeft, label: () => m.diagram_nav_title() },
+    { to: "/workspace/$workspaceSlug/settings", icon: Settings, label: () => m.workspace_nav_settings() },
+  ] as const;
 
   return (
-    <div className="flex min-h-screen">
-      <aside className="flex w-56 shrink-0 flex-col border-r bg-muted/30 p-4">
-        <Link
-          to="/dashboard"
-          className="mb-4 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
-        >
-          <ArrowLeft className="size-4" />
-          {m.workspace_back_to_dashboard()}
-        </Link>
+    <SidebarProvider>
+      <Sidebar collapsible="icon">
+        <SidebarHeader>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                size="lg"
+                tooltip={m.workspace_back_to_dashboard()}
+                render={<Link to="/org" />}
+              >
+                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                  {workspace.iconEmoji ? (
+                    <span className="text-sm">{workspace.iconEmoji}</span>
+                  ) : (
+                    <FolderOpen className="size-4" />
+                  )}
+                </div>
+                <div className="grid flex-1 text-left text-sm leading-tight">
+                  <span className="truncate font-medium">
+                    {workspace.name}
+                  </span>
+                  <span className="flex items-center gap-1 truncate text-xs text-muted-foreground">
+                    <ArrowLeft className="size-3" />
+                    {m.workspace_back_to_dashboard()}
+                  </span>
+                </div>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarHeader>
 
-        <div className="mb-4 flex items-center gap-2">
-          {workspace.iconEmoji && (
-            <span className="text-lg">{workspace.iconEmoji}</span>
-          )}
-          <span className="text-sm font-semibold truncate">
-            {workspace.name}
-          </span>
-        </div>
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupLabel>{workspace.name}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {navItems.map((item) => (
+                  <SidebarMenuItem key={item.to}>
+                    <SidebarMenuButton
+                      tooltip={item.label()}
+                      render={
+                        <Link
+                          to={item.to}
+                          params={{ workspaceSlug: workspace.slug }}
+                          activeOptions={
+                            item.exact ? { exact: true } : undefined
+                          }
+                        />
+                      }
+                    >
+                      <item.icon />
+                      <span>{item.label()}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
 
-        <nav className="flex flex-col gap-1">
-          <Link
-            to="/workspace/$workspaceSlug"
-            params={{ workspaceSlug: workspace.slug }}
-            className={cn(
-              "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
-            )}
-            activeOptions={{ exact: true }}
-            activeProps={{
-              className: "bg-accent text-accent-foreground",
-            }}
-          >
-            <LayoutDashboard className="size-4" />
-            {m.workspace_nav_dashboard()}
-          </Link>
-          <Link
-            to="/workspace/$workspaceSlug/elements"
-            params={{ workspaceSlug: workspace.slug }}
-            className={cn(
-              "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
-            )}
-            activeProps={{
-              className: "bg-accent text-accent-foreground",
-            }}
-          >
-            <Boxes className="size-4" />
-            {m.element_nav_title()}
-          </Link>
-          <Link
-            to="/workspace/$workspaceSlug/relationships"
-            params={{ workspaceSlug: workspace.slug }}
-            className={cn(
-              "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
-            )}
-            activeProps={{
-              className: "bg-accent text-accent-foreground",
-            }}
-          >
-            <ArrowLeftRight className="size-4" />
-            {m.relationship_nav_title()}
-          </Link>
-          <Link
-            to="/workspace/$workspaceSlug/diagrams"
-            params={{ workspaceSlug: workspace.slug }}
-            className={cn(
-              "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
-            )}
-            activeProps={{
-              className: "bg-accent text-accent-foreground",
-            }}
-          >
-            <PanelsTopLeft className="size-4" />
-            {m.diagram_nav_title()}
-          </Link>
-          <Link
-            to="/workspace/$workspaceSlug/settings"
-            params={{ workspaceSlug: workspace.slug }}
-            className={cn(
-              "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground",
-            )}
-            activeProps={{
-              className: "bg-accent text-accent-foreground",
-            }}
-          >
-            <Settings className="size-4" />
-            {m.workspace_nav_settings()}
-          </Link>
-        </nav>
-      </aside>
+        <SidebarFooter>
+          <NavUser user={user} />
+        </SidebarFooter>
+        <SidebarRail />
+      </Sidebar>
 
-      <main className="flex-1 overflow-auto">
+      <SidebarInset>
         <Outlet />
-      </main>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
