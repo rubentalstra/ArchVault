@@ -19,49 +19,6 @@ import {
 import type {ElementType} from "./element.validators";
 import {assertRole, getSessionAndOrg} from "./auth.helpers";
 
-// ── Helpers ────────────────────────────────────────────────────────────
-
-async function getParentType(
-    parentId: string | null | undefined,
-    workspaceId: string,
-): Promise<ElementType | null> {
-    if (!parentId) return null;
-    const [parent] = await db
-        .select({elementType: element.elementType, workspaceId: element.workspaceId})
-        .from(element)
-        .where(and(eq(element.id, parentId), isNull(element.deletedAt)));
-    if (!parent) throw new Error("Parent element not found");
-    if (parent.workspaceId !== workspaceId)
-        throw new Error("Parent element belongs to a different workspace");
-    return parent.elementType;
-}
-
-async function checkCircularRef(elementId: string, newParentId: string) {
-    let currentId: string | null = newParentId;
-    const visited = new Set<string>();
-    while (currentId) {
-        if (currentId === elementId) throw new Error("Circular reference detected");
-        if (visited.has(currentId)) break;
-        visited.add(currentId);
-        const [row] = await db
-            .select({parentElementId: element.parentElementId})
-            .from(element)
-            .where(eq(element.id, currentId));
-        currentId = row?.parentElementId ?? null;
-    }
-}
-
-async function assertElementOwnership(elementId: string, orgWorkspaceIds: string[]) {
-    const [el] = await db
-        .select({workspaceId: element.workspaceId})
-        .from(element)
-        .where(and(eq(element.id, elementId), isNull(element.deletedAt)));
-    if (!el) throw new Error("Element not found");
-    if (!orgWorkspaceIds.includes(el.workspaceId))
-        throw new Error("Element not found");
-    return el;
-}
-
 // ── Element CRUD ───────────────────────────────────────────────────────
 
 export const getElements = createServerFn({method: "GET"})
@@ -154,6 +111,22 @@ export const createElement = createServerFn({method: "POST"})
         const {session, memberRole} = await getSessionAndOrg();
         assertRole(memberRole, ["owner", "admin", "editor"]);
 
+        // Inline helper: get parent element type
+        async function getParentType(
+            parentId: string | null | undefined,
+            workspaceId: string,
+        ): Promise<ElementType | null> {
+            if (!parentId) return null;
+            const [parent] = await db
+                .select({elementType: element.elementType, workspaceId: element.workspaceId})
+                .from(element)
+                .where(and(eq(element.id, parentId), isNull(element.deletedAt)));
+            if (!parent) throw new Error("Parent element not found");
+            if (parent.workspaceId !== workspaceId)
+                throw new Error("Parent element belongs to a different workspace");
+            return parent.elementType;
+        }
+
         const parentType = await getParentType(data.parentElementId, data.workspaceId);
         const hierarchy = validateElementHierarchy(data.elementType, parentType);
         if (!hierarchy.valid) throw new Error(hierarchy.message);
@@ -186,6 +159,37 @@ export const updateElement = createServerFn({method: "POST"})
         const {session, memberRole} = await getSessionAndOrg();
         assertRole(memberRole, ["owner", "admin", "editor"]);
 
+        // Inline helpers
+        async function getParentType(
+            parentId: string | null | undefined,
+            workspaceId: string,
+        ): Promise<ElementType | null> {
+            if (!parentId) return null;
+            const [parent] = await db
+                .select({elementType: element.elementType, workspaceId: element.workspaceId})
+                .from(element)
+                .where(and(eq(element.id, parentId), isNull(element.deletedAt)));
+            if (!parent) throw new Error("Parent element not found");
+            if (parent.workspaceId !== workspaceId)
+                throw new Error("Parent element belongs to a different workspace");
+            return parent.elementType;
+        }
+
+        async function checkCircularRef(elementId: string, newParentId: string) {
+            let currentId: string | null = newParentId;
+            const visited = new Set<string>();
+            while (currentId) {
+                if (currentId === elementId) throw new Error("Circular reference detected");
+                if (visited.has(currentId)) break;
+                visited.add(currentId);
+                const [row] = await db
+                    .select({parentElementId: element.parentElementId})
+                    .from(element)
+                    .where(eq(element.id, currentId));
+                currentId = row?.parentElementId ?? null;
+            }
+        }
+
         const {id, ...updates} = data;
 
         const [existing] = await db
@@ -194,7 +198,6 @@ export const updateElement = createServerFn({method: "POST"})
             .where(and(eq(element.id, id), isNull(element.deletedAt)));
         if (!existing) throw new Error("Element not found");
 
-        // If parent is changing, validate hierarchy and circular refs
         if (updates.parentElementId !== undefined) {
             const newParentId = updates.parentElementId;
             if (newParentId) {
@@ -203,7 +206,6 @@ export const updateElement = createServerFn({method: "POST"})
                 const hierarchy = validateElementHierarchy(existing.elementType, parentType);
                 if (!hierarchy.valid) throw new Error(hierarchy.message);
             } else {
-                // Removing parent — validate that element type allows no parent
                 const hierarchy = validateElementHierarchy(existing.elementType, null);
                 if (!hierarchy.valid) throw new Error(hierarchy.message);
             }
@@ -225,8 +227,7 @@ export const deleteElement = createServerFn({method: "POST"})
         const {session, memberRole} = await getSessionAndOrg();
         assertRole(memberRole, ["owner", "admin"]);
 
-        // Recursive soft-delete via CTE — dynamic import to keep `sql` out of client bundle
-        const { sql: sqlTag } = await import("drizzle-orm");
+        const {sql: sqlTag} = await import("drizzle-orm");
         await db.execute(sqlTag`
             WITH RECURSIVE descendants AS (SELECT id
                                            FROM element

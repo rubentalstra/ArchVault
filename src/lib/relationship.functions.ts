@@ -11,18 +11,9 @@ import {
 } from "./relationship.validators";
 import {assertRole, getSessionAndOrg} from "./auth.helpers";
 
-// ── Helpers ────────────────────────────────────────────────────────────
-
-async function assertElementInWorkspace(elementId: string, workspaceId: string) {
-    const [el] = await db
-        .select({id: element.id, workspaceId: element.workspaceId})
-        .from(element)
-        .where(and(eq(element.id, elementId), isNull(element.deletedAt)));
-    if (!el) throw new Error("Element not found");
-    if (el.workspaceId !== workspaceId)
-        throw new Error("Element belongs to a different workspace");
-    return el;
-}
+// NOTE: No module-level helper functions that reference `db`.
+// All helpers are inlined into handlers so the bundler can tree-shake
+// server-only imports (`db`, `pg`) from the client bundle.
 
 // ── Relationship CRUD ─────────────────────────────────────────────────
 
@@ -43,7 +34,6 @@ export const getRelationships = createServerFn({method: "GET"})
             );
 
         const relationshipIds = relationships.map((r) => r.id);
-
         const tagRows = relationshipIds.length > 0
             ? await db.select().from(relationshipTag).where(inArray(relationshipTag.relationshipId, relationshipIds))
             : [];
@@ -70,6 +60,17 @@ export const createRelationship = createServerFn({method: "POST"})
 
         const endpoints = validateRelationshipEndpoints(data.sourceElementId, data.targetElementId);
         if (!endpoints.valid) throw new Error(endpoints.message);
+
+        // Inline helper: assert element belongs to workspace
+        async function assertElementInWorkspace(elementId: string, workspaceId: string) {
+            const [el] = await db
+                .select({id: element.id, workspaceId: element.workspaceId})
+                .from(element)
+                .where(and(eq(element.id, elementId), isNull(element.deletedAt)));
+            if (!el) throw new Error("Element not found");
+            if (el.workspaceId !== workspaceId)
+                throw new Error("Element belongs to a different workspace");
+        }
 
         await assertElementInWorkspace(data.sourceElementId, data.workspaceId);
         await assertElementInWorkspace(data.targetElementId, data.workspaceId);
@@ -98,6 +99,17 @@ export const updateRelationship = createServerFn({method: "POST"})
     .handler(async ({data}) => {
         const {session, memberRole} = await getSessionAndOrg();
         assertRole(memberRole, ["owner", "admin", "editor"]);
+
+        // Inline helper
+        async function assertElementInWorkspace(elementId: string, workspaceId: string) {
+            const [el] = await db
+                .select({id: element.id, workspaceId: element.workspaceId})
+                .from(element)
+                .where(and(eq(element.id, elementId), isNull(element.deletedAt)));
+            if (!el) throw new Error("Element not found");
+            if (el.workspaceId !== workspaceId)
+                throw new Error("Element belongs to a different workspace");
+        }
 
         const {id, ...updates} = data;
 

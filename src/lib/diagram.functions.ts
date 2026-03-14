@@ -26,29 +26,9 @@ import type {DiagramType} from "./diagram.validators";
 import type {ElementType} from "./element.validators";
 import {assertRole, getSessionAndOrg} from "./auth.helpers";
 
-// ── Helpers ────────────────────────────────────────────────────────────
-
-async function fetchElementType(elementId: string): Promise<{type: ElementType; workspaceId: string}> {
-    const [el] = await db
-        .select({type: element.elementType, workspaceId: element.workspaceId})
-        .from(element)
-        .where(and(eq(element.id, elementId), isNull(element.deletedAt)));
-    if (!el) throw new Error("Element not found");
-    return {type: el.type as ElementType, workspaceId: el.workspaceId};
-}
-
-async function assertDiagramInWorkspace(diagramId: string) {
-    const [d] = await db
-        .select({
-            id: diagram.id,
-            workspaceId: diagram.workspaceId,
-            diagramType: diagram.diagramType,
-        })
-        .from(diagram)
-        .where(and(eq(diagram.id, diagramId), isNull(diagram.deletedAt)));
-    if (!d) throw new Error("Diagram not found");
-    return d;
-}
+// NOTE: No module-level helper functions that reference `db`.
+// All helpers are inlined into handlers so the bundler can tree-shake
+// server-only imports (`db`, `pg`) from the client bundle.
 
 // ── Diagram CRUD ──────────────────────────────────────────────────────
 
@@ -58,8 +38,7 @@ export const getDiagrams = createServerFn({method: "GET"})
         const {memberRole} = await getSessionAndOrg();
         assertRole(memberRole, ["owner", "admin", "editor", "viewer"]);
 
-        // Dynamic import to keep `sql` and `count` out of client bundle
-        const { sql: sqlTag, count } = await import("drizzle-orm");
+        const {sql: sqlTag, count} = await import("drizzle-orm");
 
         const elementCountSubquery = db
             .select({
@@ -129,6 +108,16 @@ export const createDiagram = createServerFn({method: "POST"})
         const {session, memberRole} = await getSessionAndOrg();
         assertRole(memberRole, ["owner", "admin", "editor"]);
 
+        // Inline helper: fetch element type
+        async function fetchElementType(elementId: string): Promise<{type: ElementType; workspaceId: string}> {
+            const [el] = await db
+                .select({type: element.elementType, workspaceId: element.workspaceId})
+                .from(element)
+                .where(and(eq(element.id, elementId), isNull(element.deletedAt)));
+            if (!el) throw new Error("Element not found");
+            return {type: el.type as ElementType, workspaceId: el.workspaceId};
+        }
+
         if (data.scopeElementId) {
             const scopeEl = await fetchElementType(data.scopeElementId);
             const validation = validateDiagramScope(
@@ -169,6 +158,16 @@ export const updateDiagram = createServerFn({method: "POST"})
     .handler(async ({data}) => {
         const {session, memberRole} = await getSessionAndOrg();
         assertRole(memberRole, ["owner", "admin", "editor"]);
+
+        // Inline helper
+        async function fetchElementType(elementId: string): Promise<{type: ElementType; workspaceId: string}> {
+            const [el] = await db
+                .select({type: element.elementType, workspaceId: element.workspaceId})
+                .from(element)
+                .where(and(eq(element.id, elementId), isNull(element.deletedAt)));
+            if (!el) throw new Error("Element not found");
+            return {type: el.type as ElementType, workspaceId: el.workspaceId};
+        }
 
         const {id, ...updates} = data;
 
@@ -228,6 +227,29 @@ export const addDiagramElement = createServerFn({method: "POST"})
     .handler(async ({data}) => {
         const {memberRole} = await getSessionAndOrg();
         assertRole(memberRole, ["owner", "admin", "editor"]);
+
+        // Inline helpers
+        async function assertDiagramInWorkspace(diagramId: string) {
+            const [d] = await db
+                .select({
+                    id: diagram.id,
+                    workspaceId: diagram.workspaceId,
+                    diagramType: diagram.diagramType,
+                })
+                .from(diagram)
+                .where(and(eq(diagram.id, diagramId), isNull(diagram.deletedAt)));
+            if (!d) throw new Error("Diagram not found");
+            return d;
+        }
+
+        async function fetchElementType(elementId: string): Promise<{type: ElementType; workspaceId: string}> {
+            const [el] = await db
+                .select({type: element.elementType, workspaceId: element.workspaceId})
+                .from(element)
+                .where(and(eq(element.id, elementId), isNull(element.deletedAt)));
+            if (!el) throw new Error("Element not found");
+            return {type: el.type as ElementType, workspaceId: el.workspaceId};
+        }
 
         const d = await assertDiagramInWorkspace(data.diagramId);
         const el = await fetchElementType(data.elementId);
