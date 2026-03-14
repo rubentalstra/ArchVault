@@ -22,6 +22,8 @@ import {
   createRelationship,
   updateRelationship,
 } from "#/lib/relationship.functions";
+import { addRelationshipTag, removeRelationshipTag } from "#/lib/tag.functions";
+import { TagPicker } from "#/components/tags/tag-picker";
 
 interface RelationshipData {
   id: string;
@@ -30,11 +32,19 @@ interface RelationshipData {
   direction: RelationshipDirection;
   description: string | null;
   technology: string | null;
+  tags: { id: string; name: string; color: string; icon: string | null }[];
 }
 
 interface ElementOption {
   id: string;
   name: string;
+}
+
+interface WorkspaceTag {
+  id: string;
+  name: string;
+  color: string;
+  icon: string | null;
 }
 
 interface RelationshipFormDialogProps {
@@ -43,6 +53,7 @@ interface RelationshipFormDialogProps {
   workspaceId: string;
   relationship?: RelationshipData;
   elementOptions: ElementOption[];
+  workspaceTags?: WorkspaceTag[];
   onSuccess: () => void;
 }
 
@@ -59,10 +70,14 @@ export function RelationshipFormDialog({
   workspaceId,
   relationship: editRelationship,
   elementOptions,
+  workspaceTags = [],
   onSuccess,
 }: RelationshipFormDialogProps) {
   const isEdit = !!editRelationship;
   const [endpointError, setEndpointError] = useState<string | null>(null);
+  const [localTagIds, setLocalTagIds] = useState<string[]>(
+    editRelationship?.tags?.map((t) => t.id) ?? [],
+  );
 
   const form = useForm({
     defaultValues: {
@@ -95,9 +110,24 @@ export function RelationshipFormDialog({
               technology: value.technology || null,
             },
           });
+          // Sync tags
+          const existingTagIds = new Set(editRelationship.tags.map((t) => t.id));
+          const currentTagIds = new Set(localTagIds);
+
+          for (const tagId of existingTagIds) {
+            if (!currentTagIds.has(tagId)) {
+              await removeRelationshipTag({ data: { relationshipId: editRelationship.id, tagId } });
+            }
+          }
+          for (const tagId of currentTagIds) {
+            if (!existingTagIds.has(tagId)) {
+              await addRelationshipTag({ data: { relationshipId: editRelationship.id, tagId } });
+            }
+          }
+
           toast.success(m.relationship_edit_success());
         } else {
-          await createRelationship({
+          const created = await createRelationship({
             data: {
               workspaceId,
               sourceElementId: value.sourceElementId,
@@ -107,6 +137,11 @@ export function RelationshipFormDialog({
               technology: value.technology || undefined,
             },
           });
+          // Add tags to newly created relationship
+          for (const tagId of localTagIds) {
+            await addRelationshipTag({ data: { relationshipId: created.id, tagId } });
+          }
+
           toast.success(m.relationship_create_success());
         }
         onOpenChange(false);
@@ -251,6 +286,18 @@ export function RelationshipFormDialog({
               </div>
             )}
           </form.Field>
+
+          {/* Tags */}
+          {workspaceTags.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <Label>{m.tag_picker_title()}</Label>
+              <TagPicker
+                workspaceTags={workspaceTags}
+                selectedTagIds={localTagIds}
+                onChange={setLocalTagIds}
+              />
+            </div>
+          )}
 
           <DialogFooter>
             <Button

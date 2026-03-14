@@ -31,6 +31,8 @@ import {
   addLink,
   removeLink,
 } from "#/lib/element.functions";
+import { addElementTag, removeElementTag } from "#/lib/tag.functions";
+import { TagPicker } from "#/components/tags/tag-picker";
 
 interface ElementData {
   id: string;
@@ -43,12 +45,20 @@ interface ElementData {
   parentElementId: string | null;
   technologies: { id: string; name: string; iconSlug: string | null }[];
   links: { id: string; url: string; label: string | null }[];
+  tags: { id: string; name: string; color: string; icon: string | null }[];
 }
 
 interface ParentOption {
   id: string;
   name: string;
   elementType: ElementType;
+}
+
+interface WorkspaceTag {
+  id: string;
+  name: string;
+  color: string;
+  icon: string | null;
 }
 
 interface ElementFormDialogProps {
@@ -59,6 +69,7 @@ interface ElementFormDialogProps {
   parentOptions: ParentOption[];
   defaultParentId?: string;
   defaultType?: ElementType;
+  workspaceTags?: WorkspaceTag[];
   onSuccess: () => void;
 }
 
@@ -83,6 +94,7 @@ export function ElementFormDialog({
   parentOptions,
   defaultParentId,
   defaultType,
+  workspaceTags = [],
   onSuccess,
 }: ElementFormDialogProps) {
   const isEdit = !!editElement;
@@ -93,6 +105,9 @@ export function ElementFormDialog({
   const [newLinkLabel, setNewLinkLabel] = useState("");
   const [localTechs, setLocalTechs] = useState(editElement?.technologies ?? []);
   const [localLinks, setLocalLinks] = useState(editElement?.links ?? []);
+  const [localTagIds, setLocalTagIds] = useState<string[]>(
+    editElement?.tags?.map((t) => t.id) ?? [],
+  );
 
   const form = useForm({
     defaultValues: {
@@ -162,6 +177,21 @@ export function ElementFormDialog({
             }
           }
 
+          // Sync tags
+          const existingTagIds = new Set(editElement.tags.map((t) => t.id));
+          const currentTagIds = new Set(localTagIds);
+
+          for (const tagId of existingTagIds) {
+            if (!currentTagIds.has(tagId)) {
+              await removeElementTag({ data: { elementId: editElement.id, tagId } });
+            }
+          }
+          for (const tagId of currentTagIds) {
+            if (!existingTagIds.has(tagId)) {
+              await addElementTag({ data: { elementId: editElement.id, tagId } });
+            }
+          }
+
           toast.success(m.element_edit_success());
         } else {
           const created = await createElement({
@@ -177,7 +207,7 @@ export function ElementFormDialog({
             },
           });
 
-          // Add technologies and links to newly created element
+          // Add technologies, links, and tags to newly created element
           for (const t of localTechs) {
             await addTechnology({
               data: { elementId: created.id, name: t.name, iconSlug: t.iconSlug ?? undefined },
@@ -187,6 +217,9 @@ export function ElementFormDialog({
             await addLink({
               data: { elementId: created.id, url: l.url, label: l.label ?? undefined },
             });
+          }
+          for (const tagId of localTagIds) {
+            await addElementTag({ data: { elementId: created.id, tagId } });
           }
 
           toast.success(m.element_create_success());
@@ -507,6 +540,18 @@ export function ElementFormDialog({
               </Button>
             </div>
           </div>
+
+          {/* Tags */}
+          {workspaceTags.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <Label>{m.tag_picker_title()}</Label>
+              <TagPicker
+                workspaceTags={workspaceTags}
+                selectedTagIds={localTagIds}
+                onChange={setLocalTagIds}
+              />
+            </div>
+          )}
 
           <DialogFooter>
             <Button

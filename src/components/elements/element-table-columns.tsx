@@ -17,6 +17,7 @@ import { MoreHorizontal, Pencil, Trash2, User, Server, Package, Cpu } from "luci
 import { formatRelativeDate } from "#/lib/admin.utils";
 import { m } from "#/paraglide/messages";
 import type { ElementType, ElementStatus } from "#/lib/element.validators";
+import { TagBadge } from "#/components/tags/tag-badge";
 
 export interface ElementRow {
   id: string;
@@ -29,6 +30,7 @@ export interface ElementRow {
   updatedAt: string | Date;
   technologies: { id: string; name: string; iconSlug: string | null }[];
   links: { id: string; url: string; label: string | null }[];
+  tags: { id: string; name: string; color: string; icon: string | null }[];
 }
 
 export interface ElementTableActions {
@@ -117,6 +119,28 @@ export function getElementColumns(actions: ElementTableActions) {
               <Badge key={t.id} variant="secondary" className="text-xs">
                 {t.name}
               </Badge>
+            ))}
+            {remaining > 0 && (
+              <Badge variant="secondary" className="text-xs">
+                +{remaining}
+              </Badge>
+            )}
+          </div>
+        );
+      },
+    }),
+    columnHelper.accessor("tags", {
+      header: m.element_column_tags(),
+      enableSorting: false,
+      cell: (info) => {
+        const tags = info.getValue();
+        if (!tags || tags.length === 0) return <span className="text-muted-foreground">—</span>;
+        const visible = tags.slice(0, 3);
+        const remaining = tags.length - visible.length;
+        return (
+          <div className="flex flex-wrap gap-1">
+            {visible.map((t) => (
+              <TagBadge key={t.id} name={t.name} color={t.color} icon={t.icon} />
             ))}
             {remaining > 0 && (
               <Badge variant="secondary" className="text-xs">

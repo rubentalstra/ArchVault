@@ -13,6 +13,8 @@ import type { SortingState } from "@tanstack/react-table";
 import { authClient } from "#/lib/auth-client";
 import { getRelationships } from "#/lib/relationship.functions";
 import { getElements } from "#/lib/element.functions";
+import { getTags } from "#/lib/tag.functions";
+import { TagFilter } from "#/components/tags/tag-filter";
 import {
   getRelationshipColumns,
   type RelationshipRow,
@@ -59,11 +61,18 @@ function RelationshipsPage() {
     queryFn: () => getElementsFn({ data: { workspaceId: workspace.id } }),
   });
 
+  const getTagsFn = useServerFn(getTags);
+  const { data: workspaceTags = [] } = useQuery({
+    queryKey: ["tags", workspace.id],
+    queryFn: () => getTagsFn({ data: { workspaceId: workspace.id } }),
+  });
+
   const [createOpen, setCreateOpen] = useState(false);
   const [editRelationship, setEditRelationship] = useState<RelationshipRow | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<RelationshipRow | null>(null);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
 
   const elementNameMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -107,8 +116,16 @@ function RelationshipsPage() {
     [canEdit, canDelete, elementNameMap, elementTypeMap],
   );
 
+  const filteredRelationships = useMemo(() => {
+    if (selectedTagIds.length === 0) return relationships;
+    return relationships.filter((rel) =>
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (rel as any).tags?.some((t: { id: string }) => selectedTagIds.includes(t.id)),
+    );
+  }, [relationships, selectedTagIds]);
+
   const table = useReactTable({
-    data: relationships as RelationshipRow[],
+    data: filteredRelationships as RelationshipRow[],
     columns,
     state: { sorting, globalFilter },
     onSortingChange: setSorting,
@@ -144,13 +161,20 @@ function RelationshipsPage() {
         )}
       </div>
 
-      <div className="mb-4">
+      <div className="mb-4 flex items-center gap-2">
         <Input
           value={globalFilter}
           onChange={(e) => setGlobalFilter(e.target.value)}
           placeholder={m.relationship_search_placeholder()}
           className="max-w-sm"
         />
+        {workspaceTags.length > 0 && (
+          <TagFilter
+            workspaceTags={workspaceTags}
+            selectedTagIds={selectedTagIds}
+            onChange={setSelectedTagIds}
+          />
+        )}
       </div>
 
       {isLoading ? (
@@ -224,10 +248,12 @@ function RelationshipsPage() {
                   direction: editRelationship.direction,
                   description: editRelationship.description,
                   technology: editRelationship.technology,
+                  tags: editRelationship.tags ?? [],
                 }
               : undefined
           }
           elementOptions={elementOptions}
+          workspaceTags={workspaceTags}
           onSuccess={invalidate}
         />
       )}

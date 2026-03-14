@@ -12,6 +12,8 @@ import {
 import type { SortingState } from "@tanstack/react-table";
 import { authClient } from "#/lib/auth-client";
 import { getElements } from "#/lib/element.functions";
+import { getTags } from "#/lib/tag.functions";
+import { TagFilter } from "#/components/tags/tag-filter";
 import {
   getElementColumns,
   type ElementRow,
@@ -52,6 +54,12 @@ function ElementsPage() {
     queryFn: () => getElementsFn({ data: { workspaceId: workspace.id } }),
   });
 
+  const getTagsFn = useServerFn(getTags);
+  const { data: workspaceTags = [] } = useQuery({
+    queryKey: ["tags", workspace.id],
+    queryFn: () => getTagsFn({ data: { workspaceId: workspace.id } }),
+  });
+
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [editElement, setEditElement] = useState<ElementRow | null>(null);
@@ -60,6 +68,7 @@ function ElementsPage() {
   const [defaultType, setDefaultType] = useState<ElementType | undefined>();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
 
   const parentNameMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -98,8 +107,16 @@ function ElementsPage() {
     [canEdit, canDelete, parentNameMap],
   );
 
+  const filteredElements = useMemo(() => {
+    if (selectedTagIds.length === 0) return elements;
+    return elements.filter((el) =>
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (el as any).tags?.some((t: { id: string }) => selectedTagIds.includes(t.id)),
+    );
+  }, [elements, selectedTagIds]);
+
   const table = useReactTable({
-    data: elements as ElementRow[],
+    data: filteredElements as ElementRow[],
     columns,
     state: { sorting, globalFilter },
     onSortingChange: setSorting,
@@ -136,13 +153,20 @@ function ElementsPage() {
           <h1 className="text-2xl font-bold">{m.element_page_title()}</h1>
         </div>
 
-        <div className="mb-4">
+        <div className="mb-4 flex items-center gap-2">
           <Input
             value={globalFilter}
             onChange={(e) => setGlobalFilter(e.target.value)}
             placeholder={m.element_search_placeholder()}
             className="max-w-sm"
           />
+          {workspaceTags.length > 0 && (
+            <TagFilter
+              workspaceTags={workspaceTags}
+              selectedTagIds={selectedTagIds}
+              onChange={setSelectedTagIds}
+            />
+          )}
         </div>
 
         {isLoading ? (
@@ -229,12 +253,14 @@ function ElementsPage() {
                   parentElementId: editElement.parentElementId,
                   technologies: editElement.technologies,
                   links: editElement.links,
+                  tags: editElement.tags ?? [],
                 }
               : undefined
           }
           parentOptions={parentOptions}
           defaultParentId={defaultParentId}
           defaultType={defaultType}
+          workspaceTags={workspaceTags}
           onSuccess={invalidate}
         />
       )}

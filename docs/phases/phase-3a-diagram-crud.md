@@ -123,6 +123,10 @@ pnpm drizzle-kit migrate
 - **Per-diagram visual properties:** An element or relationship can appear on multiple diagrams, each with different
   positions, sizes, and styles. The `diagram_elements` and `diagram_relationships` tables store these per-diagram
   overrides. The element/relationship's core data (name, type, direction, etc.) stays in the phase 2 tables.
+- **Sub-flow / parent-child nesting:** React Flow's `parentId` is derived at query time from the element hierarchy +
+  diagram scope. On a Container diagram scoped to System X: System X renders as a group node, its child Containers
+  get `parentId` pointing to System X's diagram_element. External elements render outside (no parentId). No extra
+  column needed — the relationship is computed from `element.parent_element_id` vs `diagram.scope_element_id`.
 - **`style_json`:** A flexible jsonb column for visual overrides like custom colors, border styles, opacity, etc.
   Keeps the schema stable while allowing future style extensions without migrations.
 - **Scope validation:** Determines which elements are _allowed_ on a diagram based on its C4 level. Adding an element

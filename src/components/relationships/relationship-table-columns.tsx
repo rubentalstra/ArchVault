@@ -30,6 +30,7 @@ import { formatRelativeDate } from "#/lib/admin.utils";
 import { m } from "#/paraglide/messages";
 import type { RelationshipDirection } from "#/lib/relationship.validators";
 import type { ElementType } from "#/lib/element.validators";
+import { TagBadge } from "#/components/tags/tag-badge";
 
 export interface RelationshipRow {
   id: string;
@@ -38,6 +39,7 @@ export interface RelationshipRow {
   direction: RelationshipDirection;
   description: string | null;
   technology: string | null;
+  tags: { id: string; name: string; color: string; icon: string | null }[];
   updatedAt: string | Date;
 }
 
@@ -137,6 +139,28 @@ export function getRelationshipColumns(actions: RelationshipTableActions) {
         const tech = info.getValue();
         if (!tech) return <span className="text-muted-foreground">—</span>;
         return <Badge variant="secondary">{tech}</Badge>;
+      },
+    }),
+    columnHelper.accessor("tags", {
+      header: m.relationship_column_tags(),
+      enableSorting: false,
+      cell: (info) => {
+        const tags = info.getValue();
+        if (!tags || tags.length === 0) return <span className="text-muted-foreground">—</span>;
+        const visible = tags.slice(0, 3);
+        const remaining = tags.length - visible.length;
+        return (
+          <div className="flex flex-wrap gap-1">
+            {visible.map((t) => (
+              <TagBadge key={t.id} name={t.name} color={t.color} icon={t.icon} />
+            ))}
+            {remaining > 0 && (
+              <Badge variant="secondary" className="text-xs">
+                +{remaining}
+              </Badge>
+            )}
+          </div>
+        );
       },
     }),
     columnHelper.accessor("updatedAt", {

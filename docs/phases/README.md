@@ -16,7 +16,7 @@
 | 1j    | SCIM Provisioning            | Complete    | 1i           |
 | 2a    | Elements                     | Complete    | 1f           |
 | 2b    | Relationships                | Complete    | 2a           |
-| 2c    | Tags                         | Not Started | 2b           |
+| 2c    | Tags                         | Complete    | 2b           |
 | 3a    | Diagram CRUD & Schema        | Not Started | 2a, 2b       |
 | 3b    | Canvas Rendering             | Not Started | 3a           |
 | 3c    | Editor Interactions & Panel  | Not Started | 3b           |
