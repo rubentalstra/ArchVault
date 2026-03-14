@@ -13,6 +13,7 @@ import type { SortingState } from "@tanstack/react-table";
 import { authClient } from "#/lib/auth-client";
 import { getElements } from "#/lib/element.functions";
 import { getTags } from "#/lib/tag.functions";
+import { getTechnologies } from "#/lib/technology.functions";
 import { TagFilter } from "#/components/tags/tag-filter";
 import {
   getElementColumns,
@@ -73,6 +74,12 @@ function ElementsPage() {
     queryKey: ["tags", workspace.id],
     queryFn: async () =>
       (await getTagsFn({ data: { workspaceId: workspace.id } })) as WorkspaceTag[],
+  });
+
+  const getTechnologiesFn = useServerFn(getTechnologies);
+  const { data: workspaceTechnologies = [] } = useQuery({
+    queryKey: ["technologies", workspace.id],
+    queryFn: () => getTechnologiesFn({ data: { workspaceId: workspace.id } }),
   });
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -304,6 +311,7 @@ function ElementsPage() {
                     links: editElement.links,
                     tags: editElement.tags ?? [],
                     groups: editElement.groups ?? [],
+                    groupMemberships: [],
                   }
                 : undefined
             }
@@ -311,6 +319,7 @@ function ElementsPage() {
             defaultParentId={defaultParentId}
             defaultType={defaultType}
             workspaceTags={workspaceTags}
+            workspaceTechnologies={workspaceTechnologies as { id: string; name: string; iconSlug: string | null }[]}
             onSuccess={invalidate}
           />
         )}

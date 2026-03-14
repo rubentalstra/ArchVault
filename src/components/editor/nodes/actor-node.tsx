@@ -14,7 +14,7 @@ function ActorNodeComponent({ data, selected }: NodeProps & { data: ActorNodeDat
       <Handle type="target" position={Position.Left} className="!size-2 !border-primary !bg-primary" />
       <Handle type="source" position={Position.Right} className="!size-2 !border-primary !bg-primary" />
 
-      {/* Floating person icon badge */}
+      {/* Floating person icon badge — actors always show User icon */}
       <div className="absolute -top-5 left-1/2 z-10 -translate-x-1/2">
         <div className="flex size-10 items-center justify-center rounded-lg border bg-card shadow-sm">
           <User className="size-5 text-foreground" />

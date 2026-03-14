@@ -13,7 +13,6 @@ import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
 import { Textarea } from "#/components/ui/textarea";
 import { Switch } from "#/components/ui/switch";
-import { Badge } from "#/components/ui/badge";
 import { Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { m } from "#/paraglide/messages";
@@ -26,17 +25,17 @@ import type { ElementType, ElementStatus } from "#/lib/element.validators";
 import {
   createElement,
   updateElement,
-  addTechnology,
-  removeTechnology,
   addElementToGroup,
   removeElementFromGroup,
   addLink,
   removeLink,
 } from "#/lib/element.functions";
+import { addElementTechnology, removeElementTechnology } from "#/lib/technology.functions";
 import { addElementTag, removeElementTag } from "#/lib/tag.functions";
 import { addGroupMembership, removeGroupMembership } from "#/lib/group.functions";
 import { TagPicker } from "#/components/tags/tag-picker";
 import { GroupPicker } from "#/components/groups/group-picker";
+import { TechnologyPicker } from "#/components/technologies/technology-picker";
 
 type CreatedElement = { id: string };
 
@@ -49,7 +48,7 @@ interface ElementData {
   status: ElementStatus;
   external: boolean;
   parentElementId: string | null;
-  technologies: { id: string; name: string; iconSlug: string | null }[];
+  technologies: { technologyId: string; name: string; iconSlug: string | null }[];
   links: { id: string; url: string; label: string | null }[];
   tags: { id: string; name: string; color: string; icon: string | null }[];
   groups: { id: string; name: string }[];
@@ -75,6 +74,12 @@ interface WorkspaceGroup {
   color: string;
 }
 
+interface WorkspaceTechnology {
+  id: string;
+  name: string;
+  iconSlug: string | null;
+}
+
 interface ElementFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -85,6 +90,7 @@ interface ElementFormDialogProps {
   defaultType?: ElementType;
   workspaceTags?: WorkspaceTag[];
   workspaceGroups?: WorkspaceGroup[];
+  workspaceTechnologies?: WorkspaceTechnology[];
   onSuccess: () => void;
 }
 
@@ -113,15 +119,16 @@ export function ElementFormDialog({
   defaultType,
   workspaceTags = [],
   workspaceGroups = [],
+  workspaceTechnologies = [],
   onSuccess,
 }: ElementFormDialogProps) {
   const isEdit = !!editElement;
   const [hierarchyError, setHierarchyError] = useState<string | null>(null);
-  const [newTechName, setNewTechName] = useState("");
-  const [newTechIcon, setNewTechIcon] = useState("");
   const [newLinkUrl, setNewLinkUrl] = useState("");
   const [newLinkLabel, setNewLinkLabel] = useState("");
-  const [localTechs, setLocalTechs] = useState(editElement?.technologies ?? []);
+  const [localTechnologyIds, setLocalTechnologyIds] = useState<string[]>(
+    editElement?.technologies?.map((t) => t.technologyId) ?? [],
+  );
   const [localLinks, setLocalLinks] = useState(editElement?.links ?? []);
   const [localTagIds, setLocalTagIds] = useState<string[]>(
     editElement?.tags?.map((t) => t.id) ?? [],
@@ -169,20 +176,18 @@ export function ElementFormDialog({
             },
           });
 
-          // Sync technologies: remove deleted, add new
-          const existingTechIds = new Set(editElement.technologies.map((t) => t.id));
-          const currentTechIds = new Set(localTechs.filter((t) => t.id).map((t) => t.id));
+          // Sync technologies via catalog
+          const existingTechIds = new Set(editElement.technologies.map((t) => t.technologyId));
+          const currentTechIds = new Set(localTechnologyIds);
 
-          for (const t of editElement.technologies) {
-            if (!currentTechIds.has(t.id)) {
-              await removeTechnology({ data: { id: t.id } });
+          for (const techId of existingTechIds) {
+            if (!currentTechIds.has(techId)) {
+              await removeElementTechnology({ data: { elementId: editElement.id, technologyId: techId } });
             }
           }
-          for (const t of localTechs) {
-            if (!existingTechIds.has(t.id)) {
-              await addTechnology({
-                data: { elementId: editElement.id, name: t.name, iconSlug: t.iconSlug ?? undefined },
-              });
+          for (const techId of currentTechIds) {
+            if (!existingTechIds.has(techId)) {
+              await addElementTechnology({ data: { elementId: editElement.id, technologyId: techId } });
             }
           }
 
@@ -236,7 +241,7 @@ export function ElementFormDialog({
             }
           }
 
-          // Sync visual group memberships (Phase 2e)
+          // Sync visual group memberships
           const existingMembershipIds = new Set(editElement.groupMemberships?.map((g) => g.id) ?? []);
           const currentMembershipIds = new Set(localGroupMembershipIds);
           for (const groupId of existingMembershipIds) {
@@ -269,11 +274,9 @@ export function ElementFormDialog({
             },
           })) as CreatedElement;
 
-          // Add technologies, links, and tags to newly created element
-          for (const t of localTechs) {
-            await addTechnology({
-              data: { elementId: created.id, name: t.name, iconSlug: t.iconSlug ?? undefined },
-            });
+          // Add technologies from catalog
+          for (const techId of localTechnologyIds) {
+            await addElementTechnology({ data: { elementId: created.id, technologyId: techId } });
           }
           for (const l of localLinks) {
             await addLink({
@@ -328,20 +331,6 @@ export function ElementFormDialog({
       if (type === "component") return p.elementType === "app";
       return false;
     });
-  };
-
-  const handleAddTech = () => {
-    if (!newTechName.trim()) return;
-    setLocalTechs((prev) => [
-      ...prev,
-      { id: `new-${Date.now()}`, name: newTechName.trim(), iconSlug: newTechIcon.trim() || null },
-    ]);
-    setNewTechName("");
-    setNewTechIcon("");
-  };
-
-  const handleRemoveTech = (id: string) => {
-    setLocalTechs((prev) => prev.filter((t) => t.id !== id));
   };
 
   const handleAddLink = () => {
@@ -526,47 +515,17 @@ export function ElementFormDialog({
             )}
           </form.Field>
 
-          {/* Technologies */}
-          <div className="flex flex-col gap-2">
-            <Label>{m.element_label_technologies()}</Label>
-            <div className="flex flex-wrap gap-1">
-              {localTechs.map((t) => (
-                <Badge key={t.id} variant="secondary" className="gap-1">
-                  {t.name}
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveTech(t.id)}
-                    className="ml-1 hover:text-destructive"
-                  >
-                    <X className="size-3" />
-                  </button>
-                </Badge>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <Input
-                value={newTechName}
-                onChange={(e) => setNewTechName(e.target.value)}
-                placeholder={m.element_tech_placeholder_name()}
-                className="flex-1"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleAddTech();
-                  }
-                }}
+          {/* Technologies (from catalog) */}
+          {workspaceTechnologies.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <Label>{m.element_label_technologies()}</Label>
+              <TechnologyPicker
+                workspaceTechnologies={workspaceTechnologies}
+                selectedTechnologyIds={localTechnologyIds}
+                onChange={setLocalTechnologyIds}
               />
-              <Input
-                value={newTechIcon}
-                onChange={(e) => setNewTechIcon(e.target.value)}
-                placeholder={m.element_tech_placeholder_icon()}
-                className="w-32"
-              />
-              <Button type="button" variant="outline" size="icon" onClick={handleAddTech}>
-                <Plus className="size-4" />
-              </Button>
             </div>
-          </div>
+          )}
 
           {/* Links */}
           <div className="flex flex-col gap-2">
@@ -627,7 +586,7 @@ export function ElementFormDialog({
             </div>
           )}
 
-          {/* Visual group memberships (Phase 2e) */}
+          {/* Visual group memberships */}
           {workspaceGroups.length > 0 && (
             <div className="flex flex-col gap-2">
               <Label>{m.group_picker_title()}</Label>

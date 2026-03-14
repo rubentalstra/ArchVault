@@ -16,7 +16,7 @@ import {
 } from "./auth-schema";
 import {workspace} from "./workspaces";
 import {element} from "./elements";
-import {technology, elementTechnology} from "./element-technologies";
+import {technology, elementTechnology, connectionTechnology} from "./technologies";
 import {elementLink} from "./element-links";
 import {connection} from "./connections";
 import {tag, elementTag, connectionTag} from "./tags";
@@ -44,6 +44,7 @@ export const relations = defineRelations(
         element,
         technology,
         elementTechnology,
+        connectionTechnology,
         elementLink,
         connection,
         tag,
@@ -309,6 +310,11 @@ export const relations = defineRelations(
                 from: r.element.id.through(r.elementTechnology.elementId),
                 to: r.technology.id.through(r.elementTechnology.technologyId),
             }),
+            iconTechnology: r.one.technology({
+                from: r.element.iconTechnologyId,
+                to: r.technology.id,
+                alias: "element_icon_tech",
+            }),
             links: r.many.elementLink(),
             // Two FKs from connection to element → aliases required
             sourceConnections: r.many.connection({
@@ -370,6 +376,26 @@ export const relations = defineRelations(
                 from: r.technology.id.through(r.elementTechnology.technologyId),
                 to: r.element.id.through(r.elementTechnology.elementId),
             }),
+            connections: r.many.connection({
+                from: r.technology.id.through(r.connectionTechnology.technologyId),
+                to: r.connection.id.through(r.connectionTechnology.connectionId),
+            }),
+        },
+
+        // ─────────────────────────────────────────────────────────────────
+        // connectionTechnology
+        // ─────────────────────────────────────────────────────────────────
+        connectionTechnology: {
+            connection: r.one.connection({
+                from: r.connectionTechnology.connectionId,
+                to: r.connection.id,
+                optional: false,
+            }),
+            technology: r.one.technology({
+                from: r.connectionTechnology.technologyId,
+                to: r.technology.id,
+                optional: false,
+            }),
         },
 
         // ─────────────────────────────────────────────────────────────────
@@ -415,6 +441,16 @@ export const relations = defineRelations(
                 from: r.connection.updatedBy,
                 to: r.user.id,
                 alias: "connection_updated_by",
+            }),
+            // Many-to-many via connectionTechnology junction table
+            technologies: r.many.technology({
+                from: r.connection.id.through(r.connectionTechnology.connectionId),
+                to: r.technology.id.through(r.connectionTechnology.technologyId),
+            }),
+            iconTechnology: r.one.technology({
+                from: r.connection.iconTechnologyId,
+                to: r.technology.id,
+                alias: "connection_icon_tech",
             }),
             // Many-to-many via connectionTag junction table
             tags: r.many.tag({

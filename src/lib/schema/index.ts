@@ -5,7 +5,7 @@ export * from "./auth-schema";
 export * from "./workspaces";
 // Phase 2a: elements, technologies, links
 export * from "./elements";
-export * from "./element-technologies";
+export * from "./technologies";
 export * from "./element-links";
 export * from "./element-groups";
 // Phase 2b: connections

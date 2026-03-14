@@ -5,6 +5,7 @@ import { Box } from "lucide-react";
 import type { SystemNodeData } from "#/lib/types/diagram-nodes";
 import { m } from "#/paraglide/messages";
 import { StatusDot } from "./status-dot";
+import { TechIcon } from "#/components/technologies/tech-icon";
 
 function SystemNodeComponent({ data, selected }: NodeProps & { data: SystemNodeData }) {
   return (
@@ -21,7 +22,11 @@ function SystemNodeComponent({ data, selected }: NodeProps & { data: SystemNodeD
       >
         {/* Icon + Name row */}
         <div className="flex w-full items-center gap-2.5">
-          <Box className="size-7 shrink-0 text-foreground" />
+          {data.iconTechSlug ? (
+            <TechIcon slug={data.iconTechSlug} className="size-7 shrink-0" fallback={<Box className="size-7 shrink-0 text-foreground" />} />
+          ) : (
+            <Box className="size-7 shrink-0 text-foreground" />
+          )}
           <span className="truncate text-base font-bold">{data.name}</span>
           <StatusDot status={data.status} />
         </div>

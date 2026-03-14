@@ -19,6 +19,7 @@ export interface BaseNodeData {
   status: ElementStatus;
   external: boolean;
   technologies: string[];
+  iconTechSlug: string | null;
   [key: string]: unknown;
 }
 
@@ -55,7 +56,8 @@ export interface ConnectionEdgeData {
   diagramConnectionId: string;
   connectionId: string;
   description: string | null;
-  technology: string | null;
+  technologies: string[];
+  iconTechSlug: string | null;
   direction: ConnectionDirection;
   lineStyle: LineStyle;
   sourceAnchor: AnchorPoint;

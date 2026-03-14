@@ -49,16 +49,6 @@ export const removeElementFromGroupSchema = z.object({
   groupElementId: z.string(),
 });
 
-export const addTechnologySchema = z.object({
-  elementId: z.string(),
-  name: z.string().min(1).max(100),
-  iconSlug: z.string().optional(),
-});
-
-export const removeTechnologySchema = z.object({
-  id: z.string(),
-});
-
 // ── Link schemas ───────────────────────────────────────────────────────
 
 export const addLinkSchema = z.object({

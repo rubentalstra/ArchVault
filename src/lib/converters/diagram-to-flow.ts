@@ -24,6 +24,7 @@ export interface DiagramElementRow {
     external: boolean;
     parentElementId: string | null;
     technologies: string[];
+    iconTechSlug: string | null;
 }
 
 export interface DiagramConnectionRow {
@@ -39,7 +40,8 @@ export interface DiagramConnectionRow {
     targetElementId: string;
     direction: string;
     description: string | null;
-    technology: string | null;
+    technologies: string[];
+    iconTechSlug: string | null;
 }
 
 // ── Convert DB elements to React Flow nodes ──────────────────────────
@@ -73,6 +75,7 @@ export function toFlowNodes(
             status: row.status as ElementStatus,
             external: row.external,
             technologies: row.technologies,
+            iconTechSlug: row.iconTechSlug,
         };
 
         if (isScope) {
@@ -168,7 +171,8 @@ export function toFlowEdges(
                 diagramConnectionId: row.id,
                 connectionId: row.connectionId,
                 description: row.description,
-                technology: row.technology,
+                technologies: row.technologies,
+                iconTechSlug: row.iconTechSlug,
                 direction,
                 lineStyle,
                 sourceAnchor: row.sourceAnchor as AnchorPoint,

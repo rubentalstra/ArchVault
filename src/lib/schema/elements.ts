@@ -11,6 +11,7 @@ import {
 } from "drizzle-orm/pg-core";
 import {workspace} from "./workspaces";
 import {user} from "./auth-schema";
+import {technology} from "./technologies";
 
 export const elementTypeEnum = pgEnum("element_type", [
     "actor",
@@ -45,6 +46,10 @@ export const element = pgTable(
         status: elementStatusEnum("status").default("live").notNull(),
         external: boolean("external").default(false).notNull(),
         metadataJson: jsonb("metadata_json"),
+        iconTechnologyId: text("icon_technology_id").references(
+            () => technology.id,
+            {onDelete: "set null"},
+        ),
         sourceBlockInstallationId: text("source_block_installation_id"),
         createdBy: text("created_by").references(() => user.id, {
             onDelete: "set null",

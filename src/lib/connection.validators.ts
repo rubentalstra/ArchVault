@@ -11,7 +11,6 @@ export const createConnectionSchema = z.object({
   targetElementId: z.string(),
   direction: z.enum(connectionDirections).default("outgoing"),
   description: z.string().optional(),
-  technology: z.string().optional(),
 });
 
 export const updateConnectionSchema = z.object({
@@ -20,7 +19,6 @@ export const updateConnectionSchema = z.object({
   targetElementId: z.string().optional(),
   direction: z.enum(connectionDirections).optional(),
   description: z.string().nullable().optional(),
-  technology: z.string().nullable().optional(),
 });
 
 export const deleteConnectionSchema = z.object({

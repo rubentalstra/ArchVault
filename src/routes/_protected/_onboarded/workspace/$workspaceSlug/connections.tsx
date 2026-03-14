@@ -14,6 +14,7 @@ import { authClient } from "#/lib/auth-client";
 import { getConnections } from "#/lib/connection.functions";
 import { getElements } from "#/lib/element.functions";
 import { getTags } from "#/lib/tag.functions";
+import { getTechnologies } from "#/lib/technology.functions";
 import { TagFilter } from "#/components/tags/tag-filter";
 import {
   getConnectionColumns,
@@ -83,6 +84,12 @@ function ConnectionsPage() {
     queryKey: ["tags", workspace.id],
     queryFn: async () =>
       (await getTagsFn({ data: { workspaceId: workspace.id } })) as WorkspaceTag[],
+  });
+
+  const getTechnologiesFn = useServerFn(getTechnologies);
+  const { data: workspaceTechnologies = [] } = useQuery({
+    queryKey: ["technologies", workspace.id],
+    queryFn: () => getTechnologiesFn({ data: { workspaceId: workspace.id } }),
   });
 
   const [createOpen, setCreateOpen] = useState(false);
@@ -165,12 +172,10 @@ function ConnectionsPage() {
       const targetName =
         elementNameMap.get(rel.targetElementId)?.toLowerCase() ?? "";
       const desc = rel.description?.toLowerCase() ?? "";
-      const tech = rel.technology?.toLowerCase() ?? "";
       return (
         sourceName.includes(search) ||
         targetName.includes(search) ||
-        desc.includes(search) ||
-        tech.includes(search)
+        desc.includes(search)
       );
     },
   });
@@ -312,13 +317,14 @@ function ConnectionsPage() {
                     targetElementId: editConnection.targetElementId,
                     direction: editConnection.direction,
                     description: editConnection.description,
-                    technology: editConnection.technology,
+                    technologies: (editConnection as unknown as { technologies?: { technologyId: string; name: string; iconSlug: string | null }[] }).technologies ?? [],
                     tags: editConnection.tags ?? [],
                   }
                 : undefined
             }
             elementOptions={elementOptions}
             workspaceTags={workspaceTags}
+            workspaceTechnologies={workspaceTechnologies as { id: string; name: string; iconSlug: string | null }[]}
             onSuccess={invalidate}
           />
         )}

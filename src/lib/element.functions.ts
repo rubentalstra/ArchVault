@@ -1,5 +1,5 @@
 import {createServerFn} from "@tanstack/react-start";
-import {and, eq, isNull, inArray, desc} from "drizzle-orm";
+import {and, eq, isNull, inArray} from "drizzle-orm";
 import {db} from "./database";
 import {element, technology, elementTechnology, elementLink, tag, elementTag, elementGroup} from "./schema";
 import {
@@ -9,8 +9,6 @@ import {
     getElementsSchema,
     addElementToGroupSchema,
     removeElementFromGroupSchema,
-    addTechnologySchema,
-    removeTechnologySchema,
     addLinkSchema,
     updateLinkSchema,
     removeLinkSchema,
@@ -39,6 +37,13 @@ export const getElements = createServerFn({method: "GET"})
 
         const elementIds = elements.map((e) => e.id);
         if (elementIds.length === 0) return [];
+
+        // Fetch icon technology slugs for elements that have an iconTechnologyId
+        const iconTechIds = [...new Set(elements.map((e) => e.iconTechnologyId).filter(Boolean))] as string[];
+        const iconTechs = iconTechIds.length > 0
+            ? await db.select({id: technology.id, iconSlug: technology.iconSlug, name: technology.name}).from(technology).where(inArray(technology.id, iconTechIds))
+            : [];
+        const iconTechMap = new Map(iconTechs.map((t) => [t.id, t]));
 
         const technologies = await db
             .select({
@@ -77,22 +82,27 @@ export const getElements = createServerFn({method: "GET"})
             .innerJoin(element, eq(elementGroup.groupElementId, element.id))
             .where(inArray(elementGroup.elementId, elementIds));
 
-        return elements.map((el) => ({
-            ...el,
-            technologies: technologies
-                .filter((t) => t.elementId === el.id)
-                .sort((a, b) => a.sortOrder - b.sortOrder),
-            links: links
-                .filter((l) => l.elementId === el.id)
-                .sort((a, b) => a.sortOrder - b.sortOrder),
-            tags: tagRows
-                .filter((r) => r.elementId === el.id)
-                .map((r) => tagMap.get(r.tagId))
-                .filter(Boolean),
-            groups: groupRows
-                .filter((g) => g.elementId === el.id)
-                .map((g) => ({id: g.groupElementId, name: g.groupName})),
-        }));
+        return elements.map((el) => {
+            const iconTech = el.iconTechnologyId ? iconTechMap.get(el.iconTechnologyId) : null;
+            return {
+                ...el,
+                iconTechSlug: iconTech?.iconSlug ?? null,
+                iconTechName: iconTech?.name ?? null,
+                technologies: technologies
+                    .filter((t) => t.elementId === el.id)
+                    .sort((a, b) => a.sortOrder - b.sortOrder),
+                links: links
+                    .filter((l) => l.elementId === el.id)
+                    .sort((a, b) => a.sortOrder - b.sortOrder),
+                tags: tagRows
+                    .filter((r) => r.elementId === el.id)
+                    .map((r) => tagMap.get(r.tagId))
+                    .filter(Boolean),
+                groups: groupRows
+                    .filter((g) => g.elementId === el.id)
+                    .map((g) => ({id: g.groupElementId, name: g.groupName})),
+            };
+        });
     });
 
 export const getElementById = createServerFn({method: "GET"})
@@ -133,8 +143,24 @@ export const getElementById = createServerFn({method: "GET"})
             .innerJoin(element, eq(elementGroup.groupElementId, element.id))
             .where(eq(elementGroup.elementId, el.id));
 
+        // Fetch icon technology info
+        let iconTechSlug: string | null = null;
+        let iconTechName: string | null = null;
+        if (el.iconTechnologyId) {
+            const [iconTech] = await db
+                .select({iconSlug: technology.iconSlug, name: technology.name})
+                .from(technology)
+                .where(eq(technology.id, el.iconTechnologyId));
+            if (iconTech) {
+                iconTechSlug = iconTech.iconSlug;
+                iconTechName = iconTech.name;
+            }
+        }
+
         return {
             ...el,
+            iconTechSlug,
+            iconTechName,
             technologies: technologies.sort((a, b) => a.sortOrder - b.sortOrder),
             links: links.sort((a, b) => a.sortOrder - b.sortOrder),
             groups,
@@ -278,59 +304,6 @@ export const deleteElement = createServerFn({method: "POST"})
                 updated_by = ${session.user.id}
             WHERE id IN (SELECT id FROM descendants)
         `);
-
-        return {success: true};
-    });
-
-// ── Technology CRUD ──────────��────────────────────────────────────────
-
-export const addTechnology = createServerFn({method: "POST"})
-    .inputValidator((input: unknown) => addTechnologySchema.parse(input))
-    .handler(async ({data}) => {
-        const {memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin", "editor"]);
-
-        const [el] = await db
-            .select({workspaceId: element.workspaceId})
-            .from(element)
-            .where(and(eq(element.id, data.elementId), isNull(element.deletedAt)));
-        if (!el) throw new Error("Element not found");
-
-        const [lastTechnology] = await db
-            .select({sortOrder: elementTechnology.sortOrder})
-            .from(elementTechnology)
-            .where(eq(elementTechnology.elementId, data.elementId))
-            .orderBy(desc(elementTechnology.sortOrder))
-            .limit(1);
-
-        const technologyId = crypto.randomUUID();
-        const [createdTech] = await db
-            .insert(technology)
-            .values({
-                id: technologyId,
-                workspaceId: el.workspaceId,
-                name: data.name,
-                iconSlug: data.iconSlug ?? null,
-            })
-            .returning();
-
-        await db.insert(elementTechnology).values({
-            elementId: data.elementId,
-            technologyId,
-            sortOrder: Number(lastTechnology?.sortOrder ?? -1) + 1,
-        });
-
-        return createdTech;
-    });
-
-export const removeTechnology = createServerFn({method: "POST"})
-    .inputValidator((input: unknown) => removeTechnologySchema.parse(input))
-    .handler(async ({data}) => {
-        const {memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin", "editor"]);
-
-        await db.delete(elementTechnology).where(eq(elementTechnology.technologyId, data.id));
-        await db.delete(technology).where(eq(technology.id, data.id));
 
         return {success: true};
     });

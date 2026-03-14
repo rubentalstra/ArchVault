@@ -13,6 +13,9 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:studio": "drizzle-kit studio",
+    "docker:compose:up": "docker compose up -d db",
+    "docker:compose:down": "docker compose down",
+    "docker:compose:down:v": "docker compose down -v",
     "email:dev": "pnpm --filter @archvault/transactional dev",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"

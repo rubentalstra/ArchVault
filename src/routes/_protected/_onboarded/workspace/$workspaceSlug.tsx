@@ -7,6 +7,7 @@ import {
   PanelsTopLeft,
   Tags,
   Layers,
+  Cpu,
   ArrowLeft,
   FolderOpen,
 } from "lucide-react";
@@ -51,6 +52,7 @@ function WorkspaceLayout() {
     { to: "/workspace/$workspaceSlug/connections", icon: ArrowLeftRight, label: () => m.connection_nav_title() },
     { to: "/workspace/$workspaceSlug/tags", icon: Tags, label: () => m.tag_manager_title() },
     { to: "/workspace/$workspaceSlug/groups", icon: Layers, label: () => m.group_nav_title() },
+    { to: "/workspace/$workspaceSlug/technologies", icon: Cpu, label: () => m.technology_nav_title() },
     { to: "/workspace/$workspaceSlug/settings", icon: Settings, label: () => m.workspace_nav_settings() },
   ] as const;
 

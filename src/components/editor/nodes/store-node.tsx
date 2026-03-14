@@ -5,6 +5,7 @@ import { Database } from "lucide-react";
 import type { StoreNodeData } from "#/lib/types/diagram-nodes";
 import { m } from "#/paraglide/messages";
 import { StatusDot } from "./status-dot";
+import { TechIcon } from "#/components/technologies/tech-icon";
 
 const MIN_WIDTH = 160;
 const MIN_HEIGHT = 90;
@@ -30,7 +31,11 @@ function StoreNodeComponent({ data, selected }: NodeProps & { data: StoreNodeDat
         } ${selected ? "ring-2 ring-primary" : ""}`}
       >
         <div className="flex items-center gap-1.5">
-          <Database className="size-4 shrink-0 text-muted-foreground" />
+          {data.iconTechSlug ? (
+            <TechIcon slug={data.iconTechSlug} className="size-4 shrink-0" fallback={<Database className="size-4 shrink-0 text-muted-foreground" />} />
+          ) : (
+            <Database className="size-4 shrink-0 text-muted-foreground" />
+          )}
           <span className="truncate text-sm font-semibold">{data.name}</span>
           <StatusDot status={data.status} />
         </div>

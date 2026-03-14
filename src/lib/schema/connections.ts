@@ -8,6 +8,7 @@ import {
 import {workspace} from "./workspaces";
 import {element} from "./elements";
 import {user} from "./auth-schema";
+import {technology} from "./technologies";
 
 export const connectionDirectionEnum = pgEnum("connection_direction", [
     "outgoing",
@@ -33,7 +34,10 @@ export const connection = pgTable(
             .default("outgoing")
             .notNull(),
         description: text("description"),
-        technology: text("technology"),
+        iconTechnologyId: text("icon_technology_id").references(
+            () => technology.id,
+            {onDelete: "set null"},
+        ),
         sourceBlockInstallationId: text("source_block_installation_id"),
         createdBy: text("created_by").references(() => user.id, {
             onDelete: "set null",

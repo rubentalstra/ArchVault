@@ -5,6 +5,7 @@ import { Package } from "lucide-react";
 import type { AppNodeData } from "#/lib/types/diagram-nodes";
 import { m } from "#/paraglide/messages";
 import { StatusDot } from "./status-dot";
+import { TechIcon } from "#/components/technologies/tech-icon";
 
 const MIN_WIDTH = 160;
 const MIN_HEIGHT = 90;
@@ -30,7 +31,11 @@ function AppNodeComponentInner({ data, selected }: NodeProps & { data: AppNodeDa
         } ${selected ? "ring-2 ring-primary" : ""}`}
       >
         <div className="flex items-center gap-1.5">
-          <Package className="size-4 shrink-0 text-muted-foreground" />
+          {data.iconTechSlug ? (
+            <TechIcon slug={data.iconTechSlug} className="size-4 shrink-0" fallback={<Package className="size-4 shrink-0 text-muted-foreground" />} />
+          ) : (
+            <Package className="size-4 shrink-0 text-muted-foreground" />
+          )}
           <span className="truncate text-sm font-semibold">{data.name}</span>
           <StatusDot status={data.status} />
         </div>

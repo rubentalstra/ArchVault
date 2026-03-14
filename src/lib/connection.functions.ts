@@ -1,7 +1,7 @@
 import {createServerFn} from "@tanstack/react-start";
 import {and, eq, isNull, inArray} from "drizzle-orm";
 import {db} from "./database";
-import {connection, element, tag, connectionTag} from "./schema";
+import {connection, element, tag, connectionTag, connectionTechnology, technology} from "./schema";
 import {
     createConnectionSchema,
     updateConnectionSchema,
@@ -43,13 +43,42 @@ export const getConnections = createServerFn({method: "GET"})
             : [];
         const tagMap = new Map(tags.map((t) => [t.id, t]));
 
-        return connections.map((rel) => ({
-            ...rel,
-            tags: tagRows
-                .filter((r) => r.connectionId === rel.id)
-                .map((r) => tagMap.get(r.tagId))
-                .filter(Boolean),
-        }));
+        // Fetch connection technologies
+        const techRows = connectionIds.length > 0
+            ? await db
+                .select({
+                    connectionId: connectionTechnology.connectionId,
+                    technologyId: connectionTechnology.technologyId,
+                    sortOrder: connectionTechnology.sortOrder,
+                    name: technology.name,
+                    iconSlug: technology.iconSlug,
+                })
+                .from(connectionTechnology)
+                .innerJoin(technology, eq(connectionTechnology.technologyId, technology.id))
+                .where(inArray(connectionTechnology.connectionId, connectionIds))
+            : [];
+
+        // Fetch icon technology info
+        const iconTechIds = [...new Set(connections.map((c) => c.iconTechnologyId).filter(Boolean))] as string[];
+        const iconTechs = iconTechIds.length > 0
+            ? await db.select({id: technology.id, iconSlug: technology.iconSlug, name: technology.name}).from(technology).where(inArray(technology.id, iconTechIds))
+            : [];
+        const iconTechMap = new Map(iconTechs.map((t) => [t.id, t]));
+
+        return connections.map((rel) => {
+            const iconTech = rel.iconTechnologyId ? iconTechMap.get(rel.iconTechnologyId) : null;
+            return {
+                ...rel,
+                iconTechSlug: iconTech?.iconSlug ?? null,
+                technologies: techRows
+                    .filter((t) => t.connectionId === rel.id)
+                    .sort((a, b) => a.sortOrder - b.sortOrder),
+                tags: tagRows
+                    .filter((r) => r.connectionId === rel.id)
+                    .map((r) => tagMap.get(r.tagId))
+                    .filter(Boolean),
+            };
+        });
     });
 
 export const createConnection = createServerFn({method: "POST"})
@@ -85,7 +114,6 @@ export const createConnection = createServerFn({method: "POST"})
                 targetElementId: data.targetElementId,
                 direction: data.direction,
                 description: data.description ?? null,
-                technology: data.technology ?? null,
                 createdBy: session.user.id,
                 updatedBy: session.user.id,
             })

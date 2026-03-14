@@ -28,7 +28,7 @@ export interface ElementRow {
     external: boolean;
     parentElementId: string | null;
     updatedAt: string | Date;
-    technologies: { id: string; name: string; iconSlug: string | null }[];
+    technologies: { technologyId: string; name: string; iconSlug: string | null }[];
     links: { id: string; url: string; label: string | null }[];
     tags: { id: string; name: string; color: string; icon: string | null }[];
       groups?: { id: string; name: string }[];
@@ -121,7 +121,7 @@ export function getElementColumns(actions: ElementTableActions) {
                 return (
                     <div className="flex flex-wrap gap-1">
                         {visible.map((t) => (
-                            <Badge key={t.id} variant="secondary" className="text-xs">
+                            <Badge key={t.technologyId} variant="secondary" className="text-xs">
                                 {t.name}
                             </Badge>
                         ))}

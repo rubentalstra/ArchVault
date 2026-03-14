@@ -8,6 +8,7 @@ import {
     element,
     technology,
     elementTechnology,
+    connectionTechnology,
     connection,
 } from "./schema";
 import {
@@ -134,6 +135,7 @@ export const getDiagramData = createServerFn({method: "GET"})
                 status: element.status,
                 external: element.external,
                 parentElementId: element.parentElementId,
+                iconTechnologyId: element.iconTechnologyId,
             })
             .from(diagramElement)
             .leftJoin(element, eq(diagramElement.elementId, element.id))
@@ -158,7 +160,7 @@ export const getDiagramData = createServerFn({method: "GET"})
                 targetElementId: connection.targetElementId,
                 direction: connection.direction,
                 description: connection.description,
-                technology: connection.technology,
+                iconTechnologyId: connection.iconTechnologyId,
             })
             .from(diagramConnection)
             .leftJoin(
@@ -172,11 +174,12 @@ export const getDiagramData = createServerFn({method: "GET"})
                 ),
             );
 
+        const {inArray} = await import("drizzle-orm");
+
         // Fetch technologies for all elements on this diagram
         const elementIds = elements.map((e) => e.elementId);
-        let techMap = new Map<string, string[]>();
+        let elementTechMap = new Map<string, string[]>();
         if (elementIds.length > 0) {
-            const {inArray} = await import("drizzle-orm");
             const techs = await db
                 .select({
                     elementId: elementTechnology.elementId,
@@ -187,20 +190,63 @@ export const getDiagramData = createServerFn({method: "GET"})
                 .innerJoin(technology, eq(elementTechnology.technologyId, technology.id))
                 .where(inArray(elementTechnology.elementId, elementIds));
 
-            techMap = new Map<string, string[]>();
+            elementTechMap = new Map<string, string[]>();
             for (const t of techs.sort((a, b) => a.sortOrder - b.sortOrder)) {
-                const existing = techMap.get(t.elementId) ?? [];
+                const existing = elementTechMap.get(t.elementId) ?? [];
                 existing.push(t.name);
-                techMap.set(t.elementId, existing);
+                elementTechMap.set(t.elementId, existing);
             }
         }
 
+        // Fetch icon technology slugs for elements
+        const elementIconTechIds = [...new Set(elements.map((e) => e.iconTechnologyId).filter(Boolean))] as string[];
+        const elementIconTechs = elementIconTechIds.length > 0
+            ? await db.select({id: technology.id, iconSlug: technology.iconSlug}).from(technology).where(inArray(technology.id, elementIconTechIds))
+            : [];
+        const elementIconTechMap = new Map(elementIconTechs.map((t) => [t.id, t.iconSlug]));
+
+        // Fetch technologies for all connections on this diagram
+        const connectionIds = connections.map((c) => c.connectionId);
+        let connTechMap = new Map<string, string[]>();
+        if (connectionIds.length > 0) {
+            const connTechs = await db
+                .select({
+                    connectionId: connectionTechnology.connectionId,
+                    name: technology.name,
+                    sortOrder: connectionTechnology.sortOrder,
+                })
+                .from(connectionTechnology)
+                .innerJoin(technology, eq(connectionTechnology.technologyId, technology.id))
+                .where(inArray(connectionTechnology.connectionId, connectionIds));
+
+            connTechMap = new Map<string, string[]>();
+            for (const t of connTechs.sort((a, b) => a.sortOrder - b.sortOrder)) {
+                const existing = connTechMap.get(t.connectionId) ?? [];
+                existing.push(t.name);
+                connTechMap.set(t.connectionId, existing);
+            }
+        }
+
+        // Fetch icon technology slugs for connections
+        const connIconTechIds = [...new Set(connections.map((c) => c.iconTechnologyId).filter(Boolean))] as string[];
+        const connIconTechs = connIconTechIds.length > 0
+            ? await db.select({id: technology.id, iconSlug: technology.iconSlug}).from(technology).where(inArray(technology.id, connIconTechIds))
+            : [];
+        const connIconTechMap = new Map(connIconTechs.map((t) => [t.id, t.iconSlug]));
+
         const elementsWithTech = elements.map((e) => ({
             ...e,
-            technologies: techMap.get(e.elementId) ?? [],
+            technologies: elementTechMap.get(e.elementId) ?? [],
+            iconTechSlug: e.iconTechnologyId ? (elementIconTechMap.get(e.iconTechnologyId) ?? null) : null,
         }));
 
-        return {diagram: d, elements: elementsWithTech, connections};
+        const connectionsWithTech = connections.map((c) => ({
+            ...c,
+            technologies: connTechMap.get(c.connectionId) ?? [],
+            iconTechSlug: c.iconTechnologyId ? (connIconTechMap.get(c.iconTechnologyId) ?? null) : null,
+        }));
+
+        return {diagram: d, elements: elementsWithTech, connections: connectionsWithTech};
     });
 
 export const createDiagram = createServerFn({method: "POST"})

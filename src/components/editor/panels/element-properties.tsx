@@ -3,7 +3,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { useEditorStore } from "#/stores/editor-store";
-import { getElementById, updateElement, addTechnology, removeTechnology, addLink, removeLink } from "#/lib/element.functions";
+import { getElementById, updateElement, addLink, removeLink } from "#/lib/element.functions";
+import { getTechnologies, addElementTechnology, removeElementTechnology, setElementIconTechnology } from "#/lib/technology.functions";
 import { getTags, addElementTag, removeElementTag } from "#/lib/tag.functions";
 import { getGroups, addGroupMembership, removeGroupMembership } from "#/lib/group.functions";
 import { Input } from "#/components/ui/input";
@@ -27,8 +28,9 @@ import {
   PopoverTrigger,
 } from "#/components/ui/popover";
 import { ScrollArea } from "#/components/ui/scroll-area";
+import { TechnologyBadge } from "#/components/technologies/technology-badge";
 import { StatusDot } from "#/components/editor/nodes/status-dot";
-import { X, Plus, ExternalLink, Tag, Layers } from "lucide-react";
+import { X, Plus, ExternalLink, Tag, Layers, Check, Cpu, Star } from "lucide-react";
 import { m } from "#/paraglide/messages";
 import { ElementConnections } from "./element-connections";
 import type { ElementStatus } from "#/lib/element.validators";
@@ -38,7 +40,8 @@ interface ElementDetails {
   id: string;
   parentElementId: string | null;
   description: string | null;
-  technologies: Array<{ id: string; name: string; iconSlug: string | null }>;
+  iconTechnologyId: string | null;
+  technologies: Array<{ technologyId: string; name: string; iconSlug: string | null }>;
   links: Array<{ id: string; url: string; label: string | null }>;
   tags?: Array<{ tagId: string }>;
   groupMemberships?: Array<{ groupId: string }>;
@@ -207,7 +210,12 @@ export function ElementProperties({ node }: { node: AppNode }) {
 
           {element && (
             <>
-              <TechnologiesSection elementId={element.id} technologies={element.technologies} />
+              <TechnologiesSection
+                elementId={element.id}
+                workspaceId={workspaceId}
+                technologies={element.technologies}
+                iconTechnologyId={element.iconTechnologyId}
+              />
               <Separator />
               <TagsSection elementId={element.id} workspaceId={workspaceId} />
               <Separator />
@@ -239,67 +247,127 @@ export function ElementProperties({ node }: { node: AppNode }) {
 
 function TechnologiesSection({
   elementId,
+  workspaceId,
   technologies,
+  iconTechnologyId,
 }: {
   elementId: string;
-  technologies: Array<{ id: string; name: string; iconSlug: string | null }>;
+  workspaceId: string | null;
+  technologies: Array<{ technologyId: string; name: string; iconSlug: string | null }>;
+  iconTechnologyId: string | null;
 }) {
-  const [newTech, setNewTech] = useState("");
   const queryClient = useQueryClient();
-  const addTechnologyFn = useServerFn(addTechnology);
-  const removeTechnologyFn = useServerFn(removeTechnology);
+  const getTechnologiesFn = useServerFn(getTechnologies);
+  const addElementTechnologyFn = useServerFn(addElementTechnology);
+  const removeElementTechnologyFn = useServerFn(removeElementTechnology);
+  const setElementIconTechnologyFn = useServerFn(setElementIconTechnology);
 
-  const handleAdd = useCallback(async () => {
-    if (!newTech.trim()) return;
-    try {
-      await addTechnologyFn({ data: { elementId, name: newTech.trim() } });
-      queryClient.invalidateQueries({ queryKey: ["element", elementId] });
-      setNewTech("");
-    } catch {
-      toast.error(m.editor_panel_save_failed());
-    }
-  }, [newTech, elementId, addTechnologyFn, queryClient]);
+  const { data: allTechs } = useQuery({
+    queryKey: ["technologies", workspaceId],
+    queryFn: () => getTechnologiesFn({ data: { workspaceId: workspaceId! } }),
+    enabled: !!workspaceId,
+  });
 
-  const handleRemove = useCallback(
-    async (id: string) => {
+  const assignedIds = new Set(technologies.map((t) => t.technologyId));
+
+  const handleToggle = useCallback(
+    async (technologyId: string) => {
       try {
-        await removeTechnologyFn({ data: { id } });
+        if (assignedIds.has(technologyId)) {
+          await removeElementTechnologyFn({ data: { elementId, technologyId } });
+        } else {
+          await addElementTechnologyFn({ data: { elementId, technologyId } });
+        }
         queryClient.invalidateQueries({ queryKey: ["element", elementId] });
       } catch {
         toast.error(m.editor_panel_save_failed());
       }
     },
-    [elementId, removeTechnologyFn, queryClient],
+    [elementId, assignedIds, addElementTechnologyFn, removeElementTechnologyFn, queryClient],
+  );
+
+  const handleSetIcon = useCallback(
+    async (technologyId: string | null) => {
+      try {
+        await setElementIconTechnologyFn({ data: { elementId, technologyId } });
+        queryClient.invalidateQueries({ queryKey: ["element", elementId] });
+      } catch {
+        toast.error(m.editor_panel_save_failed());
+      }
+    },
+    [elementId, setElementIconTechnologyFn, queryClient],
   );
 
   return (
     <div className="space-y-2">
-      <Label>{m.element_label_technologies()}</Label>
+      <Label className="flex items-center gap-1">
+        <Cpu className="size-3.5" /> {m.element_label_technologies()}
+      </Label>
       <div className="flex flex-wrap gap-1">
         {technologies.map((tech) => (
-          <Badge key={tech.id} variant="secondary" className="gap-1">
-            {tech.name}
-            <button
-              onClick={() => handleRemove(tech.id)}
-              className="ml-0.5 rounded-sm hover:bg-muted"
-            >
-              <X className="size-3" />
-            </button>
-          </Badge>
+          <TechnologyBadge
+            key={tech.technologyId}
+            name={tech.name}
+            iconSlug={tech.iconSlug}
+            isIcon={iconTechnologyId === tech.technologyId}
+            onRemove={() => handleToggle(tech.technologyId)}
+          />
         ))}
       </div>
-      <div className="flex gap-1">
-        <Input
-          value={newTech}
-          onChange={(e) => setNewTech(e.target.value)}
-          placeholder={m.element_tech_placeholder_name()}
-          className="h-8 text-sm"
-          onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-        />
-        <Button size="sm" variant="outline" onClick={handleAdd} className="h-8 shrink-0">
-          <Plus className="size-3" />
-        </Button>
-      </div>
+      {technologies.length > 0 && (
+        <div className="flex flex-wrap gap-1">
+          {technologies.map((tech) => (
+            <Button
+              key={tech.technologyId}
+              variant="ghost"
+              size="sm"
+              className="h-6 gap-1 px-1.5 text-xs"
+              onClick={() =>
+                handleSetIcon(
+                  iconTechnologyId === tech.technologyId ? null : tech.technologyId,
+                )
+              }
+            >
+              <Star
+                className={`size-3 ${iconTechnologyId === tech.technologyId ? "fill-current" : ""}`}
+              />
+              {tech.name}
+            </Button>
+          ))}
+        </div>
+      )}
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button variant="outline" size="sm" className="w-full justify-start">
+            {m.technology_picker_title()}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-56 p-0" align="start">
+          <ScrollArea className="max-h-48">
+            <div className="p-1">
+              {allTechs?.map((tech) => (
+                <button
+                  key={tech.id}
+                  className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
+                  onClick={() => handleToggle(tech.id)}
+                >
+                  <span
+                    className={`flex size-4 items-center justify-center rounded-sm border ${assignedIds.has(tech.id) ? "border-primary bg-primary text-primary-foreground" : ""}`}
+                  >
+                    {assignedIds.has(tech.id) && <Check className="size-3" />}
+                  </span>
+                  <span className="flex-1 text-left">{tech.name}</span>
+                </button>
+              ))}
+              {(!allTechs || allTechs.length === 0) && (
+                <p className="px-2 py-3 text-center text-sm text-muted-foreground">
+                  {m.technology_picker_empty()}
+                </p>
+              )}
+            </div>
+          </ScrollArea>
+        </PopoverContent>
+      </Popover>
     </div>
   );
 }

@@ -23,7 +23,9 @@ import {
   updateConnection,
 } from "#/lib/connection.functions";
 import { addConnectionTag, removeConnectionTag } from "#/lib/tag.functions";
+import { addConnectionTechnology, removeConnectionTechnology } from "#/lib/technology.functions";
 import { TagPicker } from "#/components/tags/tag-picker";
+import { TechnologyPicker } from "#/components/technologies/technology-picker";
 
 interface ConnectionData {
   id: string;
@@ -31,7 +33,7 @@ interface ConnectionData {
   targetElementId: string;
   direction: ConnectionDirection;
   description: string | null;
-  technology: string | null;
+  technologies: { technologyId: string; name: string; iconSlug: string | null }[];
   tags: { id: string; name: string; color: string; icon: string | null }[];
 }
 
@@ -47,6 +49,12 @@ interface WorkspaceTag {
   icon: string | null;
 }
 
+interface WorkspaceTechnology {
+  id: string;
+  name: string;
+  iconSlug: string | null;
+}
+
 interface ConnectionFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -54,6 +62,7 @@ interface ConnectionFormDialogProps {
   connection?: ConnectionData;
   elementOptions: ElementOption[];
   workspaceTags?: WorkspaceTag[];
+  workspaceTechnologies?: WorkspaceTechnology[];
   onSuccess: () => void;
 }
 
@@ -71,12 +80,16 @@ export function ConnectionFormDialog({
   connection: editConnection,
   elementOptions,
   workspaceTags = [],
+  workspaceTechnologies = [],
   onSuccess,
 }: ConnectionFormDialogProps) {
   const isEdit = !!editConnection;
   const [endpointError, setEndpointError] = useState<string | null>(null);
   const [localTagIds, setLocalTagIds] = useState<string[]>(
     editConnection?.tags?.map((t) => t.id) ?? [],
+  );
+  const [localTechnologyIds, setLocalTechnologyIds] = useState<string[]>(
+    editConnection?.technologies?.map((t) => t.technologyId) ?? [],
   );
 
   const form = useForm({
@@ -85,7 +98,6 @@ export function ConnectionFormDialog({
       targetElementId: editConnection?.targetElementId ?? "",
       direction: editConnection?.direction ?? ("outgoing" as ConnectionDirection),
       description: editConnection?.description ?? "",
-      technology: editConnection?.technology ?? "",
     },
     onSubmit: async ({ value }) => {
       try {
@@ -107,9 +119,9 @@ export function ConnectionFormDialog({
               targetElementId: value.targetElementId,
               direction: value.direction,
               description: value.description || null,
-              technology: value.technology || null,
             },
           });
+
           // Sync tags
           const existingTagIds = new Set(editConnection.tags.map((t) => t.id));
           const currentTagIds = new Set(localTagIds);
@@ -125,6 +137,21 @@ export function ConnectionFormDialog({
             }
           }
 
+          // Sync technologies
+          const existingTechIds = new Set(editConnection.technologies.map((t) => t.technologyId));
+          const currentTechIds = new Set(localTechnologyIds);
+
+          for (const techId of existingTechIds) {
+            if (!currentTechIds.has(techId)) {
+              await removeConnectionTechnology({ data: { connectionId: editConnection.id, technologyId: techId } });
+            }
+          }
+          for (const techId of currentTechIds) {
+            if (!existingTechIds.has(techId)) {
+              await addConnectionTechnology({ data: { connectionId: editConnection.id, technologyId: techId } });
+            }
+          }
+
           toast.success(m.connection_edit_success());
         } else {
           const created = await createConnection({
@@ -134,12 +161,14 @@ export function ConnectionFormDialog({
               targetElementId: value.targetElementId,
               direction: value.direction,
               description: value.description || undefined,
-              technology: value.technology || undefined,
             },
           });
-          // Add tags to newly created connection
+          // Add tags and technologies to newly created connection
           for (const tagId of localTagIds) {
             await addConnectionTag({ data: { connectionId: created.id, tagId } });
+          }
+          for (const techId of localTechnologyIds) {
+            await addConnectionTechnology({ data: { connectionId: created.id, technologyId: techId } });
           }
 
           toast.success(m.connection_create_success());
@@ -272,20 +301,17 @@ export function ConnectionFormDialog({
             )}
           </form.Field>
 
-          {/* Technology */}
-          <form.Field name="technology">
-            {(field) => (
-              <div className="flex flex-col gap-1.5">
-                <Label>{m.connection_label_technology()}</Label>
-                <Input
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  onBlur={field.handleBlur}
-                  placeholder={m.connection_placeholder_technology()}
-                />
-              </div>
-            )}
-          </form.Field>
+          {/* Technologies */}
+          {workspaceTechnologies.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <Label>{m.technology_picker_title()}</Label>
+              <TechnologyPicker
+                workspaceTechnologies={workspaceTechnologies}
+                selectedTechnologyIds={localTechnologyIds}
+                onChange={setLocalTechnologyIds}
+              />
+            </div>
+          )}
 
           {/* Tags */}
           {workspaceTags.length > 0 && (

@@ -1,13 +1,21 @@
 import { useCallback, useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { useEditorStore } from "#/stores/editor-store";
 import { updateConnection } from "#/lib/connection.functions";
 import { updateDiagramConnection } from "#/lib/diagram.functions";
-import { Input } from "#/components/ui/input";
+import {
+  getTechnologies,
+  addConnectionTechnology,
+  removeConnectionTechnology,
+  setConnectionIconTechnology,
+} from "#/lib/technology.functions";
+import { TechnologyBadge } from "#/components/technologies/technology-badge";
 import { Label } from "#/components/ui/label";
 import { Textarea } from "#/components/ui/textarea";
 import { Badge } from "#/components/ui/badge";
+import { Button } from "#/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -15,7 +23,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "#/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "#/components/ui/popover";
+import { ScrollArea } from "#/components/ui/scroll-area";
 import { Slider } from "#/components/ui/slider";
+import { Check, Cpu, Star } from "lucide-react";
 import { m } from "#/paraglide/messages";
 import type { AppEdge } from "#/lib/types/diagram-nodes";
 import type { ConnectionDirection } from "#/lib/connection.validators";
@@ -48,22 +63,42 @@ const LINE_STYLE_OPTIONS: { value: LineStyle; label: string }[] = [
 
 export function ConnectionProperties({ edge }: { edge: AppEdge }) {
   const nodes = useEditorStore((s) => s.nodes);
+  const workspaceId = useEditorStore((s) => s.workspaceId);
   const setSelection = useEditorStore((s) => s.setSelection);
+  const queryClient = useQueryClient();
 
   const updateConnectionFn = useServerFn(updateConnection);
   const updateDiagramConnectionFn = useServerFn(updateDiagramConnection);
+  const getTechnologiesFn = useServerFn(getTechnologies);
+  const addConnectionTechnologyFn = useServerFn(addConnectionTechnology);
+  const removeConnectionTechnologyFn = useServerFn(removeConnectionTechnology);
+  const setConnectionIconTechnologyFn = useServerFn(setConnectionIconTechnology);
 
   const edgeData = edge.data!;
   const sourceNode = nodes.find((n) => n.id === edge.source);
   const targetNode = nodes.find((n) => n.id === edge.target);
 
   const [description, setDescription] = useState(edgeData.description ?? "");
-  const [technology, setTechnology] = useState(edgeData.technology ?? "");
+
+  // Track assigned technology names from edge data
+  const assignedTechNames = edgeData.technologies ?? [];
+
+  const { data: allTechs } = useQuery({
+    queryKey: ["technologies", workspaceId],
+    queryFn: () => getTechnologiesFn({ data: { workspaceId: workspaceId! } }),
+    enabled: !!workspaceId,
+  });
+
+  // Build a set of assigned tech IDs based on name matching with workspace techs
+  const assignedTechIds = new Set(
+    allTechs
+      ?.filter((t) => assignedTechNames.includes(t.name))
+      .map((t) => t.id) ?? [],
+  );
 
   useEffect(() => {
     setDescription(edgeData.description ?? "");
-    setTechnology(edgeData.technology ?? "");
-  }, [edgeData.description, edgeData.technology]);
+  }, [edgeData.description]);
 
   const saveConnection = useCallback(
     async (field: string, value: unknown) => {
@@ -89,6 +124,39 @@ export function ConnectionProperties({ edge }: { edge: AppEdge }) {
       }
     },
     [edgeData.diagramConnectionId, updateDiagramConnectionFn],
+  );
+
+  const handleToggleTech = useCallback(
+    async (technologyId: string) => {
+      try {
+        if (assignedTechIds.has(technologyId)) {
+          await removeConnectionTechnologyFn({
+            data: { connectionId: edgeData.connectionId, technologyId },
+          });
+        } else {
+          await addConnectionTechnologyFn({
+            data: { connectionId: edgeData.connectionId, technologyId },
+          });
+        }
+        queryClient.invalidateQueries({ queryKey: ["technologies", workspaceId] });
+      } catch {
+        toast.error(m.editor_panel_save_failed());
+      }
+    },
+    [edgeData.connectionId, assignedTechIds, addConnectionTechnologyFn, removeConnectionTechnologyFn, queryClient, workspaceId],
+  );
+
+  const handleSetIcon = useCallback(
+    async (technologyId: string | null) => {
+      try {
+        await setConnectionIconTechnologyFn({
+          data: { connectionId: edgeData.connectionId, technologyId },
+        });
+      } catch {
+        toast.error(m.editor_panel_save_failed());
+      }
+    },
+    [edgeData.connectionId, setConnectionIconTechnologyFn],
   );
 
   return (
@@ -151,18 +219,86 @@ export function ConnectionProperties({ edge }: { edge: AppEdge }) {
         />
       </div>
 
+      {/* Technologies */}
       <div className="space-y-2">
-        <Label>{m.connection_label_technology()}</Label>
-        <Input
-          value={technology}
-          onChange={(e) => setTechnology(e.target.value)}
-          onBlur={() => {
-            if (technology !== (edgeData.technology ?? "")) {
-              saveConnection("technology", technology || null);
-            }
-          }}
-          placeholder={m.connection_placeholder_technology()}
-        />
+        <Label className="flex items-center gap-1">
+          <Cpu className="size-3.5" /> {m.technology_picker_title()}
+        </Label>
+        {assignedTechNames.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {assignedTechNames.map((name) => {
+              const tech = allTechs?.find((t) => t.name === name);
+              return (
+                <TechnologyBadge
+                  key={name}
+                  name={name}
+                  isIcon={edgeData.iconTechSlug === tech?.iconSlug && !!tech?.iconSlug}
+                  onRemove={tech ? () => handleToggleTech(tech.id) : undefined}
+                />
+              );
+            })}
+          </div>
+        )}
+        {assignedTechNames.length > 0 && allTechs && (
+          <div className="flex flex-wrap gap-1">
+            {assignedTechNames.map((name) => {
+              const tech = allTechs.find((t) => t.name === name);
+              if (!tech) return null;
+              return (
+                <Button
+                  key={tech.id}
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 gap-1 px-1.5 text-xs"
+                  onClick={() =>
+                    handleSetIcon(
+                      edgeData.iconTechSlug === tech.iconSlug && tech.iconSlug
+                        ? null
+                        : tech.id,
+                    )
+                  }
+                >
+                  <Star
+                    className={`size-3 ${edgeData.iconTechSlug === tech.iconSlug && tech.iconSlug ? "fill-current" : ""}`}
+                  />
+                  {tech.name}
+                </Button>
+              );
+            })}
+          </div>
+        )}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" size="sm" className="w-full justify-start">
+              {m.technology_picker_title()}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-56 p-0" align="start">
+            <ScrollArea className="max-h-48">
+              <div className="p-1">
+                {allTechs?.map((tech) => (
+                  <button
+                    key={tech.id}
+                    className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
+                    onClick={() => handleToggleTech(tech.id)}
+                  >
+                    <span
+                      className={`flex size-4 items-center justify-center rounded-sm border ${assignedTechIds.has(tech.id) ? "border-primary bg-primary text-primary-foreground" : ""}`}
+                    >
+                      {assignedTechIds.has(tech.id) && <Check className="size-3" />}
+                    </span>
+                    <span className="flex-1 text-left">{tech.name}</span>
+                  </button>
+                ))}
+                {(!allTechs || allTechs.length === 0) && (
+                  <p className="px-2 py-3 text-center text-sm text-muted-foreground">
+                    {m.technology_picker_empty()}
+                  </p>
+                )}
+              </div>
+            </ScrollArea>
+          </PopoverContent>
+        </Popover>
       </div>
 
       <div className="space-y-2">

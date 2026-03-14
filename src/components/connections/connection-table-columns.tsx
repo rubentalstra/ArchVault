@@ -40,7 +40,7 @@ export interface ConnectionRow {
   targetElementId: string;
   direction: ConnectionDirection;
   description: string | null;
-  technology: string | null;
+  technologies: { technologyId: string; name: string; iconSlug: string | null }[];
   tags: { id: string; name: string; color: string; icon: string | null }[];
   updatedAt: string | Date;
 }
@@ -136,13 +136,21 @@ export function getConnectionColumns(actions: ConnectionTableActions) {
         return <span className="text-sm">{desc}</span>;
       },
     }),
-    columnHelper.accessor("technology", {
+    columnHelper.accessor("technologies", {
       header: m.connection_column_technology(),
       enableSorting: false,
       cell: (info) => {
-        const tech = info.getValue();
-        if (!tech) return <span className="text-muted-foreground">\u2014</span>;
-        return <Badge variant="secondary">{tech}</Badge>;
+        const techs = info.getValue();
+        if (!techs || techs.length === 0) return <span className="text-muted-foreground">\u2014</span>;
+        return (
+          <div className="flex flex-wrap gap-1">
+            {techs.map((t) => (
+              <Badge key={t.technologyId} variant="secondary" className="text-xs">
+                {t.name}
+              </Badge>
+            ))}
+          </div>
+        );
       },
     }),
     columnHelper.accessor("tags", {
