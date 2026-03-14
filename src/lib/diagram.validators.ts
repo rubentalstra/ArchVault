@@ -46,6 +46,10 @@ export const getDiagramSchema = z.object({
   id: z.string(),
 });
 
+export const getDiagramDataSchema = z.object({
+  id: z.string(),
+});
+
 // ── Diagram Element schemas ─────────────────────────────────────────
 
 export const addDiagramElementSchema = z.object({

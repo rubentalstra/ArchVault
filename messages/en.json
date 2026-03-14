@@ -621,5 +621,13 @@
   "admin_nav_users": "Users",
   "admin_nav_sso": "SSO Providers",
   "admin_nav_scim": "SCIM",
-  "admin_nav_back": "Back to Dashboard"
+  "admin_nav_back": "Back to Dashboard",
+  "canvas_back_to_diagrams": "Back to diagrams",
+  "canvas_mode_select": "Select mode",
+  "canvas_mode_pan": "Pan mode",
+  "canvas_readonly": "Read-only",
+  "canvas_node_external": "External",
+  "canvas_status_planned": "Planned",
+  "canvas_status_live": "Live",
+  "canvas_status_deprecated": "Deprecated"
 }

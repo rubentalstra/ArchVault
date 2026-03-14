@@ -38,6 +38,7 @@
     "@tanstack/react-table": "^8.21.3",
     "@tanstack/react-virtual": "^3.13.22",
     "@tanstack/router-plugin": "^1.166.9",
+    "@xyflow/react": "^12.10.1",
     "better-auth": "^1.5.5",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

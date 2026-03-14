@@ -2,6 +2,7 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
+@import "@xyflow/react/dist/base.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -126,4 +127,21 @@
   html {
     @apply font-sans;
   }
+}
+
+.react-flow {
+  --xy-background-color: var(--background);
+  --xy-node-border-default: var(--border);
+  --xy-node-background-default: var(--card);
+  --xy-node-color-default: var(--card-foreground);
+  --xy-edge-stroke-default: var(--muted-foreground);
+  --xy-edge-stroke-selected: var(--primary);
+  --xy-handle-background-color: var(--primary);
+  --xy-handle-border-color: var(--background);
+  --xy-selection-background-color: oklch(0.488 0.243 264.376 / 10%);
+  --xy-selection-border-default: var(--primary);
+  --xy-minimap-background-color: var(--muted);
+  --xy-controls-button-background-color: var(--card);
+  --xy-controls-button-color: var(--foreground);
+  --xy-controls-button-border-color: var(--border);
 }

@@ -1,4 +1,5 @@
 import { createColumnHelper } from "@tanstack/react-table";
+import { Link } from "@tanstack/react-router";
 import { Badge } from "#/components/ui/badge";
 import {
   Tooltip,
@@ -32,6 +33,7 @@ export interface DiagramTableActions {
   onDelete: (diagram: DiagramRow) => void;
   canEdit: boolean;
   canDelete: boolean;
+  workspaceSlug: string;
 }
 
 const TYPE_LABELS: Record<DiagramType, () => string> = {
@@ -54,7 +56,16 @@ export function getDiagramColumns(actions: DiagramTableActions) {
       header: m.diagram_column_name(),
       enableSorting: true,
       cell: (info) => (
-        <span className="text-sm font-medium">{info.getValue()}</span>
+        <Link
+          to="/workspace/$workspaceSlug/diagram/$diagramId"
+          params={{
+            workspaceSlug: actions.workspaceSlug,
+            diagramId: info.row.original.id,
+          }}
+          className="text-sm font-medium text-primary hover:underline"
+        >
+          {info.getValue()}
+        </Link>
       ),
     }),
     columnHelper.accessor("diagramType", {

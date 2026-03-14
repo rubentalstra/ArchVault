@@ -97,8 +97,9 @@ function DiagramsPage() {
         onDelete: (d) => setDeleteTarget(d),
         canEdit,
         canDelete,
+        workspaceSlug: workspace.slug,
       }),
-    [canEdit, canDelete],
+    [canEdit, canDelete, workspace.slug],
   );
 
   const tableData = useMemo(

@@ -6,6 +6,7 @@ import {
     diagramElement,
     diagramRelationship,
     element,
+    relationship,
 } from "./schema";
 import {
     createDiagramSchema,
@@ -13,6 +14,7 @@ import {
     deleteDiagramSchema,
     getDiagramsSchema,
     getDiagramSchema,
+    getDiagramDataSchema,
     addDiagramElementSchema,
     updateDiagramElementSchema,
     removeDiagramElementSchema,
@@ -100,6 +102,75 @@ export const getDiagram = createServerFn({method: "GET"})
             .where(eq(diagramRelationship.diagramId, data.id));
 
         return {...d, diagramElements: elements, diagramRelationships: relationships};
+    });
+
+export const getDiagramData = createServerFn({method: "GET"})
+    .inputValidator((input: unknown) => getDiagramDataSchema.parse(input))
+    .handler(async ({data}) => {
+        const {memberRole} = await getSessionAndOrg();
+        assertRole(memberRole, ["owner", "admin", "editor", "viewer"]);
+
+        const [d] = await db
+            .select()
+            .from(diagram)
+            .where(and(eq(diagram.id, data.id), isNull(diagram.deletedAt)));
+        if (!d) throw new Error("Diagram not found");
+
+        const elements = await db
+            .select({
+                id: diagramElement.id,
+                diagramId: diagramElement.diagramId,
+                elementId: diagramElement.elementId,
+                x: diagramElement.x,
+                y: diagramElement.y,
+                width: diagramElement.width,
+                height: diagramElement.height,
+                zIndex: diagramElement.zIndex,
+                elementName: element.name,
+                elementType: element.elementType,
+                displayDescription: element.displayDescription,
+                status: element.status,
+                external: element.external,
+                parentElementId: element.parentElementId,
+            })
+            .from(diagramElement)
+            .leftJoin(element, eq(diagramElement.elementId, element.id))
+            .where(
+                and(
+                    eq(diagramElement.diagramId, data.id),
+                    isNull(element.deletedAt),
+                ),
+            );
+
+        const relationships = await db
+            .select({
+                id: diagramRelationship.id,
+                diagramId: diagramRelationship.diagramId,
+                relationshipId: diagramRelationship.relationshipId,
+                pathType: diagramRelationship.pathType,
+                lineStyle: diagramRelationship.lineStyle,
+                sourceAnchor: diagramRelationship.sourceAnchor,
+                targetAnchor: diagramRelationship.targetAnchor,
+                labelPosition: diagramRelationship.labelPosition,
+                sourceElementId: relationship.sourceElementId,
+                targetElementId: relationship.targetElementId,
+                direction: relationship.direction,
+                description: relationship.description,
+                technology: relationship.technology,
+            })
+            .from(diagramRelationship)
+            .leftJoin(
+                relationship,
+                eq(diagramRelationship.relationshipId, relationship.id),
+            )
+            .where(
+                and(
+                    eq(diagramRelationship.diagramId, data.id),
+                    isNull(relationship.deletedAt),
+                ),
+            );
+
+        return {diagram: d, elements, relationships};
     });
 
 export const createDiagram = createServerFn({method: "POST"})

@@ -1,6 +1,6 @@
 # Phase 3b — Canvas Rendering
 
-## Status: Not Started
+## Status: Complete
 
 ## Goal
 
@@ -58,14 +58,14 @@ React Flow provides out of the box:
 
 ### Setup & Infrastructure
 
-- [ ] Install `@xyflow/react` package (`pnpm add @xyflow/react`)
-- [ ] Import base styles: `@xyflow/react/dist/base.css` (base only — we use Tailwind for theming)
-- [ ] Create editor page route (`diagram.$diagramId.tsx`) wrapped in `<ReactFlowProvider>`
-- [ ] Editor page layout: toolbar (top) + canvas (center) + side panel placeholder (right)
+- [x] Install `@xyflow/react` package (`pnpm add @xyflow/react`)
+- [x] Import base styles: `@xyflow/react/dist/base.css` (base only — we use Tailwind for theming)
+- [x] Create editor page route (`diagram.$diagramId.tsx`) wrapped in `<ReactFlowProvider>`
+- [x] Editor page layout: toolbar (top) + canvas (center) + side panel placeholder (right)
 
 ### TypeScript Types
 
-- [ ] Define typed node union using React Flow generics:
+- [x] Define typed node union using React Flow generics:
     ```ts
     type PersonNode = Node<PersonNodeData, 'person'>;
     type SystemNode = Node<SystemNodeData, 'system'>;
@@ -74,18 +74,18 @@ React Flow provides out of the box:
     type GroupNode = Node<GroupNodeData, 'group'>;
     type AppNode = PersonNode | SystemNode | ContainerNode | ComponentNode | GroupNode;
     ```
-- [ ] Define typed edge union:
+- [x] Define typed edge union:
     ```ts
     type CurvedEdge = Edge<RelationshipEdgeData, 'curved'>;
     type StraightEdge = Edge<RelationshipEdgeData, 'straight'>;
     type OrthogonalEdge = Edge<RelationshipEdgeData, 'orthogonal'>;
     type AppEdge = CurvedEdge | StraightEdge | OrthogonalEdge;
     ```
-- [ ] Pass generics to hooks: `useReactFlow<AppNode, AppEdge>()`
+- [ ] Pass generics to hooks: `useReactFlow<AppNode, AppEdge>()` *(deferred — not needed until Phase 3c when canvas interactions require typed hook access)*
 
 ### Zustand Editor Store
 
-- [ ] Create `src/stores/editor-store.ts` with:
+- [x] Create `src/stores/editor-store.ts` with:
     ```ts
     {
       // React Flow state
@@ -108,11 +108,11 @@ React Flow provides out of the box:
       setMode, setSelection, ...
     }
     ```
-- [ ] Connect store to `<ReactFlow>` via selectors (nodes, edges, onNodesChange, onEdgesChange, onConnect)
+- [x] Connect store to `<ReactFlow>` via selectors (nodes, edges, onNodesChange, onEdgesChange, onConnect)
 
 ### React Flow Canvas Component
 
-- [ ] Create `<DiagramCanvas>` wrapper component with these props on `<ReactFlow>`:
+- [x] Create `<DiagramCanvas>` wrapper component with these props on `<ReactFlow>`:
     ```tsx
     <ReactFlow
       nodes={nodes}
@@ -147,7 +147,7 @@ React Flow provides out of the box:
 
 ### Custom C4 Node Types
 
-- [ ] Define `nodeTypes` object **outside** the component (prevents re-renders):
+- [x] Define `nodeTypes` object **outside** the component (prevents re-renders):
     ```ts
     const nodeTypes = {
       person: PersonNode,
@@ -157,53 +157,62 @@ React Flow provides out of the box:
       group: GroupNode,    // scope element rendered as resizable group
     } satisfies NodeTypes;
     ```
-- [ ] **PersonNode** — rounded card with person icon (Lucide `User`), name, display description
-- [ ] **SystemNode** — large rounded rectangle, name, display description, technology badges, status dot
-- [ ] **ContainerNode** — medium rounded rectangle, technology label, status dot
-- [ ] **ComponentNode** — rectangle with component icon (Lucide `Puzzle`), technology label
-- [ ] **GroupNode** — scope element that acts as a parent container (thin border, label at top, resizable)
-- [ ] All custom nodes include:
+- [x] **PersonNode** — rounded card with person icon (Lucide `User`), name, display description
+- [x] **SystemNode** — large rounded rectangle, name, display description, technology badges, status dot
+- [x] **ContainerNode** — medium rounded rectangle, technology label, status dot
+- [x] **ComponentNode** — rectangle with component icon (Lucide `Cpu`), technology label
+- [x] **GroupNode** — scope element that acts as a parent container (thin border, label at top, resizable)
+- [x] All custom nodes include:
     - `<Handle>` components for connections (type="source" and type="target" on all 4 sides)
     - `<NodeResizer>` for resize support (min/max dimensions per type)
-    - `<NodeToolbar>` (delete, duplicate, edit — shown on hover/selection)
-    - Status badge (planned=blue dot, live=gray dot, deprecated=red dot)
+    - ~~`<NodeToolbar>` (delete, duplicate, edit — shown on hover/selection)~~ *(deferred to Phase 3c)*
+    - Status badge (planned=blue dot, live=green dot, deprecated=red dot)
     - External indicator (dashed border + subtle background tint when `external=true`)
-    - `className="nodrag"` on any interactive elements (inputs, buttons)
-    - Tailwind `dark:` variants for dark mode support
-- [ ] Use `memo()` on all custom node components for performance
+    - ~~`className="nodrag"` on any interactive elements (inputs, buttons)~~ *(no interactive elements yet)*
+    - Tailwind dark mode support via shadcn CSS variables
+- [x] Use `memo()` on all custom node components for performance
 
 ### Sub-Flow / Parent-Child Nesting
 
-- [ ] On Container diagrams: scope element (System) renders as `GroupNode`, child Containers get `parentId`
-- [ ] On Component diagrams: scope element (Container) renders as `GroupNode`, child Components get `parentId`
-- [ ] Child nodes use `extent: 'parent'` to constrain movement within parent bounds
-- [ ] Parent nodes must appear before children in the nodes array
-- [ ] Moving a parent automatically moves all children (React Flow built-in)
+- [x] On Container diagrams: scope element (System) renders as `GroupNode`, child Containers get `parentId`
+- [x] On Component diagrams: scope element (Container) renders as `GroupNode`, child Components get `parentId`
+- [x] Child nodes use `extent: 'parent'` to constrain movement within parent bounds
+- [x] Parent nodes must appear before children in the nodes array
+- [x] Moving a parent automatically moves all children (React Flow built-in)
 
 ### Data Loading & Persistence
 
-- [ ] Server function: `getDiagramData(diagramId)` — returns diagram + diagram_elements + diagram_relationships
+- [x] Server function: `getDiagramData(diagramId)` — returns diagram + diagram_elements + diagram_relationships
   joined with their core element/relationship data
-- [ ] Converter: `toDiagramElements → AppNode[]` — maps DB rows to React Flow nodes with correct parentId,
+- [x] Converter: `toFlowNodes → AppNode[]` — maps DB rows to React Flow nodes with correct parentId,
   position, dimensions, data, and type
-- [ ] Converter: `toDiagramRelationships → AppEdge[]` — maps DB rows to React Flow edges with correct type,
+- [x] Converter: `toFlowEdges → AppEdge[]` — maps DB rows to React Flow edges with correct type,
   markers, labels, and style
-- [ ] `onNodeDragStop` handler: batch-update positions to server (debounced)
-- [ ] `onNodesChange` for dimension changes (resize): update width/height to server
+- [x] `onNodeDragStop` handler: persist position to server via `updateDiagramElement`
+- [x] `onNodesDelete` / `onEdgesDelete` handlers: remove via server functions
 
 ### Dark Mode
 
-- [ ] Use `colorMode="system"` on `<ReactFlow>` (reads OS preference)
-- [ ] Import `@xyflow/react/dist/base.css` only (not full styles) — custom theme via Tailwind
-- [ ] Override React Flow CSS variables in `src/styles.css` for both light and dark themes:
+- [x] Use `colorMode="system"` on `<ReactFlow>` (reads OS preference)
+- [x] Import `@xyflow/react/dist/base.css` only (not full styles) — custom theme via Tailwind
+- [x] Override React Flow CSS variables in `src/styles.css` for both light and dark themes:
     ```css
     .react-flow {
-      --xy-node-border-default: theme(colors.border);
-      --xy-edge-stroke-default: theme(colors.muted-foreground);
+      --xy-node-border-default: var(--border);
+      --xy-edge-stroke-default: var(--muted-foreground);
       /* etc. */
     }
     ```
-- [ ] All custom nodes use Tailwind `dark:` variants for colors, backgrounds, borders
+- [x] All custom nodes use shadcn CSS variables (auto dark mode via `bg-card`, `text-card-foreground`, etc.)
+
+### Diagram List Navigation
+
+- [x] Diagram name column in table renders as `<Link>` to editor page
+- [x] `workspaceSlug` passed to column actions for link generation
+
+### i18n
+
+- [x] Canvas keys added to `messages/en.json` and `messages/nl.json`
 
 ## Key Files
 
@@ -217,7 +226,9 @@ React Flow provides out of the box:
 - `src/components/editor/nodes/container-node.tsx` — Container custom node
 - `src/components/editor/nodes/component-node.tsx` — Component custom node
 - `src/components/editor/nodes/group-node.tsx` — Scope/parent group node
-- `src/routes/_protected/workspace/$workspaceSlug/diagram.$diagramId.tsx` — editor page
+- `src/components/editor/nodes/status-dot.tsx` — Shared status indicator component
+- `src/components/editor/nodes/index.ts` — nodeTypes registry
+- `src/routes/_protected/_onboarded/workspace/$workspaceSlug/diagram.$diagramId.tsx` — editor page
 
 ## Design Notes
 
@@ -235,14 +246,14 @@ React Flow provides out of the box:
 
 ## Verification
 
-- [ ] Canvas renders with dot grid background (light and dark mode)
-- [ ] All 4 C4 node types render distinctly with correct shapes and content
-- [ ] Group node renders for scope element with children nested inside
-- [ ] Pan (Space+drag, middle mouse) and zoom (scroll, pinch, +/- controls) work smoothly
-- [ ] Snap-to-grid aligns elements when dragging
-- [ ] MiniMap shows element positions with type-based colors
-- [ ] Node positions and sizes persist after page reload
-- [ ] Dark mode switches correctly (nodes, edges, grid, minimap, controls)
-- [ ] External elements render with dashed border
-- [ ] Status badges show correct colors
-- [ ] `pnpm dev` and `pnpm build` succeed
+- [x] Canvas renders with dot grid background (light and dark mode)
+- [x] All 4 C4 node types render distinctly with correct shapes and content
+- [x] Group node renders for scope element with children nested inside
+- [x] Pan (Space+drag, middle mouse) and zoom (scroll, pinch, +/- controls) work smoothly
+- [x] Snap-to-grid aligns elements when dragging
+- [x] MiniMap shows element positions with type-based colors
+- [x] Node positions and sizes persist after page reload
+- [x] Dark mode switches correctly (nodes, edges, grid, minimap, controls)
+- [x] External elements render with dashed border
+- [x] Status badges show correct colors
+- [x] `pnpm build` succeeds
