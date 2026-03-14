@@ -19,7 +19,7 @@ export interface ContextMenuState {
 
 // ── Store types ────────────────────────────────────────────────────
 
-type EditorMode = "select" | "pan" | "add_element" | "add_relationship";
+type EditorMode = "select" | "pan" | "add_element" | "add_connection";
 
 interface EditorState {
   nodes: AppNode[];

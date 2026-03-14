@@ -8,7 +8,7 @@ import {
     uniqueIndex,
 } from "drizzle-orm/pg-core";
 import {diagram} from "./diagrams";
-import {relationship} from "./relationships";
+import {connection} from "./connections";
 
 export const pathTypeEnum = pgEnum("path_type", [
     "straight",
@@ -30,16 +30,16 @@ export const anchorPointEnum = pgEnum("anchor_point", [
     "right",
 ]);
 
-export const diagramRelationship = pgTable(
-    "diagram_relationship",
+export const diagramConnection = pgTable(
+    "diagram_connection",
     {
         id: text("id").primaryKey(),
         diagramId: text("diagram_id")
             .notNull()
             .references(() => diagram.id, {onDelete: "cascade"}),
-        relationshipId: text("relationship_id")
+        connectionId: text("connection_id")
             .notNull()
-            .references(() => relationship.id, {onDelete: "cascade"}),
+            .references(() => connection.id, {onDelete: "cascade"}),
         pathType: pathTypeEnum("path_type").default("curved").notNull(),
         lineStyle: lineStyleEnum("line_style").default("solid").notNull(),
         sourceAnchor: anchorPointEnum("source_anchor").default("auto").notNull(),
@@ -49,11 +49,11 @@ export const diagramRelationship = pgTable(
         styleJson: jsonb("style_json"),
     },
     (table) => [
-        uniqueIndex("diagram_rel_diagram_relationship_uidx").on(
+        uniqueIndex("diagram_conn_diagram_connection_uidx").on(
             table.diagramId,
-            table.relationshipId,
+            table.connectionId,
         ),
-        index("diagram_rel_diagram_id_idx").on(table.diagramId),
-        index("diagram_rel_relationship_id_idx").on(table.relationshipId),
+        index("diagram_conn_diagram_id_idx").on(table.diagramId),
+        index("diagram_conn_connection_id_idx").on(table.connectionId),
     ],
 );

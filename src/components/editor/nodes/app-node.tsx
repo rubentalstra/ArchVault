@@ -9,7 +9,7 @@ import { StatusDot } from "./status-dot";
 const MIN_WIDTH = 160;
 const MIN_HEIGHT = 90;
 
-function ContainerNodeComponent({ data, selected }: NodeProps & { data: AppNodeData }) {
+function AppNodeComponentInner({ data, selected }: NodeProps & { data: AppNodeData }) {
   return (
     <>
       <NodeResizer
@@ -39,7 +39,7 @@ function ContainerNodeComponent({ data, selected }: NodeProps & { data: AppNodeD
             {data.displayDescription}
           </span>
         )}
-        <span className="text-xs text-muted-foreground">{m.element_type_container()}</span>
+        <span className="text-xs text-muted-foreground">{m.element_type_app()}</span>
         {data.external && (
           <span className="text-[10px] text-muted-foreground">{m.canvas_node_external()}</span>
         )}
@@ -48,4 +48,4 @@ function ContainerNodeComponent({ data, selected }: NodeProps & { data: AppNodeD
   );
 }
 
-export const ContainerNode = memo(ContainerNodeComponent);
+export const AppNodeComponent = memo(AppNodeComponentInner);

@@ -2,8 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { useEditorStore } from "#/stores/editor-store";
-import { updateRelationship } from "#/lib/relationship.functions";
-import { updateDiagramRelationship } from "#/lib/diagram.functions";
+import { updateConnection } from "#/lib/connection.functions";
+import { updateDiagramConnection } from "#/lib/diagram.functions";
 import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
 import { Textarea } from "#/components/ui/textarea";
@@ -18,7 +18,7 @@ import {
 import { Slider } from "#/components/ui/slider";
 import { m } from "#/paraglide/messages";
 import type { AppEdge } from "#/lib/types/diagram-nodes";
-import type { RelationshipDirection } from "#/lib/relationship.validators";
+import type { ConnectionDirection } from "#/lib/connection.validators";
 import type { PathType, LineStyle } from "#/lib/diagram.validators";
 
 const EDGE_TYPE_TO_PATH_TYPE: Record<string, PathType> = {
@@ -27,11 +27,11 @@ const EDGE_TYPE_TO_PATH_TYPE: Record<string, PathType> = {
   step: "orthogonal",
 };
 
-const DIRECTION_OPTIONS: { value: RelationshipDirection; label: () => string }[] = [
-  { value: "outgoing", label: () => m.relationship_direction_outgoing() },
-  { value: "incoming", label: () => m.relationship_direction_incoming() },
-  { value: "bidirectional", label: () => m.relationship_direction_bidirectional() },
-  { value: "none", label: () => m.relationship_direction_none() },
+const DIRECTION_OPTIONS: { value: ConnectionDirection; label: () => string }[] = [
+  { value: "outgoing", label: () => m.connection_direction_outgoing() },
+  { value: "incoming", label: () => m.connection_direction_incoming() },
+  { value: "bidirectional", label: () => m.connection_direction_bidirectional() },
+  { value: "none", label: () => m.connection_direction_none() },
 ];
 
 const PATH_TYPE_OPTIONS: { value: PathType; label: string }[] = [
@@ -46,12 +46,12 @@ const LINE_STYLE_OPTIONS: { value: LineStyle; label: string }[] = [
   { value: "dotted", label: "Dotted" },
 ];
 
-export function RelationshipProperties({ edge }: { edge: AppEdge }) {
+export function ConnectionProperties({ edge }: { edge: AppEdge }) {
   const nodes = useEditorStore((s) => s.nodes);
   const setSelection = useEditorStore((s) => s.setSelection);
 
-  const updateRelationshipFn = useServerFn(updateRelationship);
-  const updateDiagramRelationshipFn = useServerFn(updateDiagramRelationship);
+  const updateConnectionFn = useServerFn(updateConnection);
+  const updateDiagramConnectionFn = useServerFn(updateDiagramConnection);
 
   const edgeData = edge.data!;
   const sourceNode = nodes.find((n) => n.id === edge.source);
@@ -65,35 +65,35 @@ export function RelationshipProperties({ edge }: { edge: AppEdge }) {
     setTechnology(edgeData.technology ?? "");
   }, [edgeData.description, edgeData.technology]);
 
-  const saveRelationship = useCallback(
+  const saveConnection = useCallback(
     async (field: string, value: unknown) => {
       try {
-        await updateRelationshipFn({
-          data: { id: edgeData.relationshipId, [field]: value },
+        await updateConnectionFn({
+          data: { id: edgeData.connectionId, [field]: value },
         });
       } catch {
         toast.error(m.editor_panel_save_failed());
       }
     },
-    [edgeData.relationshipId, updateRelationshipFn],
+    [edgeData.connectionId, updateConnectionFn],
   );
 
-  const saveDiagramRelationship = useCallback(
+  const saveDiagramConnection = useCallback(
     async (field: string, value: unknown) => {
       try {
-        await updateDiagramRelationshipFn({
-          data: { id: edgeData.diagramRelationshipId, [field]: value },
+        await updateDiagramConnectionFn({
+          data: { id: edgeData.diagramConnectionId, [field]: value },
         });
       } catch {
         toast.error(m.editor_panel_save_failed());
       }
     },
-    [edgeData.diagramRelationshipId, updateDiagramRelationshipFn],
+    [edgeData.diagramConnectionId, updateDiagramConnectionFn],
   );
 
   return (
     <div className="space-y-4 p-4">
-      <h3 className="text-sm font-semibold">{m.editor_panel_relationship()}</h3>
+      <h3 className="text-sm font-semibold">{m.editor_panel_connection()}</h3>
 
       <div className="space-y-2">
         <Label>{m.editor_panel_source()}</Label>
@@ -118,10 +118,10 @@ export function RelationshipProperties({ edge }: { edge: AppEdge }) {
       </div>
 
       <div className="space-y-2">
-        <Label>{m.relationship_label_direction()}</Label>
+        <Label>{m.connection_label_direction()}</Label>
         <Select
           value={edgeData.direction}
-          onValueChange={(v) => saveRelationship("direction", v)}
+          onValueChange={(v) => saveConnection("direction", v)}
         >
           <SelectTrigger>
             <SelectValue />
@@ -137,31 +137,31 @@ export function RelationshipProperties({ edge }: { edge: AppEdge }) {
       </div>
 
       <div className="space-y-2">
-        <Label>{m.relationship_label_description()}</Label>
+        <Label>{m.connection_label_description()}</Label>
         <Textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           onBlur={() => {
             if (description !== (edgeData.description ?? "")) {
-              saveRelationship("description", description || null);
+              saveConnection("description", description || null);
             }
           }}
           rows={2}
-          placeholder={m.relationship_placeholder_description()}
+          placeholder={m.connection_placeholder_description()}
         />
       </div>
 
       <div className="space-y-2">
-        <Label>{m.relationship_label_technology()}</Label>
+        <Label>{m.connection_label_technology()}</Label>
         <Input
           value={technology}
           onChange={(e) => setTechnology(e.target.value)}
           onBlur={() => {
             if (technology !== (edgeData.technology ?? "")) {
-              saveRelationship("technology", technology || null);
+              saveConnection("technology", technology || null);
             }
           }}
-          placeholder={m.relationship_placeholder_technology()}
+          placeholder={m.connection_placeholder_technology()}
         />
       </div>
 
@@ -169,7 +169,7 @@ export function RelationshipProperties({ edge }: { edge: AppEdge }) {
         <Label>{m.editor_panel_path_type()}</Label>
         <Select
           value={EDGE_TYPE_TO_PATH_TYPE[edge.type ?? "default"] ?? "curved"}
-          onValueChange={(v) => saveDiagramRelationship("pathType", v)}
+          onValueChange={(v) => saveDiagramConnection("pathType", v)}
         >
           <SelectTrigger>
             <SelectValue />
@@ -188,7 +188,7 @@ export function RelationshipProperties({ edge }: { edge: AppEdge }) {
         <Label>{m.editor_panel_line_style()}</Label>
         <Select
           value={edgeData.lineStyle}
-          onValueChange={(v) => saveDiagramRelationship("lineStyle", v)}
+          onValueChange={(v) => saveDiagramConnection("lineStyle", v)}
         >
           <SelectTrigger>
             <SelectValue />
@@ -210,7 +210,7 @@ export function RelationshipProperties({ edge }: { edge: AppEdge }) {
           min={0}
           max={1}
           step={0.05}
-          onValueCommit={([v]) => saveDiagramRelationship("labelPosition", v)}
+          onValueCommit={([v]) => saveDiagramConnection("labelPosition", v)}
         />
       </div>
     </div>

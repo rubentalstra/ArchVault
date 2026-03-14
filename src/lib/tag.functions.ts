@@ -1,7 +1,7 @@
 import {createServerFn} from "@tanstack/react-start";
 import {and, eq} from "drizzle-orm";
 import {db} from "./database";
-import {tag, elementTag, relationshipTag} from "./schema";
+import {tag, elementTag, connectionTag} from "./schema";
 import {
     createTagSchema,
     updateTagSchema,
@@ -9,8 +9,8 @@ import {
     getTagsSchema,
     addElementTagSchema,
     removeElementTagSchema,
-    addRelationshipTagSchema,
-    removeRelationshipTagSchema,
+    addConnectionTagSchema,
+    removeConnectionTagSchema,
 } from "./tag.validators";
 import {assertRole, getSessionAndOrg} from "./auth.helpers";
 
@@ -118,18 +118,18 @@ export const removeElementTag = createServerFn({method: "POST"})
         return {success: true};
     });
 
-// ── Relationship tag assignment ──────────────────────────────────────
+// ── Connection tag assignment ───────────────────────────────────────
 
-export const addRelationshipTag = createServerFn({method: "POST"})
-    .inputValidator((input: unknown) => addRelationshipTagSchema.parse(input))
+export const addConnectionTag = createServerFn({method: "POST"})
+    .inputValidator((input: unknown) => addConnectionTagSchema.parse(input))
     .handler(async ({data}) => {
         const {memberRole} = await getSessionAndOrg();
         assertRole(memberRole, ["owner", "admin", "editor"]);
 
         await db
-            .insert(relationshipTag)
+            .insert(connectionTag)
             .values({
-                relationshipId: data.relationshipId,
+                connectionId: data.connectionId,
                 tagId: data.tagId,
             })
             .onConflictDoNothing();
@@ -137,21 +137,20 @@ export const addRelationshipTag = createServerFn({method: "POST"})
         return {success: true};
     });
 
-export const removeRelationshipTag = createServerFn({method: "POST"})
-    .inputValidator((input: unknown) => removeRelationshipTagSchema.parse(input))
+export const removeConnectionTag = createServerFn({method: "POST"})
+    .inputValidator((input: unknown) => removeConnectionTagSchema.parse(input))
     .handler(async ({data}) => {
         const {memberRole} = await getSessionAndOrg();
         assertRole(memberRole, ["owner", "admin", "editor"]);
 
         await db
-            .delete(relationshipTag)
+            .delete(connectionTag)
             .where(
                 and(
-                    eq(relationshipTag.relationshipId, data.relationshipId),
-                    eq(relationshipTag.tagId, data.tagId),
+                    eq(connectionTag.connectionId, data.connectionId),
+                    eq(connectionTag.tagId, data.tagId),
                 ),
             );
 
         return {success: true};
     });
-

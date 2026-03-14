@@ -8,13 +8,13 @@ import {
   addDiagramElement,
 } from "#/lib/diagram.functions";
 import {
-  removeDiagramRelationship,
+  removeDiagramConnection,
 } from "#/lib/diagram.functions";
 import {
   createElement,
   deleteElement,
 } from "#/lib/element.functions";
-import { deleteRelationship } from "#/lib/relationship.functions";
+import { deleteConnection } from "#/lib/connection.functions";
 import { validateElementForDiagram } from "#/lib/diagram.validators";
 import { m } from "#/paraglide/messages";
 import { Separator } from "#/components/ui/separator";
@@ -48,20 +48,20 @@ const DEFAULT_SIZES: Record<ElementType, { width: number; height: number }> = {
 const ELEMENT_TYPES: ElementType[] = ["actor", "group", "system", "app", "store", "component"];
 
 const ELEMENT_LABELS: Record<ElementType, () => string> = {
-  actor: () => m.editor_toolbar_add_person(),
+  actor: () => m.editor_toolbar_add_actor(),
   group: () => m.element_type_system(),
   system: () => m.editor_toolbar_add_system(),
-  app: () => m.editor_toolbar_add_container(),
-  store: () => m.element_type_container(),
+  app: () => m.editor_toolbar_add_app(),
+  store: () => m.editor_toolbar_add_store(),
   component: () => m.editor_toolbar_add_component(),
 };
 
 const NEW_ELEMENT_NAMES: Record<ElementType, () => string> = {
-  actor: () => m.editor_new_person(),
+  actor: () => m.editor_new_actor(),
   group: () => m.editor_new_system(),
   system: () => m.editor_new_system(),
-  app: () => m.editor_new_container(),
-  store: () => m.editor_new_container(),
+  app: () => m.editor_new_app(),
+  store: () => m.editor_new_store(),
   component: () => m.editor_new_component(),
 };
 
@@ -70,7 +70,7 @@ export function EditorContextMenu() {
   const setContextMenu = useEditorStore((s) => s.setContextMenu);
   const menuRef = useRef<HTMLDivElement>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{
-    type: "element" | "relationship";
+    type: "element" | "connection";
     id: string;
     nodeId?: string;
     edgeId?: string;
@@ -119,7 +119,7 @@ export function EditorContextMenu() {
             edgeId={contextMenu.edgeId}
             onDelete={(id, edgeId) => {
               setContextMenu(null);
-              setDeleteConfirm({ type: "relationship", id, edgeId });
+              setDeleteConfirm({ type: "connection", id, edgeId });
             }}
           />
         )}
@@ -265,12 +265,12 @@ function EdgeContextMenuItems({
   onDelete,
 }: {
   edgeId: string;
-  onDelete: (relationshipId: string, edgeId: string) => void;
+  onDelete: (connectionId: string, edgeId: string) => void;
 }) {
   const edges = useEditorStore((s) => s.edges);
   const removeEdgeById = useEditorStore((s) => s.removeEdgeById);
   const setSelection = useEditorStore((s) => s.setSelection);
-  const removeDiagramRelationshipFn = useServerFn(removeDiagramRelationship);
+  const removeDiagramConnectionFn = useServerFn(removeDiagramConnection);
 
   const edge = edges.find((e) => e.id === edgeId);
   if (!edge?.data) return null;
@@ -280,9 +280,9 @@ function EdgeContextMenuItems({
   }, [edgeId, setSelection]);
 
   const handleRemoveFromDiagram = useCallback(() => {
-    removeDiagramRelationshipFn({ data: { id: edge.data!.diagramRelationshipId } });
+    removeDiagramConnectionFn({ data: { id: edge.data!.diagramConnectionId } });
     removeEdgeById(edgeId);
-  }, [removeDiagramRelationshipFn, edge.data, removeEdgeById, edgeId]);
+  }, [removeDiagramConnectionFn, edge.data, removeEdgeById, edgeId]);
 
   return (
     <>
@@ -290,9 +290,9 @@ function EdgeContextMenuItems({
       <MenuItem onClick={handleRemoveFromDiagram}>{m.editor_ctx_remove_from_diagram()}</MenuItem>
       <MenuItem
         destructive
-        onClick={() => onDelete(edge.data!.relationshipId, edgeId)}
+        onClick={() => onDelete(edge.data!.connectionId, edgeId)}
       >
-        {m.editor_ctx_delete_relationship()}
+        {m.editor_ctx_delete_connection()}
       </MenuItem>
     </>
   );
@@ -379,13 +379,13 @@ function DeleteConfirmDialog({
   confirm,
   onClose,
 }: {
-  confirm: { type: "element" | "relationship"; id: string; nodeId?: string; edgeId?: string } | null;
+  confirm: { type: "element" | "connection"; id: string; nodeId?: string; edgeId?: string } | null;
   onClose: () => void;
 }) {
   const removeNodeById = useEditorStore((s) => s.removeNodeById);
   const removeEdgeById = useEditorStore((s) => s.removeEdgeById);
   const deleteElementFn = useServerFn(deleteElement);
-  const deleteRelationshipFn = useServerFn(deleteRelationship);
+  const deleteConnectionFn = useServerFn(deleteConnection);
 
   const handleConfirm = useCallback(async () => {
     if (!confirm) return;
@@ -394,14 +394,14 @@ function DeleteConfirmDialog({
         await deleteElementFn({ data: { id: confirm.id } });
         if (confirm.nodeId) removeNodeById(confirm.nodeId);
       } else {
-        await deleteRelationshipFn({ data: { id: confirm.id } });
+        await deleteConnectionFn({ data: { id: confirm.id } });
         if (confirm.edgeId) removeEdgeById(confirm.edgeId);
       }
     } catch {
       toast.error(m.editor_panel_save_failed());
     }
     onClose();
-  }, [confirm, deleteElementFn, deleteRelationshipFn, removeNodeById, removeEdgeById, onClose]);
+  }, [confirm, deleteElementFn, deleteConnectionFn, removeNodeById, removeEdgeById, onClose]);
 
   return (
     <AlertDialog open={!!confirm} onOpenChange={(open) => !open && onClose()}>
@@ -410,12 +410,12 @@ function DeleteConfirmDialog({
           <AlertDialogTitle>
             {confirm?.type === "element"
               ? m.editor_ctx_delete_element()
-              : m.editor_ctx_delete_relationship()}
+              : m.editor_ctx_delete_connection()}
           </AlertDialogTitle>
           <AlertDialogDescription>
             {confirm?.type === "element"
               ? m.editor_ctx_delete_element_confirm()
-              : m.editor_ctx_delete_relationship_confirm()}
+              : m.editor_ctx_delete_connection_confirm()}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

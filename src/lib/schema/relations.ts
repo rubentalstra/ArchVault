@@ -18,11 +18,11 @@ import {workspace} from "./workspaces";
 import {element} from "./elements";
 import {technology, elementTechnology} from "./element-technologies";
 import {elementLink} from "./element-links";
-import {relationship} from "./relationships";
-import {tag, elementTag, relationshipTag} from "./tags";
+import {connection} from "./connections";
+import {tag, elementTag, connectionTag} from "./tags";
 import {diagram} from "./diagrams";
 import {diagramElement} from "./diagram-elements";
-import {diagramRelationship} from "./diagram-relationships";
+import {diagramConnection} from "./diagram-connections";
 import {diagramRevision} from "./diagram-revisions";
 
 export const relations = defineRelations(
@@ -44,13 +44,13 @@ export const relations = defineRelations(
         technology,
         elementTechnology,
         elementLink,
-        relationship,
+        connection,
         tag,
         elementTag,
-        relationshipTag,
+        connectionTag,
         diagram,
         diagramElement,
-        diagramRelationship,
+        diagramConnection,
         diagramRevision,
     },
     (r) => ({
@@ -78,16 +78,16 @@ export const relations = defineRelations(
                 to: r.element.updatedBy,
                 alias: "element_updated_by",
             }),
-            // relationship has TWO FKs to user (createdBy & updatedBy) → aliases required
-            createdRelationships: r.many.relationship({
+            // connection has TWO FKs to user (createdBy & updatedBy) → aliases required
+            createdConnections: r.many.connection({
                 from: r.user.id,
-                to: r.relationship.createdBy,
-                alias: "relationship_created_by",
+                to: r.connection.createdBy,
+                alias: "connection_created_by",
             }),
-            updatedRelationships: r.many.relationship({
+            updatedConnections: r.many.connection({
                 from: r.user.id,
-                to: r.relationship.updatedBy,
-                alias: "relationship_updated_by",
+                to: r.connection.updatedBy,
+                alias: "connection_updated_by",
             }),
             // diagram has TWO FKs to user (createdBy & updatedBy) → aliases required
             createdDiagrams: r.many.diagram({
@@ -212,8 +212,6 @@ export const relations = defineRelations(
 
         // ─────────────────────────────────────────────────────────────────
         // ssoProvider
-        // Note: organizationId is a plain text column (no DB FK constraint),
-        // but we can still express the application-level relation.
         // ─────────────────────────────────────────────────────────────────
         ssoProvider: {
             user: r.one.user({
@@ -228,7 +226,6 @@ export const relations = defineRelations(
 
         // ─────────────────────────────────────────────────────────────────
         // scimProvider
-        // Note: both columns are plain text (no DB FK constraints).
         // ─────────────────────────────────────────────────────────────────
         scimProvider: {
             organization: r.one.organization({
@@ -255,7 +252,7 @@ export const relations = defineRelations(
                 to: r.user.id,
             }),
             elements: r.many.element(),
-            relationships: r.many.relationship(),
+            connections: r.many.connection(),
             tags: r.many.tag(),
             technologies: r.many.technology(),
             diagrams: r.many.diagram(),
@@ -297,16 +294,16 @@ export const relations = defineRelations(
                 to: r.technology.id.through(r.elementTechnology.technologyId),
             }),
             links: r.many.elementLink(),
-            // Two FKs from relationship to element → aliases required
-            sourceRelationships: r.many.relationship({
+            // Two FKs from connection to element → aliases required
+            sourceConnections: r.many.connection({
                 from: r.element.id,
-                to: r.relationship.sourceElementId,
-                alias: "relationship_source",
+                to: r.connection.sourceElementId,
+                alias: "connection_source",
             }),
-            targetRelationships: r.many.relationship({
+            targetConnections: r.many.connection({
                 from: r.element.id,
-                to: r.relationship.targetElementId,
-                alias: "relationship_target",
+                to: r.connection.targetElementId,
+                alias: "connection_target",
             }),
             // Many-to-many via elementTag junction table
             tags: r.many.tag({
@@ -366,45 +363,45 @@ export const relations = defineRelations(
         },
 
         // ─────────────────────────────────────────────────────────────────
-        // relationship
+        // connection
         // ─────────────────────────────────────────────────────────────────
-        relationship: {
+        connection: {
             workspace: r.one.workspace({
-                from: r.relationship.workspaceId,
+                from: r.connection.workspaceId,
                 to: r.workspace.id,
                 optional: false,
             }),
             // Two FKs to element → aliases required
             sourceElement: r.one.element({
-                from: r.relationship.sourceElementId,
+                from: r.connection.sourceElementId,
                 to: r.element.id,
                 optional: false,
-                alias: "relationship_source",
+                alias: "connection_source",
             }),
             targetElement: r.one.element({
-                from: r.relationship.targetElementId,
+                from: r.connection.targetElementId,
                 to: r.element.id,
                 optional: false,
-                alias: "relationship_target",
+                alias: "connection_target",
             }),
             // Two FKs to user → aliases required
             createdByUser: r.one.user({
-                from: r.relationship.createdBy,
+                from: r.connection.createdBy,
                 to: r.user.id,
-                alias: "relationship_created_by",
+                alias: "connection_created_by",
             }),
             updatedByUser: r.one.user({
-                from: r.relationship.updatedBy,
+                from: r.connection.updatedBy,
                 to: r.user.id,
-                alias: "relationship_updated_by",
+                alias: "connection_updated_by",
             }),
-            // Many-to-many via relationshipTag junction table
+            // Many-to-many via connectionTag junction table
             tags: r.many.tag({
-                from: r.relationship.id.through(r.relationshipTag.relationshipId),
-                to: r.tag.id.through(r.relationshipTag.tagId),
+                from: r.connection.id.through(r.connectionTag.connectionId),
+                to: r.tag.id.through(r.connectionTag.tagId),
             }),
-            // diagram_relationship junction
-            diagramRelationships: r.many.diagramRelationship(),
+            // diagram_connection junction
+            diagramConnections: r.many.diagramConnection(),
         },
 
         // ─────────────────────────────────────────────────────────────────
@@ -421,9 +418,9 @@ export const relations = defineRelations(
                 from: r.tag.id.through(r.elementTag.tagId),
                 to: r.element.id.through(r.elementTag.elementId),
             }),
-            relationships: r.many.relationship({
-                from: r.tag.id.through(r.relationshipTag.tagId),
-                to: r.relationship.id.through(r.relationshipTag.relationshipId),
+            connections: r.many.connection({
+                from: r.tag.id.through(r.connectionTag.tagId),
+                to: r.connection.id.through(r.connectionTag.connectionId),
             }),
         },
 
@@ -456,7 +453,7 @@ export const relations = defineRelations(
                 alias: "diagram_updated_by",
             }),
             diagramElements: r.many.diagramElement(),
-            diagramRelationships: r.many.diagramRelationship(),
+            diagramConnections: r.many.diagramConnection(),
             revisions: r.many.diagramRevision(),
         },
 
@@ -477,17 +474,17 @@ export const relations = defineRelations(
         },
 
         // ─────────────────────────────────────────────────────────────────
-        // diagramRelationship
+        // diagramConnection
         // ─────────────────────────────────────────────────────────────────
-        diagramRelationship: {
+        diagramConnection: {
             diagram: r.one.diagram({
-                from: r.diagramRelationship.diagramId,
+                from: r.diagramConnection.diagramId,
                 to: r.diagram.id,
                 optional: false,
             }),
-            relationship: r.one.relationship({
-                from: r.diagramRelationship.relationshipId,
-                to: r.relationship.id,
+            connection: r.one.connection({
+                from: r.diagramConnection.connectionId,
+                to: r.connection.id,
                 optional: false,
             }),
         },
@@ -508,4 +505,3 @@ export const relations = defineRelations(
         },
     }),
 );
-

@@ -23,11 +23,11 @@ const DEFAULT_SIZES: Record<ElementType, { width: number; height: number }> = {
 };
 
 const NEW_ELEMENT_NAMES: Record<ElementType, () => string> = {
-  actor: () => m.editor_new_person(),
+  actor: () => m.editor_new_actor(),
   group: () => m.editor_new_system(),
   system: () => m.editor_new_system(),
-  app: () => m.editor_new_container(),
-  store: () => m.editor_new_container(),
+  app: () => m.editor_new_app(),
+  store: () => m.editor_new_store(),
   component: () => m.editor_new_component(),
 };
 

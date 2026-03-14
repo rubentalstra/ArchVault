@@ -3,7 +3,7 @@ import type {AppNode, AppEdge} from "#/lib/types/diagram-nodes";
 import {PATH_TYPE_TO_EDGE_TYPE} from "#/lib/types/diagram-nodes";
 import type {DiagramType} from "#/lib/diagram.validators";
 import type {ElementStatus} from "#/lib/element.validators";
-import type {RelationshipDirection} from "#/lib/relationship.validators";
+import type {ConnectionDirection} from "#/lib/connection.validators";
 import type {LineStyle, AnchorPoint, PathType} from "#/lib/diagram.validators";
 
 // ── Types for server data ────────────────────────────────────────────
@@ -26,10 +26,10 @@ export interface DiagramElementRow {
     technologies: string[];
 }
 
-export interface DiagramRelationshipRow {
+export interface DiagramConnectionRow {
     id: string;
     diagramId: string;
-    relationshipId: string;
+    connectionId: string;
     pathType: string;
     lineStyle: string;
     sourceAnchor: string;
@@ -109,7 +109,7 @@ export function toFlowNodes(
 
 // ── Convert DB relationships to React Flow edges ─────────────────────
 
-function getMarker(direction: RelationshipDirection, end: "source" | "target"): { type: MarkerType } | undefined {
+function getMarker(direction: ConnectionDirection, end: "source" | "target"): { type: MarkerType } | undefined {
     // We can't use MarkerType directly at module level since it's from @xyflow/react
     // Use string literal that matches the enum value
     const arrow = {type: "arrowclosed" as MarkerType};
@@ -138,7 +138,7 @@ function getStrokeDasharray(lineStyle: LineStyle): string | undefined {
 }
 
 export function toFlowEdges(
-    rows: DiagramRelationshipRow[],
+    rows: DiagramConnectionRow[],
     elementIdToNodeId: Map<string, string>,
 ): AppEdge[] {
     const edges: AppEdge[] = [];
@@ -150,7 +150,7 @@ export function toFlowEdges(
         // Skip edges where source/target elements are not on this diagram
         if (!source || !target) continue;
 
-        const direction = row.direction as RelationshipDirection;
+        const direction = row.direction as ConnectionDirection;
         const lineStyle = row.lineStyle as LineStyle;
         const pathType = row.pathType as PathType;
         const strokeDasharray = getStrokeDasharray(lineStyle);
@@ -165,8 +165,8 @@ export function toFlowEdges(
             markerStart: getMarker(direction, "source"),
             style: strokeDasharray ? {strokeDasharray} : undefined,
             data: {
-                diagramRelationshipId: row.id,
-                relationshipId: row.relationshipId,
+                diagramConnectionId: row.id,
+                connectionId: row.connectionId,
                 description: row.description,
                 technology: row.technology,
                 direction,

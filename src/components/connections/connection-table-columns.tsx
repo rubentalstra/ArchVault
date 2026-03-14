@@ -30,24 +30,24 @@ import {
 } from "lucide-react";
 import { formatRelativeDate } from "#/lib/admin.utils";
 import { m } from "#/paraglide/messages";
-import type { RelationshipDirection } from "#/lib/relationship.validators";
+import type { ConnectionDirection } from "#/lib/connection.validators";
 import type { ElementType } from "#/lib/element.validators";
 import { TagBadge } from "#/components/tags/tag-badge";
 
-export interface RelationshipRow {
+export interface ConnectionRow {
   id: string;
   sourceElementId: string;
   targetElementId: string;
-  direction: RelationshipDirection;
+  direction: ConnectionDirection;
   description: string | null;
   technology: string | null;
   tags: { id: string; name: string; color: string; icon: string | null }[];
   updatedAt: string | Date;
 }
 
-export interface RelationshipTableActions {
-  onEdit: (rel: RelationshipRow) => void;
-  onDelete: (rel: RelationshipRow) => void;
+export interface ConnectionTableActions {
+  onEdit: (rel: ConnectionRow) => void;
+  onDelete: (rel: ConnectionRow) => void;
   canEdit: boolean;
   canDelete: boolean;
   elementNameMap: Map<string, string>;
@@ -63,30 +63,30 @@ const TYPE_ICONS: Record<ElementType, typeof User> = {
   component: Cpu,
 };
 
-const DIRECTION_ICONS: Record<RelationshipDirection, typeof ArrowRight> = {
+const DIRECTION_ICONS: Record<ConnectionDirection, typeof ArrowRight> = {
   outgoing: ArrowRight,
   incoming: ArrowLeft,
   bidirectional: ArrowLeftRight,
   none: Minus,
 };
 
-const DIRECTION_LABELS: Record<RelationshipDirection, () => string> = {
-  outgoing: () => m.relationship_direction_outgoing(),
-  incoming: () => m.relationship_direction_incoming(),
-  bidirectional: () => m.relationship_direction_bidirectional(),
-  none: () => m.relationship_direction_none(),
+const DIRECTION_LABELS: Record<ConnectionDirection, () => string> = {
+  outgoing: () => m.connection_direction_outgoing(),
+  incoming: () => m.connection_direction_incoming(),
+  bidirectional: () => m.connection_direction_bidirectional(),
+  none: () => m.connection_direction_none(),
 };
 
-const columnHelper = createColumnHelper<RelationshipRow>();
+const columnHelper = createColumnHelper<ConnectionRow>();
 
-export function getRelationshipColumns(actions: RelationshipTableActions) {
+export function getConnectionColumns(actions: ConnectionTableActions) {
   return [
     columnHelper.accessor("sourceElementId", {
-      header: m.relationship_column_source(),
+      header: m.connection_column_source(),
       enableSorting: true,
       cell: (info) => {
         const id = info.getValue();
-        const name = actions.elementNameMap.get(id) ?? "—";
+        const name = actions.elementNameMap.get(id) ?? "\u2014";
         const type = actions.elementTypeMap.get(id);
         const Icon = type ? TYPE_ICONS[type] : null;
         return (
@@ -98,11 +98,11 @@ export function getRelationshipColumns(actions: RelationshipTableActions) {
       },
     }),
     columnHelper.accessor("targetElementId", {
-      header: m.relationship_column_target(),
+      header: m.connection_column_target(),
       enableSorting: true,
       cell: (info) => {
         const id = info.getValue();
-        const name = actions.elementNameMap.get(id) ?? "—";
+        const name = actions.elementNameMap.get(id) ?? "\u2014";
         const type = actions.elementTypeMap.get(id);
         const Icon = type ? TYPE_ICONS[type] : null;
         return (
@@ -114,7 +114,7 @@ export function getRelationshipColumns(actions: RelationshipTableActions) {
       },
     }),
     columnHelper.accessor("direction", {
-      header: m.relationship_column_direction(),
+      header: m.connection_column_direction(),
       enableSorting: true,
       cell: (info) => {
         const dir = info.getValue();
@@ -128,29 +128,29 @@ export function getRelationshipColumns(actions: RelationshipTableActions) {
       },
     }),
     columnHelper.accessor("description", {
-      header: m.relationship_column_description(),
+      header: m.connection_column_description(),
       enableSorting: false,
       cell: (info) => {
         const desc = info.getValue();
-        if (!desc) return <span className="text-muted-foreground">—</span>;
+        if (!desc) return <span className="text-muted-foreground">\u2014</span>;
         return <span className="text-sm">{desc}</span>;
       },
     }),
     columnHelper.accessor("technology", {
-      header: m.relationship_column_technology(),
+      header: m.connection_column_technology(),
       enableSorting: false,
       cell: (info) => {
         const tech = info.getValue();
-        if (!tech) return <span className="text-muted-foreground">—</span>;
+        if (!tech) return <span className="text-muted-foreground">\u2014</span>;
         return <Badge variant="secondary">{tech}</Badge>;
       },
     }),
     columnHelper.accessor("tags", {
-      header: m.relationship_column_tags(),
+      header: m.connection_column_tags(),
       enableSorting: false,
       cell: (info) => {
         const tags = info.getValue();
-        if (!tags || tags.length === 0) return <span className="text-muted-foreground">—</span>;
+        if (!tags || tags.length === 0) return <span className="text-muted-foreground">\u2014</span>;
         const visible = tags.slice(0, 3);
         const remaining = tags.length - visible.length;
         return (
@@ -168,7 +168,7 @@ export function getRelationshipColumns(actions: RelationshipTableActions) {
       },
     }),
     columnHelper.accessor("updatedAt", {
-      header: m.relationship_column_updated(),
+      header: m.connection_column_updated(),
       enableSorting: true,
       cell: (info) => {
         const date = info.getValue();
@@ -204,7 +204,7 @@ export function getRelationshipColumns(actions: RelationshipTableActions) {
               {actions.canEdit && (
                 <DropdownMenuItem onClick={() => actions.onEdit(rel)}>
                   <Pencil className="size-4" />
-                  {m.relationship_edit_title()}
+                  {m.connection_edit_title()}
                 </DropdownMenuItem>
               )}
               {actions.canEdit && actions.canDelete && <DropdownMenuSeparator />}
@@ -214,7 +214,7 @@ export function getRelationshipColumns(actions: RelationshipTableActions) {
                   onClick={() => actions.onDelete(rel)}
                 >
                   <Trash2 className="size-4" />
-                  {m.relationship_delete_title()}
+                  {m.connection_delete_title()}
                 </DropdownMenuItem>
               )}
             </DropdownMenuContent>

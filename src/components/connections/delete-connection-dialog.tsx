@@ -11,34 +11,34 @@ import {
 import { Button } from "#/components/ui/button";
 import { toast } from "sonner";
 import { m } from "#/paraglide/messages";
-import { deleteRelationship } from "#/lib/relationship.functions";
+import { deleteConnection } from "#/lib/connection.functions";
 
-interface DeleteRelationshipDialogProps {
+interface DeleteConnectionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  relationship: { id: string; sourceName: string; targetName: string } | null;
+  connection: { id: string; sourceName: string; targetName: string } | null;
   onSuccess: () => void;
 }
 
-export function DeleteRelationshipDialog({
+export function DeleteConnectionDialog({
   open,
   onOpenChange,
-  relationship: rel,
+  connection: rel,
   onSuccess,
-}: DeleteRelationshipDialogProps) {
+}: DeleteConnectionDialogProps) {
   const [loading, setLoading] = useState(false);
 
   const handleDelete = async () => {
     if (!rel) return;
     setLoading(true);
     try {
-      await deleteRelationship({ data: { id: rel.id } });
-      toast.success(m.relationship_delete_success());
+      await deleteConnection({ data: { id: rel.id } });
+      toast.success(m.connection_delete_success());
       onOpenChange(false);
       onSuccess();
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : m.relationship_delete_failed(),
+        err instanceof Error ? err.message : m.connection_delete_failed(),
       );
     } finally {
       setLoading(false);
@@ -51,9 +51,9 @@ export function DeleteRelationshipDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>{m.relationship_delete_title()}</AlertDialogTitle>
+          <AlertDialogTitle>{m.connection_delete_title()}</AlertDialogTitle>
           <AlertDialogDescription>
-            {m.relationship_delete_confirm({
+            {m.connection_delete_confirm({
               source: rel.sourceName,
               target: rel.targetName,
             })}

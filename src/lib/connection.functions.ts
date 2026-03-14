@@ -1,41 +1,41 @@
 import {createServerFn} from "@tanstack/react-start";
 import {and, eq, isNull, inArray} from "drizzle-orm";
 import {db} from "./database";
-import {relationship, element, tag, relationshipTag} from "./schema";
+import {connection, element, tag, connectionTag} from "./schema";
 import {
-    createRelationshipSchema,
-    updateRelationshipSchema,
-    deleteRelationshipSchema,
-    getRelationshipsSchema,
-    validateRelationshipEndpoints,
-} from "./relationship.validators";
+    createConnectionSchema,
+    updateConnectionSchema,
+    deleteConnectionSchema,
+    getConnectionsSchema,
+    validateConnectionEndpoints,
+} from "./connection.validators";
 import {assertRole, getSessionAndOrg} from "./auth.helpers";
 
 // NOTE: No module-level helper functions that reference `db`.
 // All helpers are inlined into handlers so the bundler can tree-shake
 // server-only imports (`db`, `pg`) from the client bundle.
 
-// ── Relationship CRUD ─────────────────────────────────────────────────
+// ── Connection CRUD ─────────────────────────────────────────────────
 
-export const getRelationships = createServerFn({method: "GET"})
-    .inputValidator((input: unknown) => getRelationshipsSchema.parse(input))
+export const getConnections = createServerFn({method: "GET"})
+    .inputValidator((input: unknown) => getConnectionsSchema.parse(input))
     .handler(async ({data}) => {
         const {memberRole} = await getSessionAndOrg();
         assertRole(memberRole, ["owner", "admin", "editor", "viewer"]);
 
-        const relationships = await db
+        const connections = await db
             .select()
-            .from(relationship)
+            .from(connection)
             .where(
                 and(
-                    eq(relationship.workspaceId, data.workspaceId),
-                    isNull(relationship.deletedAt),
+                    eq(connection.workspaceId, data.workspaceId),
+                    isNull(connection.deletedAt),
                 ),
             );
 
-        const relationshipIds = relationships.map((r) => r.id);
-        const tagRows = relationshipIds.length > 0
-            ? await db.select().from(relationshipTag).where(inArray(relationshipTag.relationshipId, relationshipIds))
+        const connectionIds = connections.map((r) => r.id);
+        const tagRows = connectionIds.length > 0
+            ? await db.select().from(connectionTag).where(inArray(connectionTag.connectionId, connectionIds))
             : [];
         const uniqueTagIds = [...new Set(tagRows.map((r) => r.tagId))];
         const tags = uniqueTagIds.length > 0
@@ -43,22 +43,22 @@ export const getRelationships = createServerFn({method: "GET"})
             : [];
         const tagMap = new Map(tags.map((t) => [t.id, t]));
 
-        return relationships.map((rel) => ({
+        return connections.map((rel) => ({
             ...rel,
             tags: tagRows
-                .filter((r) => r.relationshipId === rel.id)
+                .filter((r) => r.connectionId === rel.id)
                 .map((r) => tagMap.get(r.tagId))
                 .filter(Boolean),
         }));
     });
 
-export const createRelationship = createServerFn({method: "POST"})
-    .inputValidator((input: unknown) => createRelationshipSchema.parse(input))
+export const createConnection = createServerFn({method: "POST"})
+    .inputValidator((input: unknown) => createConnectionSchema.parse(input))
     .handler(async ({data}) => {
         const {session, memberRole} = await getSessionAndOrg();
         assertRole(memberRole, ["owner", "admin", "editor"]);
 
-        const endpoints = validateRelationshipEndpoints(data.sourceElementId, data.targetElementId);
+        const endpoints = validateConnectionEndpoints(data.sourceElementId, data.targetElementId);
         if (!endpoints.valid) throw new Error(endpoints.message);
 
         // Inline helper: assert element belongs to workspace
@@ -77,7 +77,7 @@ export const createRelationship = createServerFn({method: "POST"})
 
         const id = crypto.randomUUID();
         const [created] = await db
-            .insert(relationship)
+            .insert(connection)
             .values({
                 id,
                 workspaceId: data.workspaceId,
@@ -94,8 +94,8 @@ export const createRelationship = createServerFn({method: "POST"})
         return created;
     });
 
-export const updateRelationship = createServerFn({method: "POST"})
-    .inputValidator((input: unknown) => updateRelationshipSchema.parse(input))
+export const updateConnection = createServerFn({method: "POST"})
+    .inputValidator((input: unknown) => updateConnectionSchema.parse(input))
     .handler(async ({data}) => {
         const {session, memberRole} = await getSessionAndOrg();
         assertRole(memberRole, ["owner", "admin", "editor"]);
@@ -115,14 +115,14 @@ export const updateRelationship = createServerFn({method: "POST"})
 
         const [existing] = await db
             .select()
-            .from(relationship)
-            .where(and(eq(relationship.id, id), isNull(relationship.deletedAt)));
-        if (!existing) throw new Error("Relationship not found");
+            .from(connection)
+            .where(and(eq(connection.id, id), isNull(connection.deletedAt)));
+        if (!existing) throw new Error("Connection not found");
 
         const newSourceId = updates.sourceElementId ?? existing.sourceElementId;
         const newTargetId = updates.targetElementId ?? existing.targetElementId;
 
-        const endpoints = validateRelationshipEndpoints(newSourceId, newTargetId);
+        const endpoints = validateConnectionEndpoints(newSourceId, newTargetId);
         if (!endpoints.valid) throw new Error(endpoints.message);
 
         if (updates.sourceElementId) {
@@ -133,27 +133,27 @@ export const updateRelationship = createServerFn({method: "POST"})
         }
 
         const [updated] = await db
-            .update(relationship)
+            .update(connection)
             .set({...updates, updatedBy: session.user.id})
-            .where(eq(relationship.id, id))
+            .where(eq(connection.id, id))
             .returning();
 
-        if (!updated) throw new Error("Relationship not found");
+        if (!updated) throw new Error("Connection not found");
         return updated;
     });
 
-export const deleteRelationship = createServerFn({method: "POST"})
-    .inputValidator((input: unknown) => deleteRelationshipSchema.parse(input))
+export const deleteConnection = createServerFn({method: "POST"})
+    .inputValidator((input: unknown) => deleteConnectionSchema.parse(input))
     .handler(async ({data}) => {
         const {session, memberRole} = await getSessionAndOrg();
         assertRole(memberRole, ["owner", "admin"]);
 
         const [updated] = await db
-            .update(relationship)
+            .update(connection)
             .set({deletedAt: new Date(), updatedBy: session.user.id})
-            .where(and(eq(relationship.id, data.id), isNull(relationship.deletedAt)))
+            .where(and(eq(connection.id, data.id), isNull(connection.deletedAt)))
             .returning();
 
-        if (!updated) throw new Error("Relationship not found");
+        if (!updated) throw new Error("Connection not found");
         return {success: true};
     });

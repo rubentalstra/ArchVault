@@ -8,7 +8,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { workspace } from "./workspaces";
 import { element } from "./elements";
-import { relationship } from "./relationships";
+import { connection } from "./connections";
 
 export const tag = pgTable(
   "tag",
@@ -45,18 +45,18 @@ export const elementTag = pgTable(
   ],
 );
 
-export const relationshipTag = pgTable(
-  "relationship_tag",
+export const connectionTag = pgTable(
+  "connection_tag",
   {
-    relationshipId: text("relationship_id")
+    connectionId: text("connection_id")
       .notNull()
-      .references(() => relationship.id, { onDelete: "cascade" }),
+      .references(() => connection.id, { onDelete: "cascade" }),
     tagId: text("tag_id")
       .notNull()
       .references(() => tag.id, { onDelete: "cascade" }),
   },
   (table) => [
-    primaryKey({ columns: [table.relationshipId, table.tagId] }),
-    index("relationship_tag_tag_id_idx").on(table.tagId),
+    primaryKey({ columns: [table.connectionId, table.tagId] }),
+    index("connection_tag_tag_id_idx").on(table.tagId),
   ],
 );

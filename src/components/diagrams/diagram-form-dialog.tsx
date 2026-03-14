@@ -51,13 +51,13 @@ interface DiagramFormDialogProps {
 
 const TYPE_LABELS: Record<DiagramType, () => string> = {
   context: () => m.diagram_type_context(),
-  container: () => m.diagram_type_container(),
+  app: () => m.diagram_type_app(),
   component: () => m.diagram_type_component(),
 };
 
 const SCOPE_FILTER: Record<DiagramType, ElementType[]> = {
   context: ["system"],
-  container: ["system"],
+  app: ["system"],
   component: ["app"],
 };
 

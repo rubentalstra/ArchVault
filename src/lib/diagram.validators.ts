@@ -1,7 +1,7 @@
 import { z } from "zod/v4";
 import type { ElementType } from "./element.validators";
 
-export const diagramTypes = ["context", "container", "component"] as const;
+export const diagramTypes = ["context", "app", "component"] as const;
 export type DiagramType = (typeof diagramTypes)[number];
 
 export const pathTypes = ["straight", "curved", "orthogonal"] as const;
@@ -77,11 +77,11 @@ export const removeDiagramElementSchema = z.object({
   id: z.string(),
 });
 
-// ── Diagram Relationship schemas ────────────────────────────────────
+// ── Diagram Connection schemas ─────────────────────────────────────
 
-export const addDiagramRelationshipSchema = z.object({
+export const addDiagramConnectionSchema = z.object({
   diagramId: z.string(),
-  relationshipId: z.string(),
+  connectionId: z.string(),
   pathType: z.enum(pathTypes).default("curved"),
   lineStyle: z.enum(lineStyles).default("solid"),
   sourceAnchor: z.enum(anchorPoints).default("auto"),
@@ -91,7 +91,7 @@ export const addDiagramRelationshipSchema = z.object({
   styleJson: z.record(z.string(), z.unknown()).optional(),
 });
 
-export const updateDiagramRelationshipSchema = z.object({
+export const updateDiagramConnectionSchema = z.object({
   id: z.string(),
   pathType: z.enum(pathTypes).optional(),
   lineStyle: z.enum(lineStyles).optional(),
@@ -102,7 +102,7 @@ export const updateDiagramRelationshipSchema = z.object({
   styleJson: z.record(z.string(), z.unknown()).nullable().optional(),
 });
 
-export const removeDiagramRelationshipSchema = z.object({
+export const removeDiagramConnectionSchema = z.object({
   id: z.string(),
 });
 
@@ -110,13 +110,13 @@ export const removeDiagramRelationshipSchema = z.object({
 
 const VALID_SCOPE_TYPES: Record<DiagramType, ElementType[] | null> = {
   context: ["system"],
-  container: ["system"],
+  app: ["system"],
   component: ["app"],
 };
 
 const SCOPE_REQUIRED: Record<DiagramType, boolean> = {
   context: false,
-  container: true,
+  app: true,
   component: true,
 };
 
@@ -129,7 +129,7 @@ export function validateDiagramScope(
 
   if (!scopeElementType) {
     if (required) {
-      const needed = diagramType === "container" ? "system" : "app";
+      const needed = diagramType === "app" ? "system" : "app";
       return { valid: false, message: `A ${diagramType} diagram requires a ${needed} as its scope element.` };
     }
     return { valid: true };
@@ -147,7 +147,7 @@ export function validateDiagramScope(
 
 const ALLOWED_ELEMENT_TYPES: Record<DiagramType, ElementType[]> = {
   context: ["actor", "system"],
-  container: ["actor", "system", "app", "store"],
+  app: ["actor", "system", "app", "store"],
   component: ["actor", "system", "app", "store", "component"],
 };
 

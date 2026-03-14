@@ -2,7 +2,7 @@ import { useEditorStore } from "#/stores/editor-store";
 import { ScrollArea } from "#/components/ui/scroll-area";
 import { DiagramSettings } from "./panels/diagram-settings";
 import { ElementProperties } from "./panels/element-properties";
-import { RelationshipProperties } from "./panels/relationship-properties";
+import { ConnectionProperties } from "./panels/connection-properties";
 import { MultiSelectPanel } from "./panels/multi-select-panel";
 
 interface PropertiesPanelProps {
@@ -45,7 +45,7 @@ export function PropertiesPanel({ diagramName, diagramDescription }: PropertiesP
     if (edge?.data) {
       return (
         <ScrollArea className="h-full">
-          <RelationshipProperties key={edge.id} edge={edge} />
+          <ConnectionProperties key={edge.id} edge={edge} />
         </ScrollArea>
       );
     }

@@ -1,8 +1,8 @@
 import type { Node, Edge } from "@xyflow/react";
 import type { ElementStatus } from "#/lib/element.validators";
 import type {
-  RelationshipDirection,
-} from "#/lib/relationship.validators";
+  ConnectionDirection,
+} from "#/lib/connection.validators";
 import type {
   LineStyle,
   AnchorPoint,
@@ -51,12 +51,12 @@ export type AppNode =
 
 // ── Edge Data ────────────────────────────────────────────────────────
 
-export interface RelationshipEdgeData {
-  diagramRelationshipId: string;
-  relationshipId: string;
+export interface ConnectionEdgeData {
+  diagramConnectionId: string;
+  connectionId: string;
   description: string | null;
   technology: string | null;
-  direction: RelationshipDirection;
+  direction: ConnectionDirection;
   lineStyle: LineStyle;
   sourceAnchor: AnchorPoint;
   targetAnchor: AnchorPoint;
@@ -66,9 +66,9 @@ export interface RelationshipEdgeData {
 
 // ── Edge Types ───────────────────────────────────────────────────────
 
-export type CurvedEdge = Edge<RelationshipEdgeData, "curved">;
-export type StraightEdge = Edge<RelationshipEdgeData, "straight">;
-export type OrthogonalEdge = Edge<RelationshipEdgeData, "orthogonal">;
+export type CurvedEdge = Edge<ConnectionEdgeData, "curved">;
+export type StraightEdge = Edge<ConnectionEdgeData, "straight">;
+export type OrthogonalEdge = Edge<ConnectionEdgeData, "orthogonal">;
 
 export type AppEdge = CurvedEdge | StraightEdge | OrthogonalEdge;
 

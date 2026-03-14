@@ -36,10 +36,10 @@ import { m } from "#/paraglide/messages";
 import type { ElementType } from "#/lib/element.validators";
 
 const ADD_ELEMENT_OPTIONS: { type: ElementType; label: () => string; icon: React.ReactNode }[] = [
-  { type: "actor", label: () => m.editor_toolbar_add_person(), icon: <User className="mr-2 size-4" /> },
+  { type: "actor", label: () => m.editor_toolbar_add_actor(), icon: <User className="mr-2 size-4" /> },
   { type: "system", label: () => m.editor_toolbar_add_system(), icon: <Box className="mr-2 size-4" /> },
-  { type: "app", label: () => m.editor_toolbar_add_container(), icon: <Package className="mr-2 size-4" /> },
-  { type: "store", label: () => m.element_type_container(), icon: <Database className="mr-2 size-4" /> },
+  { type: "app", label: () => m.editor_toolbar_add_app(), icon: <Package className="mr-2 size-4" /> },
+  { type: "store", label: () => m.editor_toolbar_add_store(), icon: <Database className="mr-2 size-4" /> },
   { type: "component", label: () => m.editor_toolbar_add_component(), icon: <Cpu className="mr-2 size-4" /> },
 ];
 
@@ -116,12 +116,12 @@ export function EditorToolbar() {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <ToolbarTooltip label={m.editor_toolbar_add_relationship()}>
+        <ToolbarTooltip label={m.editor_toolbar_add_connection()}>
           <Toggle
             size="sm"
-            pressed={mode === "add_relationship"}
-            onPressedChange={() => setMode(mode === "add_relationship" ? "select" : "add_relationship")}
-            aria-label={m.editor_toolbar_add_relationship()}
+            pressed={mode === "add_connection"}
+            onPressedChange={() => setMode(mode === "add_connection" ? "select" : "add_connection")}
+            aria-label={m.editor_toolbar_add_connection()}
           >
             <Cable className="size-4" />
           </Toggle>

@@ -8,12 +8,12 @@ export * from "./elements";
 export * from "./element-technologies";
 export * from "./element-links";
 export * from "./element-groups";
-// Phase 2b: relationships
-export * from "./relationships";
+// Phase 2b: connections
+export * from "./connections";
 // Phase 2c: tags
 export * from "./tags";
-// Phase 3a: diagrams, diagram_elements, diagram_relationships, diagram_revisions
+// Phase 3a: diagrams, diagram_elements, diagram_connections, diagram_revisions
 export * from "./diagram-revisions";
 export * from "./diagrams";
 export * from "./diagram-elements";
-export * from "./diagram-relationships";
+export * from "./diagram-connections";

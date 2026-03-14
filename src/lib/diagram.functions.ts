@@ -4,11 +4,11 @@ import {db} from "./database";
 import {
     diagram,
     diagramElement,
-    diagramRelationship,
+    diagramConnection,
     element,
     technology,
     elementTechnology,
-    relationship,
+    connection,
 } from "./schema";
 import {
     createDiagramSchema,
@@ -20,9 +20,9 @@ import {
     addDiagramElementSchema,
     updateDiagramElementSchema,
     removeDiagramElementSchema,
-    addDiagramRelationshipSchema,
-    updateDiagramRelationshipSchema,
-    removeDiagramRelationshipSchema,
+    addDiagramConnectionSchema,
+    updateDiagramConnectionSchema,
+    removeDiagramConnectionSchema,
     validateDiagramScope,
     validateElementForDiagram,
 } from "./diagram.validators";
@@ -98,12 +98,12 @@ export const getDiagram = createServerFn({method: "GET"})
             .from(diagramElement)
             .where(eq(diagramElement.diagramId, data.id));
 
-        const relationships = await db
+        const connections = await db
             .select()
-            .from(diagramRelationship)
-            .where(eq(diagramRelationship.diagramId, data.id));
+            .from(diagramConnection)
+            .where(eq(diagramConnection.diagramId, data.id));
 
-        return {...d, diagramElements: elements, diagramRelationships: relationships};
+        return {...d, diagramElements: elements, diagramConnections: connections};
     });
 
 export const getDiagramData = createServerFn({method: "GET"})
@@ -144,31 +144,31 @@ export const getDiagramData = createServerFn({method: "GET"})
                 ),
             );
 
-        const relationships = await db
+        const connections = await db
             .select({
-                id: diagramRelationship.id,
-                diagramId: diagramRelationship.diagramId,
-                relationshipId: diagramRelationship.relationshipId,
-                pathType: diagramRelationship.pathType,
-                lineStyle: diagramRelationship.lineStyle,
-                sourceAnchor: diagramRelationship.sourceAnchor,
-                targetAnchor: diagramRelationship.targetAnchor,
-                labelPosition: diagramRelationship.labelPosition,
-                sourceElementId: relationship.sourceElementId,
-                targetElementId: relationship.targetElementId,
-                direction: relationship.direction,
-                description: relationship.description,
-                technology: relationship.technology,
+                id: diagramConnection.id,
+                diagramId: diagramConnection.diagramId,
+                connectionId: diagramConnection.connectionId,
+                pathType: diagramConnection.pathType,
+                lineStyle: diagramConnection.lineStyle,
+                sourceAnchor: diagramConnection.sourceAnchor,
+                targetAnchor: diagramConnection.targetAnchor,
+                labelPosition: diagramConnection.labelPosition,
+                sourceElementId: connection.sourceElementId,
+                targetElementId: connection.targetElementId,
+                direction: connection.direction,
+                description: connection.description,
+                technology: connection.technology,
             })
-            .from(diagramRelationship)
+            .from(diagramConnection)
             .leftJoin(
-                relationship,
-                eq(diagramRelationship.relationshipId, relationship.id),
+                connection,
+                eq(diagramConnection.connectionId, connection.id),
             )
             .where(
                 and(
-                    eq(diagramRelationship.diagramId, data.id),
-                    isNull(relationship.deletedAt),
+                    eq(diagramConnection.diagramId, data.id),
+                    isNull(connection.deletedAt),
                 ),
             );
 
@@ -200,7 +200,7 @@ export const getDiagramData = createServerFn({method: "GET"})
             technologies: techMap.get(e.elementId) ?? [],
         }));
 
-        return {diagram: d, elements: elementsWithTech, relationships};
+        return {diagram: d, elements: elementsWithTech, connections};
     });
 
 export const createDiagram = createServerFn({method: "POST"})
@@ -413,21 +413,21 @@ export const removeDiagramElement = createServerFn({method: "POST"})
         return {success: true};
     });
 
-// ── Diagram Relationship CRUD ────────────────────────────────────────
+// ── Diagram Connection CRUD ─────────────────────────────────────────
 
-export const addDiagramRelationship = createServerFn({method: "POST"})
-    .inputValidator((input: unknown) => addDiagramRelationshipSchema.parse(input))
+export const addDiagramConnection = createServerFn({method: "POST"})
+    .inputValidator((input: unknown) => addDiagramConnectionSchema.parse(input))
     .handler(async ({data}) => {
         const {memberRole} = await getSessionAndOrg();
         assertRole(memberRole, ["owner", "admin", "editor"]);
 
         const id = crypto.randomUUID();
         const [created] = await db
-            .insert(diagramRelationship)
+            .insert(diagramConnection)
             .values({
                 id,
                 diagramId: data.diagramId,
-                relationshipId: data.relationshipId,
+                connectionId: data.connectionId,
                 pathType: data.pathType,
                 lineStyle: data.lineStyle,
                 sourceAnchor: data.sourceAnchor,
@@ -442,34 +442,34 @@ export const addDiagramRelationship = createServerFn({method: "POST"})
         return created ?? null;
     });
 
-export const updateDiagramRelationship = createServerFn({method: "POST"})
-    .inputValidator((input: unknown) => updateDiagramRelationshipSchema.parse(input))
+export const updateDiagramConnection = createServerFn({method: "POST"})
+    .inputValidator((input: unknown) => updateDiagramConnectionSchema.parse(input))
     .handler(async ({data}) => {
         const {memberRole} = await getSessionAndOrg();
         assertRole(memberRole, ["owner", "admin", "editor"]);
 
         const {id, ...updates} = data;
         const [updated] = await db
-            .update(diagramRelationship)
+            .update(diagramConnection)
             .set(updates)
-            .where(eq(diagramRelationship.id, id))
+            .where(eq(diagramConnection.id, id))
             .returning();
 
-        if (!updated) throw new Error("Diagram relationship not found");
+        if (!updated) throw new Error("Diagram connection not found");
         return updated;
     });
 
-export const removeDiagramRelationship = createServerFn({method: "POST"})
-    .inputValidator((input: unknown) => removeDiagramRelationshipSchema.parse(input))
+export const removeDiagramConnection = createServerFn({method: "POST"})
+    .inputValidator((input: unknown) => removeDiagramConnectionSchema.parse(input))
     .handler(async ({data}) => {
         const {memberRole} = await getSessionAndOrg();
         assertRole(memberRole, ["owner", "admin", "editor"]);
 
         const [deleted] = await db
-            .delete(diagramRelationship)
-            .where(eq(diagramRelationship.id, data.id))
+            .delete(diagramConnection)
+            .where(eq(diagramConnection.id, data.id))
             .returning();
 
-        if (!deleted) throw new Error("Diagram relationship not found");
+        if (!deleted) throw new Error("Diagram connection not found");
         return {success: true};
     });

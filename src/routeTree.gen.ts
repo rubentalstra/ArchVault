@@ -39,9 +39,9 @@ import { Route as ProtectedOnboardedWorkspaceWorkspaceSlugIndexRouteImport } fro
 import { Route as ProtectedOnboardedOrgAccountIndexRouteImport } from './routes/_protected/_onboarded/org/account/index'
 import { Route as ProtectedOnboardedWorkspaceWorkspaceSlugTagsRouteImport } from './routes/_protected/_onboarded/workspace/$workspaceSlug/tags'
 import { Route as ProtectedOnboardedWorkspaceWorkspaceSlugSettingsRouteImport } from './routes/_protected/_onboarded/workspace/$workspaceSlug/settings'
-import { Route as ProtectedOnboardedWorkspaceWorkspaceSlugRelationshipsRouteImport } from './routes/_protected/_onboarded/workspace/$workspaceSlug/relationships'
 import { Route as ProtectedOnboardedWorkspaceWorkspaceSlugElementsRouteImport } from './routes/_protected/_onboarded/workspace/$workspaceSlug/elements'
 import { Route as ProtectedOnboardedWorkspaceWorkspaceSlugDiagramsRouteImport } from './routes/_protected/_onboarded/workspace/$workspaceSlug/diagrams'
+import { Route as ProtectedOnboardedWorkspaceWorkspaceSlugConnectionsRouteImport } from './routes/_protected/_onboarded/workspace/$workspaceSlug/connections'
 import { Route as ProtectedOnboardedOrgAccountSecurityRouteImport } from './routes/_protected/_onboarded/org/account/security'
 import { Route as ProtectedOnboardedWorkspaceWorkspaceSlugDiagramDiagramIdRouteImport } from './routes/_protected/_onboarded/workspace/$workspaceSlug/diagram.$diagramId'
 
@@ -207,12 +207,6 @@ const ProtectedOnboardedWorkspaceWorkspaceSlugSettingsRoute =
     path: '/settings',
     getParentRoute: () => ProtectedOnboardedWorkspaceWorkspaceSlugRoute,
   } as any)
-const ProtectedOnboardedWorkspaceWorkspaceSlugRelationshipsRoute =
-  ProtectedOnboardedWorkspaceWorkspaceSlugRelationshipsRouteImport.update({
-    id: '/relationships',
-    path: '/relationships',
-    getParentRoute: () => ProtectedOnboardedWorkspaceWorkspaceSlugRoute,
-  } as any)
 const ProtectedOnboardedWorkspaceWorkspaceSlugElementsRoute =
   ProtectedOnboardedWorkspaceWorkspaceSlugElementsRouteImport.update({
     id: '/elements',
@@ -223,6 +217,12 @@ const ProtectedOnboardedWorkspaceWorkspaceSlugDiagramsRoute =
   ProtectedOnboardedWorkspaceWorkspaceSlugDiagramsRouteImport.update({
     id: '/diagrams',
     path: '/diagrams',
+    getParentRoute: () => ProtectedOnboardedWorkspaceWorkspaceSlugRoute,
+  } as any)
+const ProtectedOnboardedWorkspaceWorkspaceSlugConnectionsRoute =
+  ProtectedOnboardedWorkspaceWorkspaceSlugConnectionsRouteImport.update({
+    id: '/connections',
+    path: '/connections',
     getParentRoute: () => ProtectedOnboardedWorkspaceWorkspaceSlugRoute,
   } as any)
 const ProtectedOnboardedOrgAccountSecurityRoute =
@@ -264,9 +264,9 @@ export interface FileRoutesByFullPath {
   '/admin/user/$userId': typeof ProtectedAdminUserUserIdRoute
   '/org/': typeof ProtectedOnboardedOrgIndexRoute
   '/org/account/security': typeof ProtectedOnboardedOrgAccountSecurityRoute
+  '/workspace/$workspaceSlug/connections': typeof ProtectedOnboardedWorkspaceWorkspaceSlugConnectionsRoute
   '/workspace/$workspaceSlug/diagrams': typeof ProtectedOnboardedWorkspaceWorkspaceSlugDiagramsRoute
   '/workspace/$workspaceSlug/elements': typeof ProtectedOnboardedWorkspaceWorkspaceSlugElementsRoute
-  '/workspace/$workspaceSlug/relationships': typeof ProtectedOnboardedWorkspaceWorkspaceSlugRelationshipsRoute
   '/workspace/$workspaceSlug/settings': typeof ProtectedOnboardedWorkspaceWorkspaceSlugSettingsRoute
   '/workspace/$workspaceSlug/tags': typeof ProtectedOnboardedWorkspaceWorkspaceSlugTagsRoute
   '/org/account/': typeof ProtectedOnboardedOrgAccountIndexRoute
@@ -295,9 +295,9 @@ export interface FileRoutesByTo {
   '/admin/user/$userId': typeof ProtectedAdminUserUserIdRoute
   '/org': typeof ProtectedOnboardedOrgIndexRoute
   '/org/account/security': typeof ProtectedOnboardedOrgAccountSecurityRoute
+  '/workspace/$workspaceSlug/connections': typeof ProtectedOnboardedWorkspaceWorkspaceSlugConnectionsRoute
   '/workspace/$workspaceSlug/diagrams': typeof ProtectedOnboardedWorkspaceWorkspaceSlugDiagramsRoute
   '/workspace/$workspaceSlug/elements': typeof ProtectedOnboardedWorkspaceWorkspaceSlugElementsRoute
-  '/workspace/$workspaceSlug/relationships': typeof ProtectedOnboardedWorkspaceWorkspaceSlugRelationshipsRoute
   '/workspace/$workspaceSlug/settings': typeof ProtectedOnboardedWorkspaceWorkspaceSlugSettingsRoute
   '/workspace/$workspaceSlug/tags': typeof ProtectedOnboardedWorkspaceWorkspaceSlugTagsRoute
   '/org/account': typeof ProtectedOnboardedOrgAccountIndexRoute
@@ -333,9 +333,9 @@ export interface FileRoutesById {
   '/_protected/admin/user/$userId': typeof ProtectedAdminUserUserIdRoute
   '/_protected/_onboarded/org/': typeof ProtectedOnboardedOrgIndexRoute
   '/_protected/_onboarded/org/account/security': typeof ProtectedOnboardedOrgAccountSecurityRoute
+  '/_protected/_onboarded/workspace/$workspaceSlug/connections': typeof ProtectedOnboardedWorkspaceWorkspaceSlugConnectionsRoute
   '/_protected/_onboarded/workspace/$workspaceSlug/diagrams': typeof ProtectedOnboardedWorkspaceWorkspaceSlugDiagramsRoute
   '/_protected/_onboarded/workspace/$workspaceSlug/elements': typeof ProtectedOnboardedWorkspaceWorkspaceSlugElementsRoute
-  '/_protected/_onboarded/workspace/$workspaceSlug/relationships': typeof ProtectedOnboardedWorkspaceWorkspaceSlugRelationshipsRoute
   '/_protected/_onboarded/workspace/$workspaceSlug/settings': typeof ProtectedOnboardedWorkspaceWorkspaceSlugSettingsRoute
   '/_protected/_onboarded/workspace/$workspaceSlug/tags': typeof ProtectedOnboardedWorkspaceWorkspaceSlugTagsRoute
   '/_protected/_onboarded/org/account/': typeof ProtectedOnboardedOrgAccountIndexRoute
@@ -370,9 +370,9 @@ export interface FileRouteTypes {
     | '/admin/user/$userId'
     | '/org/'
     | '/org/account/security'
+    | '/workspace/$workspaceSlug/connections'
     | '/workspace/$workspaceSlug/diagrams'
     | '/workspace/$workspaceSlug/elements'
-    | '/workspace/$workspaceSlug/relationships'
     | '/workspace/$workspaceSlug/settings'
     | '/workspace/$workspaceSlug/tags'
     | '/org/account/'
@@ -401,9 +401,9 @@ export interface FileRouteTypes {
     | '/admin/user/$userId'
     | '/org'
     | '/org/account/security'
+    | '/workspace/$workspaceSlug/connections'
     | '/workspace/$workspaceSlug/diagrams'
     | '/workspace/$workspaceSlug/elements'
-    | '/workspace/$workspaceSlug/relationships'
     | '/workspace/$workspaceSlug/settings'
     | '/workspace/$workspaceSlug/tags'
     | '/org/account'
@@ -438,9 +438,9 @@ export interface FileRouteTypes {
     | '/_protected/admin/user/$userId'
     | '/_protected/_onboarded/org/'
     | '/_protected/_onboarded/org/account/security'
+    | '/_protected/_onboarded/workspace/$workspaceSlug/connections'
     | '/_protected/_onboarded/workspace/$workspaceSlug/diagrams'
     | '/_protected/_onboarded/workspace/$workspaceSlug/elements'
-    | '/_protected/_onboarded/workspace/$workspaceSlug/relationships'
     | '/_protected/_onboarded/workspace/$workspaceSlug/settings'
     | '/_protected/_onboarded/workspace/$workspaceSlug/tags'
     | '/_protected/_onboarded/org/account/'
@@ -671,13 +671,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedOnboardedWorkspaceWorkspaceSlugSettingsRouteImport
       parentRoute: typeof ProtectedOnboardedWorkspaceWorkspaceSlugRoute
     }
-    '/_protected/_onboarded/workspace/$workspaceSlug/relationships': {
-      id: '/_protected/_onboarded/workspace/$workspaceSlug/relationships'
-      path: '/relationships'
-      fullPath: '/workspace/$workspaceSlug/relationships'
-      preLoaderRoute: typeof ProtectedOnboardedWorkspaceWorkspaceSlugRelationshipsRouteImport
-      parentRoute: typeof ProtectedOnboardedWorkspaceWorkspaceSlugRoute
-    }
     '/_protected/_onboarded/workspace/$workspaceSlug/elements': {
       id: '/_protected/_onboarded/workspace/$workspaceSlug/elements'
       path: '/elements'
@@ -690,6 +683,13 @@ declare module '@tanstack/react-router' {
       path: '/diagrams'
       fullPath: '/workspace/$workspaceSlug/diagrams'
       preLoaderRoute: typeof ProtectedOnboardedWorkspaceWorkspaceSlugDiagramsRouteImport
+      parentRoute: typeof ProtectedOnboardedWorkspaceWorkspaceSlugRoute
+    }
+    '/_protected/_onboarded/workspace/$workspaceSlug/connections': {
+      id: '/_protected/_onboarded/workspace/$workspaceSlug/connections'
+      path: '/connections'
+      fullPath: '/workspace/$workspaceSlug/connections'
+      preLoaderRoute: typeof ProtectedOnboardedWorkspaceWorkspaceSlugConnectionsRouteImport
       parentRoute: typeof ProtectedOnboardedWorkspaceWorkspaceSlugRoute
     }
     '/_protected/_onboarded/org/account/security': {
@@ -752,9 +752,9 @@ const ProtectedOnboardedOrgRouteWithChildren =
   )
 
 interface ProtectedOnboardedWorkspaceWorkspaceSlugRouteChildren {
+  ProtectedOnboardedWorkspaceWorkspaceSlugConnectionsRoute: typeof ProtectedOnboardedWorkspaceWorkspaceSlugConnectionsRoute
   ProtectedOnboardedWorkspaceWorkspaceSlugDiagramsRoute: typeof ProtectedOnboardedWorkspaceWorkspaceSlugDiagramsRoute
   ProtectedOnboardedWorkspaceWorkspaceSlugElementsRoute: typeof ProtectedOnboardedWorkspaceWorkspaceSlugElementsRoute
-  ProtectedOnboardedWorkspaceWorkspaceSlugRelationshipsRoute: typeof ProtectedOnboardedWorkspaceWorkspaceSlugRelationshipsRoute
   ProtectedOnboardedWorkspaceWorkspaceSlugSettingsRoute: typeof ProtectedOnboardedWorkspaceWorkspaceSlugSettingsRoute
   ProtectedOnboardedWorkspaceWorkspaceSlugTagsRoute: typeof ProtectedOnboardedWorkspaceWorkspaceSlugTagsRoute
   ProtectedOnboardedWorkspaceWorkspaceSlugIndexRoute: typeof ProtectedOnboardedWorkspaceWorkspaceSlugIndexRoute
@@ -763,12 +763,12 @@ interface ProtectedOnboardedWorkspaceWorkspaceSlugRouteChildren {
 
 const ProtectedOnboardedWorkspaceWorkspaceSlugRouteChildren: ProtectedOnboardedWorkspaceWorkspaceSlugRouteChildren =
   {
+    ProtectedOnboardedWorkspaceWorkspaceSlugConnectionsRoute:
+      ProtectedOnboardedWorkspaceWorkspaceSlugConnectionsRoute,
     ProtectedOnboardedWorkspaceWorkspaceSlugDiagramsRoute:
       ProtectedOnboardedWorkspaceWorkspaceSlugDiagramsRoute,
     ProtectedOnboardedWorkspaceWorkspaceSlugElementsRoute:
       ProtectedOnboardedWorkspaceWorkspaceSlugElementsRoute,
-    ProtectedOnboardedWorkspaceWorkspaceSlugRelationshipsRoute:
-      ProtectedOnboardedWorkspaceWorkspaceSlugRelationshipsRoute,
     ProtectedOnboardedWorkspaceWorkspaceSlugSettingsRoute:
       ProtectedOnboardedWorkspaceWorkspaceSlugSettingsRoute,
     ProtectedOnboardedWorkspaceWorkspaceSlugTagsRoute:

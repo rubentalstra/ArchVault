@@ -39,7 +39,7 @@ function StoreNodeComponent({ data, selected }: NodeProps & { data: StoreNodeDat
             {data.displayDescription}
           </span>
         )}
-        <span className="text-xs text-muted-foreground">{m.element_type_container()}</span>
+        <span className="text-xs text-muted-foreground">{m.element_type_store()}</span>
         {data.external && (
           <span className="text-[10px] text-muted-foreground">{m.canvas_node_external()}</span>
         )}

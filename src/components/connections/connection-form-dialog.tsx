@@ -14,22 +14,22 @@ import { Label } from "#/components/ui/label";
 import { toast } from "sonner";
 import { m } from "#/paraglide/messages";
 import {
-  relationshipDirections,
-  validateRelationshipEndpoints,
-} from "#/lib/relationship.validators";
-import type { RelationshipDirection } from "#/lib/relationship.validators";
+  connectionDirections,
+  validateConnectionEndpoints,
+} from "#/lib/connection.validators";
+import type { ConnectionDirection } from "#/lib/connection.validators";
 import {
-  createRelationship,
-  updateRelationship,
-} from "#/lib/relationship.functions";
-import { addRelationshipTag, removeRelationshipTag } from "#/lib/tag.functions";
+  createConnection,
+  updateConnection,
+} from "#/lib/connection.functions";
+import { addConnectionTag, removeConnectionTag } from "#/lib/tag.functions";
 import { TagPicker } from "#/components/tags/tag-picker";
 
-interface RelationshipData {
+interface ConnectionData {
   id: string;
   sourceElementId: string;
   targetElementId: string;
-  direction: RelationshipDirection;
+  direction: ConnectionDirection;
   description: string | null;
   technology: string | null;
   tags: { id: string; name: string; color: string; icon: string | null }[];
@@ -47,49 +47,49 @@ interface WorkspaceTag {
   icon: string | null;
 }
 
-interface RelationshipFormDialogProps {
+interface ConnectionFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   workspaceId: string;
-  relationship?: RelationshipData;
+  connection?: ConnectionData;
   elementOptions: ElementOption[];
   workspaceTags?: WorkspaceTag[];
   onSuccess: () => void;
 }
 
-const DIRECTION_LABELS: Record<RelationshipDirection, () => string> = {
-  outgoing: () => m.relationship_direction_outgoing(),
-  incoming: () => m.relationship_direction_incoming(),
-  bidirectional: () => m.relationship_direction_bidirectional(),
-  none: () => m.relationship_direction_none(),
+const DIRECTION_LABELS: Record<ConnectionDirection, () => string> = {
+  outgoing: () => m.connection_direction_outgoing(),
+  incoming: () => m.connection_direction_incoming(),
+  bidirectional: () => m.connection_direction_bidirectional(),
+  none: () => m.connection_direction_none(),
 };
 
-export function RelationshipFormDialog({
+export function ConnectionFormDialog({
   open,
   onOpenChange,
   workspaceId,
-  relationship: editRelationship,
+  connection: editConnection,
   elementOptions,
   workspaceTags = [],
   onSuccess,
-}: RelationshipFormDialogProps) {
-  const isEdit = !!editRelationship;
+}: ConnectionFormDialogProps) {
+  const isEdit = !!editConnection;
   const [endpointError, setEndpointError] = useState<string | null>(null);
   const [localTagIds, setLocalTagIds] = useState<string[]>(
-    editRelationship?.tags?.map((t) => t.id) ?? [],
+    editConnection?.tags?.map((t) => t.id) ?? [],
   );
 
   const form = useForm({
     defaultValues: {
-      sourceElementId: editRelationship?.sourceElementId ?? "",
-      targetElementId: editRelationship?.targetElementId ?? "",
-      direction: editRelationship?.direction ?? ("outgoing" as RelationshipDirection),
-      description: editRelationship?.description ?? "",
-      technology: editRelationship?.technology ?? "",
+      sourceElementId: editConnection?.sourceElementId ?? "",
+      targetElementId: editConnection?.targetElementId ?? "",
+      direction: editConnection?.direction ?? ("outgoing" as ConnectionDirection),
+      description: editConnection?.description ?? "",
+      technology: editConnection?.technology ?? "",
     },
     onSubmit: async ({ value }) => {
       try {
-        const validation = validateRelationshipEndpoints(
+        const validation = validateConnectionEndpoints(
           value.sourceElementId,
           value.targetElementId,
         );
@@ -100,9 +100,9 @@ export function RelationshipFormDialog({
         setEndpointError(null);
 
         if (isEdit) {
-          await updateRelationship({
+          await updateConnection({
             data: {
-              id: editRelationship.id,
+              id: editConnection.id,
               sourceElementId: value.sourceElementId,
               targetElementId: value.targetElementId,
               direction: value.direction,
@@ -111,23 +111,23 @@ export function RelationshipFormDialog({
             },
           });
           // Sync tags
-          const existingTagIds = new Set(editRelationship.tags.map((t) => t.id));
+          const existingTagIds = new Set(editConnection.tags.map((t) => t.id));
           const currentTagIds = new Set(localTagIds);
 
           for (const tagId of existingTagIds) {
             if (!currentTagIds.has(tagId)) {
-              await removeRelationshipTag({ data: { relationshipId: editRelationship.id, tagId } });
+              await removeConnectionTag({ data: { connectionId: editConnection.id, tagId } });
             }
           }
           for (const tagId of currentTagIds) {
             if (!existingTagIds.has(tagId)) {
-              await addRelationshipTag({ data: { relationshipId: editRelationship.id, tagId } });
+              await addConnectionTag({ data: { connectionId: editConnection.id, tagId } });
             }
           }
 
-          toast.success(m.relationship_edit_success());
+          toast.success(m.connection_edit_success());
         } else {
-          const created = await createRelationship({
+          const created = await createConnection({
             data: {
               workspaceId,
               sourceElementId: value.sourceElementId,
@@ -137,12 +137,12 @@ export function RelationshipFormDialog({
               technology: value.technology || undefined,
             },
           });
-          // Add tags to newly created relationship
+          // Add tags to newly created connection
           for (const tagId of localTagIds) {
-            await addRelationshipTag({ data: { relationshipId: created.id, tagId } });
+            await addConnectionTag({ data: { connectionId: created.id, tagId } });
           }
 
-          toast.success(m.relationship_create_success());
+          toast.success(m.connection_create_success());
         }
         onOpenChange(false);
         onSuccess();
@@ -151,8 +151,8 @@ export function RelationshipFormDialog({
           err instanceof Error
             ? err.message
             : isEdit
-              ? m.relationship_edit_failed()
-              : m.relationship_create_failed(),
+              ? m.connection_edit_failed()
+              : m.connection_create_failed(),
         );
       }
     },
@@ -160,7 +160,7 @@ export function RelationshipFormDialog({
 
   const handleEndpointChange = (sourceId: string, targetId: string) => {
     if (sourceId && targetId) {
-      const result = validateRelationshipEndpoints(sourceId, targetId);
+      const result = validateConnectionEndpoints(sourceId, targetId);
       setEndpointError(result.valid ? null : (result.message ?? null));
     } else {
       setEndpointError(null);
@@ -172,10 +172,10 @@ export function RelationshipFormDialog({
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>
-            {isEdit ? m.relationship_edit_title() : m.relationship_create_title()}
+            {isEdit ? m.connection_edit_title() : m.connection_create_title()}
           </DialogTitle>
           <DialogDescription>
-            {isEdit ? m.relationship_edit_description() : m.relationship_create_description()}
+            {isEdit ? m.connection_edit_description() : m.connection_create_description()}
           </DialogDescription>
         </DialogHeader>
 
@@ -190,7 +190,7 @@ export function RelationshipFormDialog({
           <form.Field name="sourceElementId">
             {(field) => (
               <div className="flex flex-col gap-1.5">
-                <Label>{m.relationship_label_source()}</Label>
+                <Label>{m.connection_label_source()}</Label>
                 <select
                   className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                   value={field.state.value}
@@ -199,7 +199,7 @@ export function RelationshipFormDialog({
                     handleEndpointChange(e.target.value, form.getFieldValue("targetElementId"));
                   }}
                 >
-                  <option value="">{m.relationship_placeholder_select_source()}</option>
+                  <option value="">{m.connection_placeholder_select_source()}</option>
                   {elementOptions.map((el) => (
                     <option key={el.id} value={el.id}>
                       {el.name}
@@ -214,7 +214,7 @@ export function RelationshipFormDialog({
           <form.Field name="targetElementId">
             {(field) => (
               <div className="flex flex-col gap-1.5">
-                <Label>{m.relationship_label_target()}</Label>
+                <Label>{m.connection_label_target()}</Label>
                 <select
                   className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                   value={field.state.value}
@@ -223,7 +223,7 @@ export function RelationshipFormDialog({
                     handleEndpointChange(form.getFieldValue("sourceElementId"), e.target.value);
                   }}
                 >
-                  <option value="">{m.relationship_placeholder_select_target()}</option>
+                  <option value="">{m.connection_placeholder_select_target()}</option>
                   {elementOptions.map((el) => (
                     <option key={el.id} value={el.id}>
                       {el.name}
@@ -241,13 +241,13 @@ export function RelationshipFormDialog({
           <form.Field name="direction">
             {(field) => (
               <div className="flex flex-col gap-1.5">
-                <Label>{m.relationship_label_direction()}</Label>
+                <Label>{m.connection_label_direction()}</Label>
                 <select
                   className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                   value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value as RelationshipDirection)}
+                  onChange={(e) => field.handleChange(e.target.value as ConnectionDirection)}
                 >
-                  {relationshipDirections.map((dir) => (
+                  {connectionDirections.map((dir) => (
                     <option key={dir} value={dir}>
                       {DIRECTION_LABELS[dir]()}
                     </option>
@@ -261,12 +261,12 @@ export function RelationshipFormDialog({
           <form.Field name="description">
             {(field) => (
               <div className="flex flex-col gap-1.5">
-                <Label>{m.relationship_label_description()}</Label>
+                <Label>{m.connection_label_description()}</Label>
                 <Input
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   onBlur={field.handleBlur}
-                  placeholder={m.relationship_placeholder_description()}
+                  placeholder={m.connection_placeholder_description()}
                 />
               </div>
             )}
@@ -276,12 +276,12 @@ export function RelationshipFormDialog({
           <form.Field name="technology">
             {(field) => (
               <div className="flex flex-col gap-1.5">
-                <Label>{m.relationship_label_technology()}</Label>
+                <Label>{m.connection_label_technology()}</Label>
                 <Input
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   onBlur={field.handleBlur}
-                  placeholder={m.relationship_placeholder_technology()}
+                  placeholder={m.connection_placeholder_technology()}
                 />
               </div>
             )}

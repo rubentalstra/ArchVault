@@ -67,7 +67,7 @@ function DiagramEditorPage() {
       diagramData.diagram.scopeElementId,
     );
     const elementIdToNodeId = buildElementIdToNodeIdMap(diagramData.elements);
-    const edges = toFlowEdges(diagramData.relationships, elementIdToNodeId);
+    const edges = toFlowEdges(diagramData.connections, elementIdToNodeId);
 
     initDiagram({
       diagramId: diagramData.diagram.id,

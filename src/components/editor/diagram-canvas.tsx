@@ -21,10 +21,10 @@ import { nodeTypes } from "#/components/editor/nodes";
 import {
   updateDiagramElement,
   removeDiagramElement,
-  removeDiagramRelationship,
-  addDiagramRelationship,
+  removeDiagramConnection,
+  addDiagramConnection,
 } from "#/lib/diagram.functions";
-import { createRelationship } from "#/lib/relationship.functions";
+import { createConnection } from "#/lib/connection.functions";
 import { flowNodeToUpdate } from "#/lib/converters/flow-to-diagram";
 import { EditorToolbar } from "#/components/editor/editor-toolbar";
 import { EditorContextMenu } from "#/components/editor/context-menu";
@@ -32,8 +32,8 @@ import { useAddElement } from "#/components/editor/use-add-element";
 import { m } from "#/paraglide/messages";
 import type { AppNode, AppEdge } from "#/lib/types/diagram-nodes";
 
-type CreatedRelationship = { id: string };
-type CreatedDiagramRelationship = { id: string };
+type CreatedConnection = { id: string };
+type CreatedDiagramConnection = { id: string };
 
 interface DiagramCanvasProps {
   readOnly?: boolean;
@@ -71,9 +71,9 @@ export function DiagramCanvas({ readOnly = false, onNodeDoubleClick }: DiagramCa
 
   const updateDiagramElementFn = useServerFn(updateDiagramElement);
   const removeDiagramElementFn = useServerFn(removeDiagramElement);
-  const removeDiagramRelationshipFn = useServerFn(removeDiagramRelationship);
-  const createRelationshipFn = useServerFn(createRelationship);
-  const addDiagramRelationshipFn = useServerFn(addDiagramRelationship);
+  const removeDiagramConnectionFn = useServerFn(removeDiagramConnection);
+  const createConnectionFn = useServerFn(createConnection);
+  const addDiagramConnectionFn = useServerFn(addDiagramConnection);
 
   const onNodeDragStop = useCallback(
     (_event: React.MouseEvent, node: AppNode) => {
@@ -96,13 +96,13 @@ export function DiagramCanvas({ readOnly = false, onNodeDoubleClick }: DiagramCa
     (deletedEdges: AppEdge[]) => {
       for (const edge of deletedEdges) {
         if (edge.data) {
-          removeDiagramRelationshipFn({
-            data: { id: edge.data.diagramRelationshipId },
+          removeDiagramConnectionFn({
+            data: { id: edge.data.diagramConnectionId },
           });
         }
       }
     },
-    [removeDiagramRelationshipFn],
+    [removeDiagramConnectionFn],
   );
 
   const onSelectionChange: OnSelectionChangeFunc = useCallback(
@@ -138,20 +138,20 @@ export function DiagramCanvas({ readOnly = false, onNodeDoubleClick }: DiagramCa
       if (!sourceNode || !targetNode) return;
 
       try {
-        const rel = (await createRelationshipFn({
+        const rel = (await createConnectionFn({
           data: {
             workspaceId: store.workspaceId,
             sourceElementId: sourceNode.data.elementId,
             targetElementId: targetNode.data.elementId,
           },
-        })) as CreatedRelationship;
+        })) as CreatedConnection;
 
-        const diagramRel = (await addDiagramRelationshipFn({
+        const diagramRel = (await addDiagramConnectionFn({
           data: {
             diagramId: store.diagramId,
-            relationshipId: rel.id,
+            connectionId: rel.id,
           },
-        })) as CreatedDiagramRelationship;
+        })) as CreatedDiagramConnection;
 
         const newEdge: AppEdge = {
           id: diagramRel.id,
@@ -160,8 +160,8 @@ export function DiagramCanvas({ readOnly = false, onNodeDoubleClick }: DiagramCa
           type: "curved",
           markerEnd: { type: "arrowclosed" as const },
           data: {
-            diagramRelationshipId: diagramRel.id,
-            relationshipId: rel.id,
+            diagramConnectionId: diagramRel.id,
+            connectionId: rel.id,
             description: null,
             technology: null,
             direction: "outgoing",
@@ -177,7 +177,7 @@ export function DiagramCanvas({ readOnly = false, onNodeDoubleClick }: DiagramCa
         toast.error(m.editor_panel_save_failed());
       }
     },
-    [createRelationshipFn, addDiagramRelationshipFn, addEdge],
+    [createConnectionFn, addDiagramConnectionFn, addEdge],
   );
 
   const onNodeContextMenu = useCallback(
@@ -270,7 +270,7 @@ export function DiagramCanvas({ readOnly = false, onNodeDoubleClick }: DiagramCa
       selectionKeyCode="Shift"
       panActivationKeyCode="Space"
       nodesDraggable={mode === "select" && !readOnly}
-      nodesConnectable={mode === "add_relationship" && !readOnly}
+      nodesConnectable={mode === "add_connection" && !readOnly}
       elementsSelectable={!readOnly}
       elevateEdgesOnSelect
     >

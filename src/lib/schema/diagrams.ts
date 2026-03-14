@@ -15,7 +15,7 @@ import {diagramRevision} from "./diagram-revisions";
 
 export const diagramTypeEnum = pgEnum("diagram_type", [
     "context",
-    "container",
+    "app",
     "component",
 ]);
 

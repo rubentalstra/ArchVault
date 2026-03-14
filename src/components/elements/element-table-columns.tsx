@@ -52,11 +52,11 @@ const TYPE_ICONS: Record<ElementType, typeof User> = {
 };
 
 const TYPE_LABELS: Record<ElementType, () => string> = {
-    actor: () => m.element_type_person(),
+    actor: () => m.element_type_actor(),
   group: () => m.element_type_system(),
     system: () => m.element_type_system(),
-    app: () => m.element_type_container(),
-    store: () => m.element_type_container(),
+    app: () => m.element_type_app(),
+    store: () => m.element_type_store(),
     component: () => m.element_type_component(),
 };
 

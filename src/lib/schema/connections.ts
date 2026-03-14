@@ -9,15 +9,15 @@ import {workspace} from "./workspaces";
 import {element} from "./elements";
 import {user} from "./auth-schema";
 
-export const relationshipDirectionEnum = pgEnum("relationship_direction", [
+export const connectionDirectionEnum = pgEnum("connection_direction", [
     "outgoing",
     "incoming",
     "bidirectional",
     "none",
 ]);
 
-export const relationship = pgTable(
-    "relationship",
+export const connection = pgTable(
+    "connection",
     {
         id: text("id").primaryKey(),
         workspaceId: text("workspace_id")
@@ -29,7 +29,7 @@ export const relationship = pgTable(
         targetElementId: text("target_element_id")
             .notNull()
             .references(() => element.id, {onDelete: "cascade"}),
-        direction: relationshipDirectionEnum("direction")
+        direction: connectionDirectionEnum("direction")
             .default("outgoing")
             .notNull(),
         description: text("description"),
@@ -49,8 +49,8 @@ export const relationship = pgTable(
             .notNull(),
     },
     (table) => [
-        index("relationship_workspace_id_idx").on(table.workspaceId),
-        index("relationship_source_element_id_idx").on(table.sourceElementId),
-        index("relationship_target_element_id_idx").on(table.targetElementId),
+        index("connection_workspace_id_idx").on(table.workspaceId),
+        index("connection_source_element_id_idx").on(table.sourceElementId),
+        index("connection_target_element_id_idx").on(table.targetElementId),
     ],
 );

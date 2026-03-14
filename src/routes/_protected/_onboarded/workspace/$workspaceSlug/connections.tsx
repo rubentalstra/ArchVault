@@ -11,16 +11,16 @@ import {
 } from "@tanstack/react-table";
 import type { SortingState } from "@tanstack/react-table";
 import { authClient } from "#/lib/auth-client";
-import { getRelationships } from "#/lib/relationship.functions";
+import { getConnections } from "#/lib/connection.functions";
 import { getElements } from "#/lib/element.functions";
 import { getTags } from "#/lib/tag.functions";
 import { TagFilter } from "#/components/tags/tag-filter";
 import {
-  getRelationshipColumns,
-  type RelationshipRow,
-} from "#/components/relationships/relationship-table-columns";
-import { RelationshipFormDialog } from "#/components/relationships/relationship-form-dialog";
-import { DeleteRelationshipDialog } from "#/components/relationships/delete-relationship-dialog";
+  getConnectionColumns,
+  type ConnectionRow,
+} from "#/components/connections/connection-table-columns";
+import { ConnectionFormDialog } from "#/components/connections/connection-form-dialog";
+import { DeleteConnectionDialog } from "#/components/connections/delete-connection-dialog";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
 import {
@@ -47,15 +47,15 @@ import type { ElementType } from "#/lib/element.validators";
 
 type WorkspaceTag = { id: string; name: string; color: string; icon: string | null };
 type WorkspaceElement = { id: string; name: string; elementType: ElementType };
-type WorkspaceRelationship = RelationshipRow & { tags?: WorkspaceTag[] };
+type WorkspaceConnection = ConnectionRow & { tags?: WorkspaceTag[] };
 
 export const Route = createFileRoute(
-  "/_protected/_onboarded/workspace/$workspaceSlug/relationships",
+  "/_protected/_onboarded/workspace/$workspaceSlug/connections",
 )({
-  component: RelationshipsPage,
+  component: ConnectionsPage,
 });
 
-function RelationshipsPage() {
+function ConnectionsPage() {
   const { workspace } = Route.useRouteContext();
   const { data: activeMember } = authClient.useActiveMember();
   const queryClient = useQueryClient();
@@ -64,11 +64,11 @@ function RelationshipsPage() {
   const canEdit = ["owner", "admin", "editor"].includes(memberRole ?? "");
   const canDelete = ["owner", "admin"].includes(memberRole ?? "");
 
-  const getRelationshipsFn = useServerFn(getRelationships);
-  const { data: relationships = [], isLoading } = useQuery<WorkspaceRelationship[]>({
-    queryKey: ["relationships", workspace.id],
+  const getConnectionsFn = useServerFn(getConnections);
+  const { data: connections = [], isLoading } = useQuery<WorkspaceConnection[]>({
+    queryKey: ["connections", workspace.id],
     queryFn: async () =>
-      (await getRelationshipsFn({ data: { workspaceId: workspace.id } })) as WorkspaceRelationship[],
+      (await getConnectionsFn({ data: { workspaceId: workspace.id } })) as WorkspaceConnection[],
   });
 
   const getElementsFn = useServerFn(getElements);
@@ -86,9 +86,9 @@ function RelationshipsPage() {
   });
 
   const [createOpen, setCreateOpen] = useState(false);
-  const [editRelationship, setEditRelationship] =
-    useState<RelationshipRow | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<RelationshipRow | null>(
+  const [editConnection, setEditConnection] =
+    useState<ConnectionRow | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<ConnectionRow | null>(
     null,
   );
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -122,14 +122,14 @@ function RelationshipsPage() {
 
   const invalidate = () => {
     void queryClient.invalidateQueries({
-      queryKey: ["relationships", workspace.id],
+      queryKey: ["connections", workspace.id],
     });
   };
 
   const columns = useMemo(
     () =>
-      getRelationshipColumns({
-        onEdit: (rel) => setEditRelationship(rel),
+      getConnectionColumns({
+        onEdit: (rel) => setEditConnection(rel),
         onDelete: (rel) => setDeleteTarget(rel),
         canEdit,
         canDelete,
@@ -139,17 +139,17 @@ function RelationshipsPage() {
     [canEdit, canDelete, elementNameMap, elementTypeMap],
   );
 
-  const filteredRelationships = useMemo(() => {
-    if (selectedTagIds.length === 0) return relationships;
-    return relationships.filter((rel) =>
+  const filteredConnections = useMemo(() => {
+    if (selectedTagIds.length === 0) return connections;
+    return connections.filter((rel) =>
       rel.tags?.some((t) =>
         selectedTagIds.includes(t.id),
       ),
     );
-  }, [relationships, selectedTagIds]);
+  }, [connections, selectedTagIds]);
 
   const table = useReactTable({
-    data: filteredRelationships,
+    data: filteredConnections,
     columns,
     state: { sorting, globalFilter },
     onSortingChange: setSorting,
@@ -201,7 +201,7 @@ function RelationshipsPage() {
               <BreadcrumbSeparator className="hidden md:block" />
               <BreadcrumbItem>
                 <BreadcrumbPage>
-                  {m.relationship_nav_title()}
+                  {m.connection_nav_title()}
                 </BreadcrumbPage>
               </BreadcrumbItem>
             </BreadcrumbList>
@@ -212,12 +212,12 @@ function RelationshipsPage() {
       <div className="flex flex-1 flex-col overflow-auto p-4 pt-0">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-2xl font-bold">
-            {m.relationship_page_title()}
+            {m.connection_page_title()}
           </h2>
           {canEdit && (
             <Button onClick={() => setCreateOpen(true)}>
               <Plus className="size-4" />
-              {m.relationship_create_title()}
+              {m.connection_create_title()}
             </Button>
           )}
         </div>
@@ -226,7 +226,7 @@ function RelationshipsPage() {
           <Input
             value={globalFilter}
             onChange={(e) => setGlobalFilter(e.target.value)}
-            placeholder={m.relationship_search_placeholder()}
+            placeholder={m.connection_search_placeholder()}
             className="max-w-sm"
           />
           {workspaceTags.length > 0 && (
@@ -242,9 +242,9 @@ function RelationshipsPage() {
           <p className="text-sm text-muted-foreground">
             {m.common_loading()}
           </p>
-        ) : relationships.length === 0 ? (
+        ) : connections.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            {m.relationship_empty()}
+            {m.connection_empty()}
           </p>
         ) : (
           <div className="rounded-md border">
@@ -294,26 +294,26 @@ function RelationshipsPage() {
         )}
 
         {/* Create / Edit Dialog */}
-        {(createOpen || editRelationship) && (
-          <RelationshipFormDialog
-            open={createOpen || !!editRelationship}
+        {(createOpen || editConnection) && (
+          <ConnectionFormDialog
+            open={createOpen || !!editConnection}
             onOpenChange={(open) => {
               if (!open) {
                 setCreateOpen(false);
-                setEditRelationship(null);
+                setEditConnection(null);
               }
             }}
             workspaceId={workspace.id}
-            relationship={
-              editRelationship
+            connection={
+              editConnection
                 ? {
-                    id: editRelationship.id,
-                    sourceElementId: editRelationship.sourceElementId,
-                    targetElementId: editRelationship.targetElementId,
-                    direction: editRelationship.direction,
-                    description: editRelationship.description,
-                    technology: editRelationship.technology,
-                    tags: editRelationship.tags ?? [],
+                    id: editConnection.id,
+                    sourceElementId: editConnection.sourceElementId,
+                    targetElementId: editConnection.targetElementId,
+                    direction: editConnection.direction,
+                    description: editConnection.description,
+                    technology: editConnection.technology,
+                    tags: editConnection.tags ?? [],
                   }
                 : undefined
             }
@@ -324,7 +324,7 @@ function RelationshipsPage() {
         )}
 
         {/* Delete Dialog */}
-        <DeleteRelationshipDialog
+        <DeleteConnectionDialog
           open={!!deleteTarget}
           onOpenChange={(open) => {
             if (!open) setDeleteTarget(null);
@@ -334,9 +334,9 @@ function RelationshipsPage() {
               ? {
                   id: deleteTarget.id,
                   sourceName:
-                    elementNameMap.get(deleteTarget.sourceElementId) ?? "—",
+                    elementNameMap.get(deleteTarget.sourceElementId) ?? "\u2014",
                   targetName:
-                    elementNameMap.get(deleteTarget.targetElementId) ?? "—",
+                    elementNameMap.get(deleteTarget.targetElementId) ?? "\u2014",
                 }
               : null
           }

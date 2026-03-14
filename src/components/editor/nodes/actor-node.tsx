@@ -6,7 +6,7 @@ import type { ActorNodeData } from "#/lib/types/diagram-nodes";
 import { m } from "#/paraglide/messages";
 import { StatusDot } from "./status-dot";
 
-function PersonNodeComponent({ data, selected }: NodeProps & { data: ActorNodeData }) {
+function ActorNodeComponent({ data, selected }: NodeProps & { data: ActorNodeData }) {
   return (
     <>
       <Handle type="target" position={Position.Top} className="!size-2 !border-primary !bg-primary" />
@@ -32,7 +32,7 @@ function PersonNodeComponent({ data, selected }: NodeProps & { data: ActorNodeDa
           <StatusDot status={data.status} />
         </div>
         <span className="text-xs text-muted-foreground">
-          {data.displayDescription ?? m.element_type_person()}
+          {data.displayDescription ?? m.element_type_actor()}
         </span>
         {data.external && (
           <span className="mt-0.5 text-[10px] text-muted-foreground">{m.canvas_node_external()}</span>
@@ -42,4 +42,4 @@ function PersonNodeComponent({ data, selected }: NodeProps & { data: ActorNodeDa
   );
 }
 
-export const PersonNode = memo(PersonNodeComponent);
+export const ActorNode = memo(ActorNodeComponent);

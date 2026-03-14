@@ -36,13 +36,13 @@ export const removeElementTagSchema = z.object({
   tagId: z.string(),
 });
 
-export const addRelationshipTagSchema = z.object({
-  relationshipId: z.string(),
+export const addConnectionTagSchema = z.object({
+  connectionId: z.string(),
   tagId: z.string(),
 });
 
-export const removeRelationshipTagSchema = z.object({
-  relationshipId: z.string(),
+export const removeConnectionTagSchema = z.object({
+  connectionId: z.string(),
   tagId: z.string(),
 });
 

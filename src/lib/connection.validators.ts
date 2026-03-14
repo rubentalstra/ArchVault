@@ -1,39 +1,39 @@
 import { z } from "zod/v4";
 
-export const relationshipDirections = ["outgoing", "incoming", "bidirectional", "none"] as const;
-export type RelationshipDirection = (typeof relationshipDirections)[number];
+export const connectionDirections = ["outgoing", "incoming", "bidirectional", "none"] as const;
+export type ConnectionDirection = (typeof connectionDirections)[number];
 
-// ── Relationship CRUD schemas ────────────────────────────────────────
+// ── Connection CRUD schemas ────────────────────────────────────────
 
-export const createRelationshipSchema = z.object({
+export const createConnectionSchema = z.object({
   workspaceId: z.string(),
   sourceElementId: z.string(),
   targetElementId: z.string(),
-  direction: z.enum(relationshipDirections).default("outgoing"),
+  direction: z.enum(connectionDirections).default("outgoing"),
   description: z.string().optional(),
   technology: z.string().optional(),
 });
 
-export const updateRelationshipSchema = z.object({
+export const updateConnectionSchema = z.object({
   id: z.string(),
   sourceElementId: z.string().optional(),
   targetElementId: z.string().optional(),
-  direction: z.enum(relationshipDirections).optional(),
+  direction: z.enum(connectionDirections).optional(),
   description: z.string().nullable().optional(),
   technology: z.string().nullable().optional(),
 });
 
-export const deleteRelationshipSchema = z.object({
+export const deleteConnectionSchema = z.object({
   id: z.string(),
 });
 
-export const getRelationshipsSchema = z.object({
+export const getConnectionsSchema = z.object({
   workspaceId: z.string(),
 });
 
 // ── Endpoint validation ──────────────────────────────────────────────
 
-export function validateRelationshipEndpoints(
+export function validateConnectionEndpoints(
   sourceId: string,
   targetId: string,
 ): { valid: boolean; message?: string } {
