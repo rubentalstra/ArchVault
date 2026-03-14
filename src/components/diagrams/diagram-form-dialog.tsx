@@ -71,6 +71,9 @@ export function DiagramFormDialog({
 }: DiagramFormDialogProps) {
   const isEdit = !!editDiagram;
   const [scopeError, setScopeError] = useState<string | null>(null);
+  const [selectedType, setSelectedType] = useState<DiagramType>(
+    editDiagram?.diagramType ?? "context",
+  );
 
   const form = useForm({
     defaultValues: {
@@ -143,8 +146,6 @@ export function DiagramFormDialog({
     },
   });
 
-  const selectedType = form.useStore((s) => s.values.diagramType);
-
   const filteredScopeOptions = useMemo(() => {
     const allowedTypes = SCOPE_FILTER[selectedType];
     return scopeElementOptions.filter((e) => allowedTypes.includes(e.elementType));
@@ -152,6 +153,7 @@ export function DiagramFormDialog({
 
   const handleTypeChange = (newType: DiagramType) => {
     form.setFieldValue("diagramType", newType);
+    setSelectedType(newType);
     // Clear scope if current selection is invalid for new type
     const currentScope = form.getFieldValue("scopeElementId");
     if (currentScope) {
