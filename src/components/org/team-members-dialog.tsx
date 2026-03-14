@@ -20,6 +20,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "#/components/ui/avatar";
 import { toast } from "sonner";
 import { UserX } from "lucide-react";
 import type { OrgMember } from "./member-table-columns";
+import { m } from "#/paraglide/messages";
 
 interface TeamMembersDialogProps {
   team: { id: string; name: string; members?: { userId: string }[] } | null;
@@ -63,11 +64,11 @@ export function TeamMembersDialog({
     setLoading(false);
 
     if (error) {
-      toast.error(error.message ?? "Failed to add team member");
+      toast.error(error.message ?? m.org_team_add_failed());
       return;
     }
 
-    toast.success("Member added to team");
+    toast.success(m.org_team_add_success());
     setAddUserId(null);
     onSuccess();
   };
@@ -83,11 +84,11 @@ export function TeamMembersDialog({
     setLoading(false);
 
     if (error) {
-      toast.error(error.message ?? "Failed to remove team member");
+      toast.error(error.message ?? m.org_team_remove_failed());
       return;
     }
 
-    toast.success("Member removed from team");
+    toast.success(m.org_team_remove_success());
     onSuccess();
   };
 
@@ -95,9 +96,9 @@ export function TeamMembersDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{team.name} — Members</DialogTitle>
+          <DialogTitle>{m.org_team_members_title({ name: team.name })}</DialogTitle>
           <DialogDescription>
-            Manage members of this team.
+            {m.org_team_members_description()}
           </DialogDescription>
         </DialogHeader>
 
@@ -149,32 +150,32 @@ export function TeamMembersDialog({
             </div>
           ) : (
             <p className="text-sm text-muted-foreground">
-              No members in this team yet.
+              {m.org_team_members_empty()}
             </p>
           )}
 
           {availableMembers.length > 0 && (
             <div className="flex items-end gap-2">
               <div className="flex flex-1 flex-col gap-1.5">
-                <Label>Add Member</Label>
+                <Label>{m.org_team_add_member_label()}</Label>
                 <Select
                   value={addUserId ?? ""}
                   onValueChange={(val: string | null) => setAddUserId(val)}
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select a member" />
+                    <SelectValue placeholder={m.org_team_add_member_placeholder()} />
                   </SelectTrigger>
                   <SelectContent>
-                    {availableMembers.map((m) => (
-                      <SelectItem key={m.userId} value={m.userId}>
-                        {m.user.name} ({m.user.email})
+                    {availableMembers.map((member) => (
+                      <SelectItem key={member.userId} value={member.userId}>
+                        {member.user.name} ({member.user.email})
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <Button onClick={handleAdd} disabled={!addUserId || loading}>
-                Add
+                {m.common_add()}
               </Button>
             </div>
           )}

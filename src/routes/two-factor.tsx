@@ -2,6 +2,7 @@ import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
 import { z } from "zod/v4";
+import { m } from "#/paraglide/messages";
 import { authClient } from "#/lib/auth-client";
 import { Button } from "#/components/ui/button";
 import {
@@ -31,7 +32,7 @@ function TwoFactorPage() {
   const [error, setError] = useState<string | null>(null);
 
   const onSuccess = () => {
-    toast.success("Verified!");
+    toast.success(m.auth_two_factor_verified());
     if (redirectTo) {
       window.location.href = redirectTo;
     } else {
@@ -48,7 +49,7 @@ function TwoFactorPage() {
       });
 
       if (verifyError) {
-        setError(verifyError.message ?? "Invalid code");
+        setError(verifyError.message ?? m.auth_two_factor_invalid_code());
         return;
       }
 
@@ -66,7 +67,7 @@ function TwoFactorPage() {
         });
 
       if (verifyError) {
-        setError(verifyError.message ?? "Invalid backup code");
+        setError(verifyError.message ?? m.auth_two_factor_invalid_backup());
         return;
       }
 
@@ -79,12 +80,12 @@ function TwoFactorPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">
-            Two-Factor Authentication
+            {m.auth_two_factor_title()}
           </CardTitle>
           <CardDescription>
             {useBackup
-              ? "Enter one of your backup codes"
-              : "Enter the 6-digit code from your authenticator app"}
+              ? m.auth_two_factor_description_backup()
+              : m.auth_two_factor_description_totp()}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
@@ -103,13 +104,13 @@ function TwoFactorPage() {
               <totpForm.Field name="code">
                 {(field) => (
                   <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="totp-code">Authentication Code</Label>
+                    <Label htmlFor="totp-code">{m.auth_two_factor_code_label()}</Label>
                     <Input
                       id="totp-code"
                       value={field.state.value}
                       onChange={(e) => field.handleChange(e.target.value)}
                       onBlur={field.handleBlur}
-                      placeholder="000000"
+                      placeholder={m.auth_two_factor_code_placeholder()}
                       maxLength={6}
                       autoFocus
                     />
@@ -120,7 +121,7 @@ function TwoFactorPage() {
               <totpForm.Subscribe selector={(s) => s.isSubmitting}>
                 {(isSubmitting) => (
                   <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? "Verifying..." : "Verify"}
+                    {isSubmitting ? m.common_verifying() : m.auth_two_factor_verify()}
                   </Button>
                 )}
               </totpForm.Subscribe>
@@ -136,13 +137,13 @@ function TwoFactorPage() {
               <backupForm.Field name="code">
                 {(field) => (
                   <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="backup-code">Backup Code</Label>
+                    <Label htmlFor="backup-code">{m.auth_two_factor_backup_label()}</Label>
                     <Input
                       id="backup-code"
                       value={field.state.value}
                       onChange={(e) => field.handleChange(e.target.value)}
                       onBlur={field.handleBlur}
-                      placeholder="Enter backup code"
+                      placeholder={m.auth_two_factor_backup_placeholder()}
                       autoFocus
                     />
                   </div>
@@ -152,7 +153,7 @@ function TwoFactorPage() {
               <backupForm.Subscribe selector={(s) => s.isSubmitting}>
                 {(isSubmitting) => (
                   <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? "Verifying..." : "Verify Backup Code"}
+                    {isSubmitting ? m.common_verifying() : m.auth_two_factor_verify_backup()}
                   </Button>
                 )}
               </backupForm.Subscribe>
@@ -167,13 +168,13 @@ function TwoFactorPage() {
             }}
           >
             {useBackup
-              ? "Use authenticator app instead"
-              : "Use a backup code"}
+              ? m.auth_two_factor_use_authenticator()
+              : m.auth_two_factor_use_backup()}
           </Button>
 
           <p className="text-center text-sm text-muted-foreground">
             <Link to="/login" className="text-primary underline">
-              Cancel
+              {m.common_cancel()}
             </Link>
           </p>
         </CardContent>

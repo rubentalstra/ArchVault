@@ -15,6 +15,7 @@ import { Label } from "#/components/ui/label";
 import { Textarea } from "#/components/ui/textarea";
 import { toast } from "sonner";
 import { createWorkspace } from "#/lib/workspace.functions";
+import { m } from "#/paraglide/messages";
 
 interface CreateWorkspaceDialogProps {
   open: boolean;
@@ -53,13 +54,13 @@ export function CreateWorkspaceDialog({
           },
         });
 
-        toast.success("Workspace created!");
+        toast.success(m.workspace_create_success());
         onOpenChange(false);
         onSuccess();
         navigate({ to: "/workspace/$workspaceSlug", params: { workspaceSlug: slug } });
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : "Failed to create workspace",
+          err instanceof Error ? err.message : m.workspace_create_failed(),
         );
       }
     },
@@ -78,9 +79,9 @@ export function CreateWorkspaceDialog({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create Workspace</DialogTitle>
+          <DialogTitle>{m.workspace_create_title()}</DialogTitle>
           <DialogDescription>
-            Create a new workspace within your organization.
+            {m.workspace_create_description()}
           </DialogDescription>
         </DialogHeader>
 
@@ -96,7 +97,7 @@ export function CreateWorkspaceDialog({
           <form.Field name="name">
             {(field) => (
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="create-ws-name">Name</Label>
+                <Label htmlFor="create-ws-name">{m.common_label_name()}</Label>
                 <Input
                   id="create-ws-name"
                   value={field.state.value}
@@ -111,7 +112,7 @@ export function CreateWorkspaceDialog({
                     }
                   }}
                   onBlur={field.handleBlur}
-                  placeholder="My Workspace"
+                  placeholder={m.workspace_placeholder_name()}
                 />
               </div>
             )}
@@ -120,7 +121,7 @@ export function CreateWorkspaceDialog({
           <form.Field name="slug">
             {(field) => (
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="create-ws-slug">Slug</Label>
+                <Label htmlFor="create-ws-slug">{m.common_label_slug()}</Label>
                 <Input
                   id="create-ws-slug"
                   value={field.state.value}
@@ -130,7 +131,7 @@ export function CreateWorkspaceDialog({
                     )
                   }
                   onBlur={field.handleBlur}
-                  placeholder="my-workspace"
+                  placeholder={m.workspace_placeholder_slug()}
                 />
               </div>
             )}
@@ -139,13 +140,13 @@ export function CreateWorkspaceDialog({
           <form.Field name="description">
             {(field) => (
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="create-ws-desc">Description</Label>
+                <Label htmlFor="create-ws-desc">{m.common_label_description()}</Label>
                 <Textarea
                   id="create-ws-desc"
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   onBlur={field.handleBlur}
-                  placeholder="What is this workspace for?"
+                  placeholder={m.workspace_placeholder_description()}
                   rows={3}
                 />
               </div>
@@ -155,7 +156,7 @@ export function CreateWorkspaceDialog({
           <form.Field name="iconEmoji">
             {(field) => (
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="create-ws-emoji">Icon Emoji</Label>
+                <Label htmlFor="create-ws-emoji">{m.workspace_label_icon_emoji()}</Label>
                 <Input
                   id="create-ws-emoji"
                   value={field.state.value}
@@ -172,7 +173,7 @@ export function CreateWorkspaceDialog({
             <form.Subscribe selector={(s) => s.isSubmitting}>
               {(isSubmitting) => (
                 <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Creating..." : "Create"}
+                  {isSubmitting ? m.common_creating() : m.common_create()}
                 </Button>
               )}
             </form.Subscribe>

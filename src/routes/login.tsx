@@ -2,6 +2,7 @@ import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
 import { z } from "zod/v4";
+import { m } from "#/paraglide/messages";
 import { authClient } from "#/lib/auth-client";
 import { Button } from "#/components/ui/button";
 import {
@@ -55,7 +56,7 @@ function LoginPage() {
       });
 
       if (signInError) {
-        setError(signInError.message ?? "Sign in failed");
+        setError(signInError.message ?? m.auth_sign_in_failed());
         return;
       }
 
@@ -64,7 +65,7 @@ function LoginPage() {
         return;
       }
 
-      toast.success("Signed in!");
+      toast.success(m.auth_signed_in());
       onSuccess();
     },
   });
@@ -81,12 +82,12 @@ function LoginPage() {
             type: "sign-in",
           });
         if (otpError) {
-          setError(otpError.message ?? "Failed to send OTP");
+          setError(otpError.message ?? m.auth_otp_failed());
           return;
         }
         setOtpEmail(value.email);
         setOtpSent(true);
-        toast.success("OTP sent to your email");
+        toast.success(m.auth_otp_sent());
         return;
       }
 
@@ -95,11 +96,11 @@ function LoginPage() {
         otp: value.otp,
       });
       if (verifyError) {
-        setError(verifyError.message ?? "Invalid OTP");
+        setError(verifyError.message ?? m.auth_otp_invalid());
         return;
       }
 
-      toast.success("Signed in!");
+      toast.success(m.auth_signed_in());
       onSuccess();
     },
   });
@@ -112,17 +113,17 @@ function LoginPage() {
   };
 
   const socialProviders = [
-    { id: "github" as const, label: "GitHub", icon: <Github className="size-4" /> },
-    { id: "google" as const, label: "Google", icon: null },
-    { id: "microsoft" as const, label: "Microsoft", icon: null },
+    { id: "github" as const, label: m.auth_social_github(), icon: <Github className="size-4" /> },
+    { id: "google" as const, label: m.auth_social_google(), icon: null },
+    { id: "microsoft" as const, label: m.auth_social_microsoft(), icon: null },
   ];
 
   return (
     <main className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Sign In</CardTitle>
-          <CardDescription>Sign in to your Archvault account</CardDescription>
+          <CardTitle className="text-2xl font-bold">{m.auth_sign_in()}</CardTitle>
+          <CardDescription>{m.auth_sign_in_description()}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
@@ -134,10 +135,10 @@ function LoginPage() {
                 onClick={() => handleSocial(id)}
               >
                 {icon}
-                Continue with {label}
+                {m.auth_continue_with({ provider: label })}
                 {lastMethod === id && (
                   <Badge variant="secondary" className="ml-2">
-                    Last used
+                    {m.auth_last_used()}
                   </Badge>
                 )}
               </Button>
@@ -147,7 +148,7 @@ function LoginPage() {
           <div className="flex items-center gap-3">
             <Separator className="flex-1" />
             <span className="text-xs text-muted-foreground">
-              or continue with
+              {m.auth_or_continue_with()}
             </span>
             <Separator className="flex-1" />
           </div>
@@ -158,8 +159,8 @@ function LoginPage() {
 
           <Tabs defaultValue="password">
             <TabsList className="w-full">
-              <TabsTrigger value="password">Password</TabsTrigger>
-              <TabsTrigger value="email-otp">Email OTP</TabsTrigger>
+              <TabsTrigger value="password">{m.auth_tab_password()}</TabsTrigger>
+              <TabsTrigger value="email-otp">{m.auth_tab_email_otp()}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="password">
@@ -173,14 +174,14 @@ function LoginPage() {
                 <passwordForm.Field name="email">
                   {(field) => (
                     <div className="flex flex-col gap-1.5">
-                      <Label htmlFor="pw-email">Email</Label>
+                      <Label htmlFor="pw-email">{m.common_label_email()}</Label>
                       <Input
                         id="pw-email"
                         type="email"
                         value={field.state.value}
                         onChange={(e) => field.handleChange(e.target.value)}
                         onBlur={field.handleBlur}
-                        placeholder="you@example.com"
+                        placeholder={m.common_placeholder_email()}
                       />
                     </div>
                   )}
@@ -190,12 +191,12 @@ function LoginPage() {
                   {(field) => (
                     <div className="flex flex-col gap-1.5">
                       <div className="flex items-center justify-between">
-                        <Label htmlFor="pw-password">Password</Label>
+                        <Label htmlFor="pw-password">{m.common_label_password()}</Label>
                         <Link
                           to="/reset-password"
                           className="text-xs text-muted-foreground hover:text-primary"
                         >
-                          Forgot password?
+                          {m.auth_forgot_password()}
                         </Link>
                       </div>
                       <Input
@@ -216,7 +217,7 @@ function LoginPage() {
                       disabled={isSubmitting}
                       className="mt-1"
                     >
-                      {isSubmitting ? "Signing in..." : "Sign In"}
+                      {isSubmitting ? m.auth_signing_in() : m.auth_sign_in()}
                     </Button>
                   )}
                 </passwordForm.Subscribe>
@@ -235,14 +236,14 @@ function LoginPage() {
                   <otpForm.Field name="email">
                     {(field) => (
                       <div className="flex flex-col gap-1.5">
-                        <Label htmlFor="otp-email">Email</Label>
+                        <Label htmlFor="otp-email">{m.common_label_email()}</Label>
                         <Input
                           id="otp-email"
                           type="email"
                           value={field.state.value}
                           onChange={(e) => field.handleChange(e.target.value)}
                           onBlur={field.handleBlur}
-                          placeholder="you@example.com"
+                          placeholder={m.common_placeholder_email()}
                         />
                       </div>
                     )}
@@ -252,14 +253,14 @@ function LoginPage() {
                     {(field) => (
                       <div className="flex flex-col gap-1.5">
                         <Label htmlFor="otp-code">
-                          Enter the code sent to {otpEmail}
+                          {m.auth_otp_code_label({ email: otpEmail })}
                         </Label>
                         <Input
                           id="otp-code"
                           value={field.state.value}
                           onChange={(e) => field.handleChange(e.target.value)}
                           onBlur={field.handleBlur}
-                          placeholder="Enter OTP"
+                          placeholder={m.auth_otp_enter()}
                           autoFocus
                         />
                       </div>
@@ -275,10 +276,10 @@ function LoginPage() {
                       className="mt-1"
                     >
                       {isSubmitting
-                        ? "Please wait..."
+                        ? m.auth_otp_please_wait()
                         : otpSent
-                          ? "Verify OTP"
-                          : "Send Code"}
+                          ? m.auth_otp_verify()
+                          : m.auth_otp_send_code()}
                     </Button>
                   )}
                 </otpForm.Subscribe>
@@ -287,9 +288,9 @@ function LoginPage() {
           </Tabs>
 
           <p className="text-center text-sm text-muted-foreground">
-            Don&apos;t have an account?{" "}
+            {m.auth_dont_have_account()}{" "}
             <Link to="/signup" className="text-primary underline">
-              Sign up
+              {m.auth_sign_up()}
             </Link>
           </p>
         </CardContent>

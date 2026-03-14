@@ -22,6 +22,7 @@ import {
 import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
 import { toast } from "sonner";
+import { m } from "#/paraglide/messages";
 
 export const Route = createFileRoute("/_protected/_onboarded/org/settings")({
   component: OrgSettingsPage,
@@ -54,11 +55,11 @@ function OrgSettingsPage() {
       });
 
       if (updateError) {
-        setError(updateError.message ?? "Failed to update organization");
+        setError(updateError.message ?? m.org_settings_update_failed());
         return;
       }
 
-      toast.success("Organization updated");
+      toast.success(m.org_settings_update_success());
     },
   });
 
@@ -73,11 +74,11 @@ function OrgSettingsPage() {
     setDeleteLoading(false);
 
     if (deleteError) {
-      toast.error(deleteError.message ?? "Failed to delete organization");
+      toast.error(deleteError.message ?? m.org_settings_delete_failed());
       return;
     }
 
-    toast.success("Organization deleted");
+    toast.success(m.org_settings_delete_success());
     setDeleteOpen(false);
     navigate({ to: "/dashboard" });
   };
@@ -86,13 +87,13 @@ function OrgSettingsPage() {
 
   return (
     <div className="mx-auto max-w-2xl p-6">
-      <h1 className="mb-6 text-2xl font-bold">Organization Settings</h1>
+      <h1 className="mb-6 text-2xl font-bold">{m.org_settings_title()}</h1>
 
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>General</CardTitle>
+          <CardTitle>{m.org_settings_general()}</CardTitle>
           <CardDescription>
-            Update your organization details.
+            {m.org_settings_description()}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -109,7 +110,7 @@ function OrgSettingsPage() {
             <form.Field name="name">
               {(field) => (
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="settings-name">Name</Label>
+                  <Label htmlFor="settings-name">{m.common_label_name()}</Label>
                   <Input
                     id="settings-name"
                     value={field.state.value}
@@ -123,7 +124,7 @@ function OrgSettingsPage() {
             <form.Field name="slug">
               {(field) => (
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="settings-slug">Slug</Label>
+                  <Label htmlFor="settings-slug">{m.common_label_slug()}</Label>
                   <Input
                     id="settings-slug"
                     value={field.state.value}
@@ -141,13 +142,13 @@ function OrgSettingsPage() {
             <form.Field name="logo">
               {(field) => (
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="settings-logo">Logo URL</Label>
+                  <Label htmlFor="settings-logo">{m.org_label_logo_url()}</Label>
                   <Input
                     id="settings-logo"
                     value={field.state.value}
                     onChange={(e) => field.handleChange(e.target.value)}
                     onBlur={field.handleBlur}
-                    placeholder="https://example.com/logo.png"
+                    placeholder={m.org_placeholder_logo_url()}
                   />
                 </div>
               )}
@@ -156,7 +157,7 @@ function OrgSettingsPage() {
             <form.Subscribe selector={(s) => s.isSubmitting}>
               {(isSubmitting) => (
                 <Button type="submit" disabled={isSubmitting} className="self-end">
-                  {isSubmitting ? "Saving..." : "Save Changes"}
+                  {isSubmitting ? m.common_saving() : m.common_save_changes()}
                 </Button>
               )}
             </form.Subscribe>
@@ -167,9 +168,9 @@ function OrgSettingsPage() {
       {isOwner && (
         <Card className="border-destructive">
           <CardHeader>
-            <CardTitle className="text-destructive">Danger Zone</CardTitle>
+            <CardTitle className="text-destructive">{m.org_danger_zone()}</CardTitle>
             <CardDescription>
-              Permanently delete this organization and all its data.
+              {m.org_danger_zone_org_description()}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -177,7 +178,7 @@ function OrgSettingsPage() {
               variant="destructive"
               onClick={() => setDeleteOpen(true)}
             >
-              Delete Organization
+              {m.org_delete_org()}
             </Button>
           </CardContent>
         </Card>
@@ -186,21 +187,19 @@ function OrgSettingsPage() {
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Organization</AlertDialogTitle>
+            <AlertDialogTitle>{m.org_delete_org()}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete <strong>{activeOrg.name}</strong>?
-              This action cannot be undone. All organization data, members, and
-              teams will be permanently removed.
+              {m.org_delete_org_confirm({ name: activeOrg.name })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{m.common_cancel()}</AlertDialogCancel>
             <Button
               variant="destructive"
               onClick={handleDelete}
               disabled={deleteLoading}
             >
-              {deleteLoading ? "Deleting..." : "Delete Organization"}
+              {deleteLoading ? m.common_deleting() : m.org_delete_org()}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

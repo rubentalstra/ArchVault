@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "#/components/ui/avatar";
 import { CreateOrgDialog } from "./create-org-dialog";
 import { Button } from "#/components/ui/button";
 import { Plus } from "lucide-react";
+import { m } from "#/paraglide/messages";
 
 export function OrgSwitcher() {
   const router = useRouter();
@@ -32,7 +33,7 @@ export function OrgSwitcher() {
     <>
       <Select value={activeOrg?.id ?? ""} onValueChange={handleSwitch}>
         <SelectTrigger className="w-full">
-          <SelectValue placeholder="Select organization" />
+          <SelectValue placeholder={m.org_switcher_placeholder()} />
         </SelectTrigger>
         <SelectContent>
           {orgs?.map((org) => {
@@ -58,7 +59,7 @@ export function OrgSwitcher() {
         onClick={() => setCreateOpen(true)}
       >
         <Plus className="size-4" />
-        Create Organization
+        {m.org_create_title()}
       </Button>
       <CreateOrgDialog
         open={createOpen}

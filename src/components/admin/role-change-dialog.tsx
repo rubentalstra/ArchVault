@@ -19,6 +19,7 @@ import {
 } from "#/components/ui/select";
 import { toast } from "sonner";
 import type { AdminUser } from "./user-table-columns";
+import { m } from "#/paraglide/messages";
 
 interface RoleChangeDialogProps {
   user: AdminUser | null;
@@ -50,11 +51,11 @@ export function RoleChangeDialog({
     setLoading(false);
 
     if (roleError) {
-      setError(roleError.message ?? "Failed to change role");
+      setError(roleError.message ?? m.admin_change_role_failed());
       return;
     }
 
-    toast.success(`${user.name}'s role changed to ${role}`);
+    toast.success(m.admin_change_role_success({ name: user.name, role }));
     onOpenChange(false);
     onSuccess();
   };
@@ -71,16 +72,16 @@ export function RoleChangeDialog({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Change Role</DialogTitle>
+          <DialogTitle>{m.admin_change_role()}</DialogTitle>
           <DialogDescription>
-            Change the platform role for {user.name} ({user.email}).
+            {m.admin_change_role_description({ name: user.name, email: user.email })}
           </DialogDescription>
         </DialogHeader>
 
         {error && <p className="text-sm text-destructive">{error}</p>}
 
         <div className="flex flex-col gap-1.5">
-          <Label>New Role</Label>
+          <Label>{m.org_label_new_role()}</Label>
           <Select value={role} onValueChange={(val: string | null) => {
             if (val) setRole(val as "user" | "admin");
           }}>
@@ -88,13 +89,13 @@ export function RoleChangeDialog({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="user">User</SelectItem>
-              <SelectItem value="admin">Admin</SelectItem>
+              <SelectItem value="user">{m.common_role_user()}</SelectItem>
+              <SelectItem value="admin">{m.common_role_admin()}</SelectItem>
             </SelectContent>
           </Select>
           {role === user.role && (
             <p className="text-xs text-muted-foreground">
-              This is already the current role.
+              {m.admin_role_already_current()}
             </p>
           )}
         </div>
@@ -104,7 +105,7 @@ export function RoleChangeDialog({
             onClick={handleSubmit}
             disabled={loading || role === user.role}
           >
-            {loading ? "Updating..." : "Update Role"}
+            {loading ? m.common_updating() : m.org_update_role()}
           </Button>
         </DialogFooter>
       </DialogContent>

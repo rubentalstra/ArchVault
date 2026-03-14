@@ -14,6 +14,7 @@ import {
 import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
 import { toast } from "sonner";
+import { m } from "#/paraglide/messages";
 
 interface CreateOrgDialogProps {
   open: boolean;
@@ -49,7 +50,7 @@ export function CreateOrgDialog({
         });
 
       if (createError) {
-        setError(createError.message ?? "Failed to create organization");
+        setError(createError.message ?? m.org_create_failed());
         return;
       }
 
@@ -59,7 +60,7 @@ export function CreateOrgDialog({
         });
       }
 
-      toast.success("Organization created!");
+      toast.success(m.org_create_success());
       onOpenChange(false);
       onSuccess();
       navigate({ to: "/org/settings" });
@@ -79,9 +80,9 @@ export function CreateOrgDialog({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create Organization</DialogTitle>
+          <DialogTitle>{m.org_create_title()}</DialogTitle>
           <DialogDescription>
-            Create a new organization to collaborate with your team.
+            {m.org_create_description()}
           </DialogDescription>
         </DialogHeader>
 
@@ -97,7 +98,7 @@ export function CreateOrgDialog({
           <form.Field name="name">
             {(field) => (
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="create-org-name">Name</Label>
+                <Label htmlFor="create-org-name">{m.common_label_name()}</Label>
                 <Input
                   id="create-org-name"
                   value={field.state.value}
@@ -112,7 +113,7 @@ export function CreateOrgDialog({
                     }
                   }}
                   onBlur={field.handleBlur}
-                  placeholder="My Organization"
+                  placeholder={m.org_placeholder_name()}
                 />
               </div>
             )}
@@ -121,7 +122,7 @@ export function CreateOrgDialog({
           <form.Field name="slug">
             {(field) => (
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="create-org-slug">Slug</Label>
+                <Label htmlFor="create-org-slug">{m.common_label_slug()}</Label>
                 <Input
                   id="create-org-slug"
                   value={field.state.value}
@@ -131,7 +132,7 @@ export function CreateOrgDialog({
                     )
                   }
                   onBlur={field.handleBlur}
-                  placeholder="my-organization"
+                  placeholder={m.org_placeholder_slug()}
                 />
               </div>
             )}
@@ -141,7 +142,7 @@ export function CreateOrgDialog({
             <form.Subscribe selector={(s) => s.isSubmitting}>
               {(isSubmitting) => (
                 <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Creating..." : "Create"}
+                  {isSubmitting ? m.common_creating() : m.common_create()}
                 </Button>
               )}
             </form.Subscribe>

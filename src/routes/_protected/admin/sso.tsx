@@ -42,6 +42,7 @@ import {
 import { Plus, MoreHorizontal, ShieldCheck, ShieldX, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { RegisterSSODialog } from "#/components/admin/register-sso-dialog";
+import { m } from "#/paraglide/messages";
 
 export const Route = createFileRoute("/_protected/admin/sso")({
   component: SSOProvidersPage,
@@ -85,9 +86,9 @@ function SSOProvidersPage() {
     setVerifyingId(providerId);
     const { error } = await authClient.sso.verifyDomain({ providerId });
     if (error) {
-      toast.error((error as { message?: string }).message ?? "Domain verification failed. Ensure the DNS TXT record is set correctly.");
+      toast.error((error as { message?: string }).message ?? m.admin_sso_verify_failed());
     } else {
-      toast.success("Domain verified successfully");
+      toast.success(m.admin_sso_verify_success());
       refetchProviders();
     }
     setVerifyingId(null);
@@ -99,9 +100,9 @@ function SSOProvidersPage() {
       providerId: deleteProvider.providerId,
     });
     if (error) {
-      toast.error((error as { message?: string }).message ?? "Failed to delete provider");
+      toast.error((error as { message?: string }).message ?? m.admin_sso_delete_failed());
     } else {
-      toast.success("SSO provider deleted");
+      toast.success(m.admin_sso_delete_success());
       refetchProviders();
     }
     setDeleteProvider(null);
@@ -109,13 +110,13 @@ function SSOProvidersPage() {
 
   const columns = [
     columnHelper.accessor("providerId", {
-      header: "Provider ID",
+      header: m.admin_sso_column_provider_id(),
       cell: (info) => (
         <span className="font-mono text-sm">{info.getValue()}</span>
       ),
     }),
     columnHelper.accessor("issuer", {
-      header: "Issuer",
+      header: m.admin_sso_column_issuer(),
       cell: (info) => (
         <Tooltip>
           <TooltipTrigger>
@@ -126,12 +127,12 @@ function SSOProvidersPage() {
       ),
     }),
     columnHelper.accessor("domain", {
-      header: "Domain",
+      header: m.admin_sso_column_domain(),
       cell: (info) => <span className="text-sm">{info.getValue()}</span>,
     }),
     columnHelper.display({
       id: "type",
-      header: "Type",
+      header: m.admin_sso_column_type(),
       cell: (info) => {
         const row = info.row.original;
         const type = row.samlConfig ? "SAML" : "OIDC";
@@ -141,7 +142,7 @@ function SSOProvidersPage() {
       },
     }),
     columnHelper.accessor("organizationId", {
-      header: "Organization",
+      header: m.admin_sso_column_organization(),
       cell: (info) => {
         const val = info.getValue();
         return val ? (
@@ -152,7 +153,7 @@ function SSOProvidersPage() {
       },
     }),
     columnHelper.accessor("domainVerified", {
-      header: "Domain Verified",
+      header: m.admin_sso_column_domain_verified(),
       cell: (info) => {
         const verified = info.getValue();
         const row = info.row.original;
@@ -161,13 +162,13 @@ function SSOProvidersPage() {
             {verified ? (
               <Badge variant="default" className="gap-1">
                 <ShieldCheck className="size-3" />
-                Verified
+                {m.admin_sso_verified()}
               </Badge>
             ) : (
               <div className="flex items-center gap-2">
                 <Badge variant="destructive" className="gap-1">
                   <ShieldX className="size-3" />
-                  Unverified
+                  {m.admin_sso_unverified()}
                 </Badge>
                 <Button
                   variant="outline"
@@ -175,7 +176,7 @@ function SSOProvidersPage() {
                   disabled={verifyingId === row.providerId}
                   onClick={() => handleVerifyDomain(row.providerId)}
                 >
-                  {verifyingId === row.providerId ? "Verifying..." : "Verify"}
+                  {verifyingId === row.providerId ? m.common_verifying() : m.admin_sso_verify()}
                 </Button>
               </div>
             )}
@@ -200,7 +201,7 @@ function SSOProvidersPage() {
               {!row.domainVerified && (
                 <DropdownMenuItem onClick={() => handleVerifyDomain(row.providerId)}>
                   <ShieldCheck className="size-4" />
-                  Verify Domain
+                  {m.admin_sso_verify_domain()}
                 </DropdownMenuItem>
               )}
               <DropdownMenuItem
@@ -208,7 +209,7 @@ function SSOProvidersPage() {
                 onClick={() => setDeleteProvider(row)}
               >
                 <Trash2 className="size-4" />
-                Delete Provider
+                {m.admin_sso_delete_provider()}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -228,10 +229,10 @@ function SSOProvidersPage() {
   return (
     <div className="flex flex-col gap-4 p-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">SSO Providers</h1>
+        <h1 className="text-2xl font-bold">{m.admin_sso_title()}</h1>
         <Button onClick={() => setRegisterOpen(true)}>
           <Plus className="size-4" />
-          Register Provider
+          {m.admin_sso_register()}
         </Button>
       </div>
 
@@ -260,7 +261,7 @@ function SSOProvidersPage() {
                   colSpan={columns.length}
                   className="h-24 text-center text-muted-foreground"
                 >
-                  Loading...
+                  {m.common_loading()}
                 </TableCell>
               </TableRow>
             ) : rows.length === 0 ? (
@@ -269,7 +270,7 @@ function SSOProvidersPage() {
                   colSpan={columns.length}
                   className="h-24 text-center text-muted-foreground"
                 >
-                  No SSO providers registered.
+                  {m.admin_sso_empty()}
                 </TableCell>
               </TableRow>
             ) : (
@@ -293,9 +294,9 @@ function SSOProvidersPage() {
       {/* Domain verification instructions for unverified providers */}
       {providers.some((p) => !p.domainVerified) && (
         <div className="rounded-lg border bg-muted/30 p-4">
-          <h3 className="mb-2 text-sm font-semibold">Domain Verification Instructions</h3>
+          <h3 className="mb-2 text-sm font-semibold">{m.admin_sso_domain_verification_title()}</h3>
           <p className="mb-2 text-sm text-muted-foreground">
-            To verify domain ownership, add a DNS TXT record for each unverified provider:
+            {m.admin_sso_domain_verification_description()}
           </p>
           <ul className="space-y-2">
             {providers
@@ -303,13 +304,13 @@ function SSOProvidersPage() {
               .map((p) => (
                 <li key={p.providerId} className="text-sm">
                   <span className="font-medium">{p.domain}:</span>{" "}
-                  Add a TXT record at{" "}
+                  {m.admin_sso_domain_verification_add_txt()}{" "}
                   <code className="rounded bg-muted px-1.5 py-0.5 text-xs">
                     _better-auth-token-{p.providerId}.{p.domain}
                   </code>
                   {p.domainVerificationToken && (
                     <>
-                      {" "}with value{" "}
+                      {" "}{m.admin_sso_domain_verification_with_value()}{" "}
                       <code className="rounded bg-muted px-1.5 py-0.5 text-xs">
                         {p.domainVerificationToken}
                       </code>
@@ -330,15 +331,14 @@ function SSOProvidersPage() {
       <AlertDialog open={!!deleteProvider} onOpenChange={(open) => !open && setDeleteProvider(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete SSO Provider</AlertDialogTitle>
+            <AlertDialogTitle>{m.admin_sso_delete_title()}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete the provider &quot;{deleteProvider?.providerId}&quot;?
-              This action cannot be undone. Users will no longer be able to sign in via this provider.
+              {m.admin_sso_delete_confirm({ providerId: deleteProvider?.providerId ?? "" })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+            <AlertDialogCancel>{m.common_cancel()}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>{m.common_delete()}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

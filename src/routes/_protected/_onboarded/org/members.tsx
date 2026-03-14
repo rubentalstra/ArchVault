@@ -32,6 +32,7 @@ import {
 import { InviteMemberDialog } from "#/components/org/invite-member-dialog";
 import { MemberRoleDialog } from "#/components/org/member-role-dialog";
 import { RemoveMemberDialog } from "#/components/org/remove-member-dialog";
+import { m } from "#/paraglide/messages";
 
 export const Route = createFileRoute("/_protected/_onboarded/org/members")({
   component: MembersPage,
@@ -73,11 +74,11 @@ function MembersPage() {
     setCancellingInvite(null);
 
     if (error) {
-      toast.error(error.message ?? "Failed to cancel invitation");
+      toast.error(error.message ?? m.org_invitation_cancel_failed());
       return;
     }
 
-    toast.success("Invitation cancelled");
+    toast.success(m.org_invitation_cancelled());
     refresh();
   };
 
@@ -86,15 +87,15 @@ function MembersPage() {
   return (
     <div className="mx-auto max-w-4xl p-6">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Members</h1>
-        <Button onClick={() => setInviteOpen(true)}>Invite Member</Button>
+        <h1 className="text-2xl font-bold">{m.org_members_title()}</h1>
+        <Button onClick={() => setInviteOpen(true)}>{m.org_invite_title()}</Button>
       </div>
 
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>Organization Members</CardTitle>
+          <CardTitle>{m.org_members_org_title()}</CardTitle>
           <CardDescription>
-            {members.length} {members.length === 1 ? "member" : "members"}
+            {m.org_members_count({ count: members.length })}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -135,7 +136,7 @@ function MembersPage() {
                     colSpan={columns.length}
                     className="text-center text-muted-foreground"
                   >
-                    No members found.
+                    {m.org_members_empty()}
                   </TableCell>
                 </TableRow>
               )}
@@ -147,19 +148,18 @@ function MembersPage() {
       {invitations.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Pending Invitations</CardTitle>
+            <CardTitle>{m.org_invitations_title()}</CardTitle>
             <CardDescription>
-              {invitations.length} pending{" "}
-              {invitations.length === 1 ? "invitation" : "invitations"}
+              {m.org_invitations_count({ count: invitations.length })}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Sent</TableHead>
+                  <TableHead>{m.common_label_email()}</TableHead>
+                  <TableHead>{m.common_label_role()}</TableHead>
+                  <TableHead>{m.org_label_sent()}</TableHead>
                   <TableHead />
                 </TableRow>
               </TableHeader>
@@ -181,8 +181,8 @@ function MembersPage() {
                         disabled={cancellingInvite === inv.id}
                       >
                         {cancellingInvite === inv.id
-                          ? "Cancelling..."
-                          : "Cancel"}
+                          ? m.org_invitation_cancelling()
+                          : m.common_cancel()}
                       </Button>
                     </TableCell>
                   </TableRow>

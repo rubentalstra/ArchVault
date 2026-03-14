@@ -12,6 +12,7 @@ import {
 } from "#/components/ui/alert-dialog";
 import { toast } from "sonner";
 import type { AdminUser } from "./user-table-columns";
+import { m } from "#/paraglide/messages";
 
 interface RevokeSessionsDialogProps {
   user: AdminUser | null;
@@ -39,11 +40,11 @@ export function RevokeSessionsDialog({
     setLoading(false);
 
     if (error) {
-      toast.error(error.message ?? "Failed to revoke sessions");
+      toast.error(error.message ?? m.admin_revoke_sessions_failed());
       return;
     }
 
-    toast.success(`All sessions for ${user.name} have been revoked`);
+    toast.success(m.admin_revoke_sessions_success({ name: user.name }));
     onOpenChange(false);
     onSuccess();
   };
@@ -54,16 +55,15 @@ export function RevokeSessionsDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Revoke Sessions</AlertDialogTitle>
+          <AlertDialogTitle>{m.admin_revoke_sessions_title()}</AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to revoke all active sessions for {user.name} (
-            {user.email})? They will be signed out from all devices.
+            {m.admin_revoke_sessions_confirm({ name: user.name, email: user.email })}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>{m.common_cancel()}</AlertDialogCancel>
           <Button onClick={handleRevoke} disabled={loading}>
-            {loading ? "Revoking..." : "Revoke All Sessions"}
+            {loading ? m.admin_revoking() : m.admin_revoke_sessions_submit()}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

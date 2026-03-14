@@ -45,6 +45,7 @@ import { RoleChangeDialog } from "#/components/admin/role-change-dialog";
 import { RemoveUserDialog } from "#/components/admin/remove-user-dialog";
 import { RevokeSessionsDialog } from "#/components/admin/revoke-sessions-dialog";
 import type { AdminUser } from "#/components/admin/user-table-columns";
+import { m } from "#/paraglide/messages";
 
 export const Route = createFileRoute("/_protected/admin/user/$userId")({
   component: UserDetailPage,
@@ -115,7 +116,7 @@ function UserDetailPage() {
   if (userLoading || !user) {
     return (
       <div className="flex items-center justify-center p-12">
-        <p className="text-muted-foreground">Loading...</p>
+        <p className="text-muted-foreground">{m.common_loading()}</p>
       </div>
     );
   }
@@ -132,7 +133,7 @@ function UserDetailPage() {
       userId: user.id,
     });
     if (error) {
-      toast.error(error.message ?? "Failed to impersonate");
+      toast.error(error.message ?? m.admin_impersonate_failed());
       return;
     }
     navigate({ to: "/dashboard" });
@@ -146,7 +147,7 @@ function UserDetailPage() {
         className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground w-fit"
       >
         <ArrowLeft className="size-4" />
-        Back to Users
+        {m.admin_back_to_users()}
       </Link>
 
       {/* Header Card */}
@@ -164,7 +165,7 @@ function UserDetailPage() {
                 {user.role}
               </Badge>
               <Badge variant={user.banned ? "destructive" : "secondary"}>
-                {user.banned ? "Banned" : "Active"}
+                {user.banned ? m.common_status_banned() : m.common_status_active()}
               </Badge>
               <Tooltip>
                 <TooltipTrigger>
@@ -174,24 +175,24 @@ function UserDetailPage() {
                 </TooltipTrigger>
                 <TooltipContent>
                   {user.twoFactorEnabled
-                    ? "2FA enabled"
-                    : "2FA not enabled"}
+                    ? m.admin_2fa_enabled()
+                    : m.admin_2fa_not_enabled()}
                 </TooltipContent>
               </Tooltip>
             </div>
             <p className="text-sm text-muted-foreground">{user.email}</p>
             {user.banned && user.banReason && (
               <p className="text-sm text-destructive">
-                Ban reason: {user.banReason}
+                {m.admin_ban_reason({ reason: user.banReason })}
               </p>
             )}
             {user.banned && user.banExpires && (
               <p className="text-xs text-muted-foreground">
-                Ban expires: {new Date(user.banExpires).toLocaleString()}
+                {m.admin_ban_expires({ date: new Date(user.banExpires).toLocaleString() })}
               </p>
             )}
             <p className="text-xs text-muted-foreground">
-              Created {formatRelativeDate(user.createdAt)}
+              {m.admin_created_at({ date: formatRelativeDate(user.createdAt) })}
             </p>
           </div>
         </CardContent>
@@ -210,10 +211,10 @@ function UserDetailPage() {
             }
           >
             <UserCog className="size-4" />
-            Change Role
+            {m.admin_change_role()}
           </TooltipTrigger>
           {isSelf && (
-            <TooltipContent>Cannot change your own role</TooltipContent>
+            <TooltipContent>{m.admin_cannot_change_own_role()}</TooltipContent>
           )}
         </Tooltip>
 
@@ -228,10 +229,10 @@ function UserDetailPage() {
                       userId: user.id,
                     });
                     if (error) {
-                      toast.error(error.message ?? "Failed to unban");
+                      toast.error(error.message ?? m.admin_unban_user_failed());
                       return;
                     }
-                    toast.success(`${user.name} unbanned`);
+                    toast.success(m.admin_unban_user_success({ name: user.name }));
                     refetchUser();
                   }}
                   disabled={isSelf}
@@ -239,10 +240,10 @@ function UserDetailPage() {
               }
             >
               <UserCheck className="size-4" />
-              Unban
+              {m.admin_unban()}
             </TooltipTrigger>
             {isSelf && (
-              <TooltipContent>Cannot unban yourself</TooltipContent>
+              <TooltipContent>{m.admin_cannot_unban_self()}</TooltipContent>
             )}
           </Tooltip>
         ) : (
@@ -257,10 +258,10 @@ function UserDetailPage() {
               }
             >
               <Ban className="size-4" />
-              Ban
+              {m.admin_ban()}
             </TooltipTrigger>
             {isSelf && (
-              <TooltipContent>Cannot ban yourself</TooltipContent>
+              <TooltipContent>{m.admin_cannot_ban_self()}</TooltipContent>
             )}
           </Tooltip>
         )}
@@ -276,10 +277,10 @@ function UserDetailPage() {
             }
           >
             <UserCog className="size-4" />
-            Impersonate
+            {m.admin_impersonate()}
           </TooltipTrigger>
           {isSelf && (
-            <TooltipContent>Cannot impersonate yourself</TooltipContent>
+            <TooltipContent>{m.admin_cannot_impersonate_self()}</TooltipContent>
           )}
         </Tooltip>
 
@@ -294,10 +295,10 @@ function UserDetailPage() {
             }
           >
             <LogOut className="size-4" />
-            Revoke Sessions
+            {m.admin_revoke_sessions_title()}
           </TooltipTrigger>
           {isSelf && (
-            <TooltipContent>Cannot revoke your own sessions</TooltipContent>
+            <TooltipContent>{m.admin_cannot_revoke_own_sessions()}</TooltipContent>
           )}
         </Tooltip>
 
@@ -312,10 +313,10 @@ function UserDetailPage() {
             }
           >
             <UserX className="size-4" />
-            Remove
+            {m.admin_remove()}
           </TooltipTrigger>
           {isSelf && (
-            <TooltipContent>Cannot remove yourself</TooltipContent>
+            <TooltipContent>{m.admin_cannot_remove_self()}</TooltipContent>
           )}
         </Tooltip>
       </div>
@@ -323,19 +324,19 @@ function UserDetailPage() {
       {/* Sessions */}
       <Card>
         <CardHeader>
-          <CardTitle>Active Sessions</CardTitle>
+          <CardTitle>{m.admin_sessions_title()}</CardTitle>
         </CardHeader>
         <CardContent>
           {sessions.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No active sessions.</p>
+            <p className="text-sm text-muted-foreground">{m.admin_sessions_empty()}</p>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>IP Address</TableHead>
-                  <TableHead>User Agent</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead>Expires</TableHead>
+                  <TableHead>{m.admin_column_ip_address()}</TableHead>
+                  <TableHead>{m.admin_column_user_agent()}</TableHead>
+                  <TableHead>{m.admin_column_created()}</TableHead>
+                  <TableHead>{m.admin_column_expires()}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

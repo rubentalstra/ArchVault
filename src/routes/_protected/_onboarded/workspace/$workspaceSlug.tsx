@@ -2,6 +2,7 @@ import { Link, Outlet, createFileRoute } from "@tanstack/react-router";
 import { LayoutDashboard, Settings, ArrowLeft } from "lucide-react";
 import { cn } from "#/lib/utils";
 import { getWorkspaceBySlug } from "#/lib/workspace.functions";
+import { m } from "#/paraglide/messages";
 
 export const Route = createFileRoute(
   "/_protected/_onboarded/workspace/$workspaceSlug",
@@ -26,7 +27,7 @@ function WorkspaceLayout() {
           className="mb-4 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="size-4" />
-          Back to Dashboard
+          {m.workspace_back_to_dashboard()}
         </Link>
 
         <div className="mb-4 flex items-center gap-2">
@@ -51,7 +52,7 @@ function WorkspaceLayout() {
             }}
           >
             <LayoutDashboard className="size-4" />
-            Dashboard
+            {m.workspace_nav_dashboard()}
           </Link>
           <Link
             to="/workspace/$workspaceSlug/settings"
@@ -64,7 +65,7 @@ function WorkspaceLayout() {
             }}
           >
             <Settings className="size-4" />
-            Settings
+            {m.workspace_nav_settings()}
           </Link>
         </nav>
       </aside>

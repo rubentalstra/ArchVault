@@ -36,6 +36,7 @@ import {
 import { Plus, MoreHorizontal, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { GenerateScimTokenDialog } from "#/components/admin/generate-scim-token-dialog";
+import { m } from "#/paraglide/messages";
 
 export const Route = createFileRoute("/_protected/admin/scim")({
   component: SCIMPage,
@@ -75,9 +76,9 @@ function SCIMPage() {
       providerId: deleteConnection.providerId,
     });
     if (error) {
-      toast.error((error as { message?: string }).message ?? "Failed to delete connection");
+      toast.error((error as { message?: string }).message ?? m.admin_scim_delete_failed());
     } else {
-      toast.success("SCIM connection deleted");
+      toast.success(m.admin_scim_delete_success());
       refetchConnections();
     }
     setDeleteConnection(null);
@@ -85,13 +86,13 @@ function SCIMPage() {
 
   const columns = [
     columnHelper.accessor("providerId", {
-      header: "Provider ID",
+      header: m.admin_scim_column_provider_id(),
       cell: (info) => (
         <span className="font-mono text-sm">{info.getValue()}</span>
       ),
     }),
     columnHelper.accessor("organizationId", {
-      header: "Organization",
+      header: m.admin_scim_column_organization(),
       cell: (info) => {
         const val = info.getValue();
         return val ? (
@@ -102,7 +103,7 @@ function SCIMPage() {
       },
     }),
     columnHelper.accessor("userId", {
-      header: "Owner",
+      header: m.admin_scim_column_owner(),
       cell: (info) => {
         const val = info.getValue();
         return val ? (
@@ -131,7 +132,7 @@ function SCIMPage() {
                 onClick={() => setDeleteConnection(row)}
               >
                 <Trash2 className="size-4" />
-                Delete Connection
+                {m.admin_scim_delete_connection()}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -152,20 +153,20 @@ function SCIMPage() {
     <div className="flex flex-col gap-4 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">SCIM Provisioning</h1>
+          <h1 className="text-2xl font-bold">{m.admin_scim_title()}</h1>
           <p className="text-sm text-muted-foreground">
-            Manage SCIM connections for automated user provisioning from identity providers.
+            {m.admin_scim_description()}
           </p>
         </div>
         <Button onClick={() => setGenerateOpen(true)}>
           <Plus className="size-4" />
-          Generate Token
+          {m.admin_scim_generate_token()}
         </Button>
       </div>
 
       <div className="rounded-lg border bg-muted/30 p-3">
         <p className="text-sm">
-          <span className="font-medium">SCIM Base URL: </span>
+          <span className="font-medium">{m.admin_scim_base_url()} </span>
           <code className="rounded bg-muted px-1.5 py-0.5 text-xs">
             {typeof window !== "undefined" ? window.location.origin : ""}/api/auth/scim/v2
           </code>
@@ -197,7 +198,7 @@ function SCIMPage() {
                   colSpan={columns.length}
                   className="h-24 text-center text-muted-foreground"
                 >
-                  Loading...
+                  {m.common_loading()}
                 </TableCell>
               </TableRow>
             ) : rows.length === 0 ? (
@@ -206,7 +207,7 @@ function SCIMPage() {
                   colSpan={columns.length}
                   className="h-24 text-center text-muted-foreground"
                 >
-                  No SCIM connections configured.
+                  {m.admin_scim_empty()}
                 </TableCell>
               </TableRow>
             ) : (
@@ -239,16 +240,14 @@ function SCIMPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete SCIM Connection</AlertDialogTitle>
+            <AlertDialogTitle>{m.admin_scim_delete_title()}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete the SCIM connection for provider
-              &quot;{deleteConnection?.providerId}&quot;? This will immediately
-              invalidate the associated token and stop all provisioning.
+              {m.admin_scim_delete_confirm({ providerId: deleteConnection?.providerId ?? "" })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+            <AlertDialogCancel>{m.common_cancel()}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>{m.common_delete()}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

@@ -13,6 +13,7 @@ import { CreateTeamDialog } from "#/components/org/create-team-dialog";
 import { TeamMembersDialog } from "#/components/org/team-members-dialog";
 import { RemoveTeamDialog } from "#/components/org/remove-team-dialog";
 import type { OrgMember } from "#/components/org/member-table-columns";
+import { m } from "#/paraglide/messages";
 
 interface Team {
   id: string;
@@ -42,8 +43,8 @@ function TeamsPage() {
   return (
     <div className="mx-auto max-w-4xl p-6">
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Teams</h1>
-        <Button onClick={() => setCreateOpen(true)}>Create Team</Button>
+        <h1 className="text-2xl font-bold">{m.org_teams_title()}</h1>
+        <Button onClick={() => setCreateOpen(true)}>{m.org_create_team_title()}</Button>
       </div>
 
       {teams.length > 0 ? (
@@ -53,8 +54,7 @@ function TeamsPage() {
               <CardHeader>
                 <CardTitle className="text-lg">{team.name}</CardTitle>
                 <CardDescription>
-                  {team.members?.length ?? 0}{" "}
-                  {(team.members?.length ?? 0) === 1 ? "member" : "members"}
+                  {m.org_members_count({ count: team.members?.length ?? 0 })}
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex gap-2">
@@ -64,7 +64,7 @@ function TeamsPage() {
                   onClick={() => setMembersTeam(team)}
                 >
                   <Users className="size-4" />
-                  Members
+                  {m.org_members_title()}
                 </Button>
                 <Button
                   variant="ghost"
@@ -80,7 +80,7 @@ function TeamsPage() {
       ) : (
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground">
-            No teams yet. Create one to organize your members.
+            {m.org_teams_empty()}
           </CardContent>
         </Card>
       )}

@@ -22,6 +22,7 @@ import {
 import { toast } from "sonner";
 import { BAN_DURATIONS } from "#/lib/admin.utils";
 import type { AdminUser } from "./user-table-columns";
+import { m } from "#/paraglide/messages";
 
 interface BanUserDialogProps {
   user: AdminUser | null;
@@ -56,11 +57,11 @@ export function BanUserDialog({
       });
 
       if (banError) {
-        setError(banError.message ?? "Failed to ban user");
+        setError(banError.message ?? m.admin_ban_user_failed());
         return;
       }
 
-      toast.success(`${user.name} has been banned`);
+      toast.success(m.admin_ban_user_success({ name: user.name }));
       onOpenChange(false);
       onSuccess();
     },
@@ -72,9 +73,9 @@ export function BanUserDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Ban User</DialogTitle>
+          <DialogTitle>{m.admin_ban_user_title()}</DialogTitle>
           <DialogDescription>
-            Ban {user.name} ({user.email}) from the platform.
+            {m.admin_ban_user_description({ name: user.name, email: user.email })}
           </DialogDescription>
         </DialogHeader>
 
@@ -90,13 +91,13 @@ export function BanUserDialog({
           <form.Field name="banReason">
             {(field) => (
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="ban-reason">Reason</Label>
+                <Label htmlFor="ban-reason">{m.admin_label_reason()}</Label>
                 <Textarea
                   id="ban-reason"
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   onBlur={field.handleBlur}
-                  placeholder="Reason for banning this user..."
+                  placeholder={m.admin_placeholder_reason()}
                   rows={3}
                 />
               </div>
@@ -106,7 +107,7 @@ export function BanUserDialog({
           <form.Field name="durationIndex">
             {(field) => (
               <div className="flex flex-col gap-1.5">
-                <Label>Duration</Label>
+                <Label>{m.admin_label_duration()}</Label>
                 <Select
                   value={field.state.value}
                   onValueChange={(val: string | null) => {
@@ -136,7 +137,7 @@ export function BanUserDialog({
                   variant="destructive"
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? "Banning..." : "Ban User"}
+                  {isSubmitting ? m.admin_banning() : m.admin_ban_user_submit()}
                 </Button>
               )}
             </form.Subscribe>

@@ -13,6 +13,7 @@ import {
 import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
 import { toast } from "sonner";
+import { m } from "#/paraglide/messages";
 
 interface CreateTeamDialogProps {
   organizationId: string;
@@ -40,11 +41,11 @@ export function CreateTeamDialog({
       });
 
       if (createError) {
-        setError(createError.message ?? "Failed to create team");
+        setError(createError.message ?? m.org_create_team_failed());
         return;
       }
 
-      toast.success(`Team "${value.name}" created`);
+      toast.success(m.org_create_team_success({ name: value.name }));
       onOpenChange(false);
       onSuccess();
     },
@@ -63,9 +64,9 @@ export function CreateTeamDialog({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create Team</DialogTitle>
+          <DialogTitle>{m.org_create_team_title()}</DialogTitle>
           <DialogDescription>
-            Create a new team within this organization.
+            {m.org_create_team_description()}
           </DialogDescription>
         </DialogHeader>
 
@@ -81,13 +82,13 @@ export function CreateTeamDialog({
           <form.Field name="name">
             {(field) => (
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="team-name">Team Name</Label>
+                <Label htmlFor="team-name">{m.org_label_team_name()}</Label>
                 <Input
                   id="team-name"
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   onBlur={field.handleBlur}
-                  placeholder="Engineering"
+                  placeholder={m.org_placeholder_team_name()}
                 />
               </div>
             )}
@@ -97,7 +98,7 @@ export function CreateTeamDialog({
             <form.Subscribe selector={(s) => s.isSubmitting}>
               {(isSubmitting) => (
                 <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Creating..." : "Create Team"}
+                  {isSubmitting ? m.common_creating() : m.org_create_team_title()}
                 </Button>
               )}
             </form.Subscribe>

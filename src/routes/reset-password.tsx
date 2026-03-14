@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
+import { m } from "#/paraglide/messages";
 import { authClient } from "#/lib/auth-client";
 import { Button } from "#/components/ui/button";
 import {
@@ -35,13 +36,13 @@ function ResetPasswordPage() {
         });
 
       if (otpError) {
-        setError(otpError.message ?? "Failed to send code");
+        setError(otpError.message ?? m.auth_reset_code_failed());
         return;
       }
 
       setEmail(value.email);
       setPhase("reset");
-      toast.success("Reset code sent to your email");
+      toast.success(m.auth_reset_code_sent());
     },
   });
 
@@ -51,12 +52,12 @@ function ResetPasswordPage() {
       setError(null);
 
       if (value.newPassword !== value.confirmPassword) {
-        setError("Passwords don't match");
+        setError(m.auth_passwords_dont_match());
         return;
       }
 
       if (value.newPassword.length < 8) {
-        setError("Password must be at least 8 characters");
+        setError(m.auth_password_min_length());
         return;
       }
 
@@ -67,11 +68,11 @@ function ResetPasswordPage() {
       });
 
       if (resetError) {
-        setError(resetError.message ?? "Password reset failed");
+        setError(resetError.message ?? m.auth_reset_failed());
         return;
       }
 
-      toast.success("Password reset successfully!");
+      toast.success(m.auth_reset_success());
       navigate({ to: "/login" });
     },
   });
@@ -80,11 +81,11 @@ function ResetPasswordPage() {
     <main className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Reset Password</CardTitle>
+          <CardTitle className="text-2xl font-bold">{m.auth_reset_password_title()}</CardTitle>
           <CardDescription>
             {phase === "request"
-              ? "Enter your email to receive a reset code"
-              : `Enter the code sent to ${email}`}
+              ? m.auth_reset_password_description_request()
+              : m.auth_reset_password_description_reset({ email })}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
@@ -103,14 +104,14 @@ function ResetPasswordPage() {
               <requestForm.Field name="email">
                 {(field) => (
                   <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="reset-email">Email</Label>
+                    <Label htmlFor="reset-email">{m.common_label_email()}</Label>
                     <Input
                       id="reset-email"
                       type="email"
                       value={field.state.value}
                       onChange={(e) => field.handleChange(e.target.value)}
                       onBlur={field.handleBlur}
-                      placeholder="you@example.com"
+                      placeholder={m.common_placeholder_email()}
                       autoFocus
                     />
                   </div>
@@ -120,7 +121,7 @@ function ResetPasswordPage() {
               <requestForm.Subscribe selector={(s) => s.isSubmitting}>
                 {(isSubmitting) => (
                   <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? "Sending..." : "Send Reset Code"}
+                    {isSubmitting ? m.auth_sending() : m.auth_send_reset_code()}
                   </Button>
                 )}
               </requestForm.Subscribe>
@@ -136,13 +137,13 @@ function ResetPasswordPage() {
               <resetForm.Field name="otp">
                 {(field) => (
                   <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="reset-otp">Reset Code</Label>
+                    <Label htmlFor="reset-otp">{m.auth_reset_code_label()}</Label>
                     <Input
                       id="reset-otp"
                       value={field.state.value}
                       onChange={(e) => field.handleChange(e.target.value)}
                       onBlur={field.handleBlur}
-                      placeholder="Enter code"
+                      placeholder={m.auth_reset_code_placeholder()}
                       autoFocus
                     />
                   </div>
@@ -152,14 +153,14 @@ function ResetPasswordPage() {
               <resetForm.Field name="newPassword">
                 {(field) => (
                   <div className="flex flex-col gap-1.5">
-                    <Label htmlFor="new-password">New Password</Label>
+                    <Label htmlFor="new-password">{m.auth_label_new_password()}</Label>
                     <Input
                       id="new-password"
                       type="password"
                       value={field.state.value}
                       onChange={(e) => field.handleChange(e.target.value)}
                       onBlur={field.handleBlur}
-                      placeholder="Min. 8 characters"
+                      placeholder={m.auth_placeholder_password_min()}
                     />
                   </div>
                 )}
@@ -169,7 +170,7 @@ function ResetPasswordPage() {
                 {(field) => (
                   <div className="flex flex-col gap-1.5">
                     <Label htmlFor="confirm-new-password">
-                      Confirm New Password
+                      {m.auth_label_confirm_new_password()}
                     </Label>
                     <Input
                       id="confirm-new-password"
@@ -185,7 +186,7 @@ function ResetPasswordPage() {
               <resetForm.Subscribe selector={(s) => s.isSubmitting}>
                 {(isSubmitting) => (
                   <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? "Resetting..." : "Reset Password"}
+                    {isSubmitting ? m.auth_resetting() : m.auth_reset_password_title()}
                   </Button>
                 )}
               </resetForm.Subscribe>
@@ -194,7 +195,7 @@ function ResetPasswordPage() {
 
           <p className="text-center text-sm text-muted-foreground">
             <Link to="/login" className="text-primary underline">
-              Back to sign in
+              {m.common_back_to_sign_in()}
             </Link>
           </p>
         </CardContent>

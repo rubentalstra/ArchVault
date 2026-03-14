@@ -2,6 +2,7 @@ import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
 import { z } from "zod/v4";
+import { m } from "#/paraglide/messages";
 import { authClient } from "#/lib/auth-client";
 import { Button } from "#/components/ui/button";
 import {
@@ -19,13 +20,13 @@ import { Github } from "lucide-react";
 
 const signupSchema = z
   .object({
-    name: z.string().min(1, "Name is required"),
-    email: z.email("Invalid email address"),
-    password: z.string().min(8, "Password must be at least 8 characters"),
+    name: z.string().min(1, m.validation_name_required()),
+    email: z.email(m.validation_email_invalid()),
+    password: z.string().min(8, m.validation_password_min_length()),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
+    message: m.validation_passwords_dont_match(),
     path: ["confirmPassword"],
   });
 
@@ -60,16 +61,14 @@ function SignUpPage() {
 
       if (signUpError) {
         if (signUpError.message?.includes("compromised")) {
-          setError(
-            "This password has been found in a data breach. Please choose a different password.",
-          );
+          setError(m.auth_password_compromised());
         } else {
-          setError(signUpError.message ?? "Sign up failed");
+          setError(signUpError.message ?? m.auth_sign_up_failed());
         }
         return;
       }
 
-      toast.success("Account created!");
+      toast.success(m.auth_account_created());
       navigate({ to: "/dashboard" });
     },
   });
@@ -85,9 +84,9 @@ function SignUpPage() {
     <main className="flex min-h-screen items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Create Account</CardTitle>
+          <CardTitle className="text-2xl font-bold">{m.auth_sign_up_title()}</CardTitle>
           <CardDescription>
-            Sign up to get started with Archvault
+            {m.auth_sign_up_description()}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
@@ -98,28 +97,28 @@ function SignUpPage() {
               onClick={() => handleSocial("github")}
             >
               <Github className="size-4" />
-              Continue with GitHub
+              {m.auth_continue_with({ provider: m.auth_social_github() })}
             </Button>
             <Button
               variant="outline"
               className="w-full"
               onClick={() => handleSocial("google")}
             >
-              Continue with Google
+              {m.auth_continue_with({ provider: m.auth_social_google() })}
             </Button>
             <Button
               variant="outline"
               className="w-full"
               onClick={() => handleSocial("microsoft")}
             >
-              Continue with Microsoft
+              {m.auth_continue_with({ provider: m.auth_social_microsoft() })}
             </Button>
           </div>
 
           <div className="flex items-center gap-3">
             <Separator className="flex-1" />
             <span className="text-xs text-muted-foreground">
-              or continue with email
+              {m.auth_or_continue_with_email()}
             </span>
             <Separator className="flex-1" />
           </div>
@@ -138,13 +137,13 @@ function SignUpPage() {
             <form.Field name="name">
               {(field) => (
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="name">Name</Label>
+                  <Label htmlFor="name">{m.common_label_name()}</Label>
                   <Input
                     id="name"
                     value={field.state.value}
                     onChange={(e) => field.handleChange(e.target.value)}
                     onBlur={field.handleBlur}
-                    placeholder="Your name"
+                    placeholder={m.auth_placeholder_name()}
                   />
                 </div>
               )}
@@ -153,14 +152,14 @@ function SignUpPage() {
             <form.Field name="email">
               {(field) => (
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">{m.common_label_email()}</Label>
                   <Input
                     id="email"
                     type="email"
                     value={field.state.value}
                     onChange={(e) => field.handleChange(e.target.value)}
                     onBlur={field.handleBlur}
-                    placeholder="you@example.com"
+                    placeholder={m.common_placeholder_email()}
                   />
                 </div>
               )}
@@ -169,14 +168,14 @@ function SignUpPage() {
             <form.Field name="password">
               {(field) => (
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password">{m.common_label_password()}</Label>
                   <Input
                     id="password"
                     type="password"
                     value={field.state.value}
                     onChange={(e) => field.handleChange(e.target.value)}
                     onBlur={field.handleBlur}
-                    placeholder="Min. 8 characters"
+                    placeholder={m.auth_placeholder_password_min()}
                   />
                 </div>
               )}
@@ -185,14 +184,14 @@ function SignUpPage() {
             <form.Field name="confirmPassword">
               {(field) => (
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="confirmPassword">Confirm Password</Label>
+                  <Label htmlFor="confirmPassword">{m.auth_label_confirm_password()}</Label>
                   <Input
                     id="confirmPassword"
                     type="password"
                     value={field.state.value}
                     onChange={(e) => field.handleChange(e.target.value)}
                     onBlur={field.handleBlur}
-                    placeholder="Repeat your password"
+                    placeholder={m.auth_placeholder_confirm_password()}
                   />
                 </div>
               )}
@@ -201,16 +200,16 @@ function SignUpPage() {
             <form.Subscribe selector={(s) => s.isSubmitting}>
               {(isSubmitting) => (
                 <Button type="submit" disabled={isSubmitting} className="mt-1">
-                  {isSubmitting ? "Creating account..." : "Create Account"}
+                  {isSubmitting ? m.auth_creating_account() : m.auth_sign_up_title()}
                 </Button>
               )}
             </form.Subscribe>
           </form>
 
           <p className="text-center text-sm text-muted-foreground">
-            Already have an account?{" "}
+            {m.auth_already_have_account()}{" "}
             <Link to="/login" className="text-primary underline">
-              Sign in
+              {m.auth_sign_in()}
             </Link>
           </p>
         </CardContent>

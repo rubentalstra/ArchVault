@@ -22,11 +22,12 @@ import {
 } from "#/components/ui/select";
 import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
+import { m } from "#/paraglide/messages";
 
 const createUserSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.email("Invalid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
+  name: z.string().min(2, m.validation_name_min_length()),
+  email: z.email(m.validation_email_invalid()),
+  password: z.string().min(8, m.validation_password_min_length()),
   role: z.enum(["user", "admin"]),
 });
 
@@ -62,11 +63,11 @@ export function CreateUserDialog({
       });
 
       if (createError) {
-        setError(createError.message ?? "Failed to create user");
+        setError(createError.message ?? m.admin_create_user_failed());
         return;
       }
 
-      toast.success("User created successfully");
+      toast.success(m.admin_create_user_success());
       onOpenChange(false);
       onSuccess();
     },
@@ -76,9 +77,9 @@ export function CreateUserDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create User</DialogTitle>
+          <DialogTitle>{m.admin_create_user_title()}</DialogTitle>
           <DialogDescription>
-            Create a new user account on the platform.
+            {m.admin_create_user_description()}
           </DialogDescription>
         </DialogHeader>
 
@@ -94,13 +95,13 @@ export function CreateUserDialog({
           <form.Field name="name">
             {(field) => (
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="create-name">Name</Label>
+                <Label htmlFor="create-name">{m.common_label_name()}</Label>
                 <Input
                   id="create-name"
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   onBlur={field.handleBlur}
-                  placeholder="John Doe"
+                  placeholder={m.admin_placeholder_name()}
                 />
               </div>
             )}
@@ -109,14 +110,14 @@ export function CreateUserDialog({
           <form.Field name="email">
             {(field) => (
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="create-email">Email</Label>
+                <Label htmlFor="create-email">{m.common_label_email()}</Label>
                 <Input
                   id="create-email"
                   type="email"
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   onBlur={field.handleBlur}
-                  placeholder="john@example.com"
+                  placeholder={m.admin_placeholder_email()}
                 />
               </div>
             )}
@@ -125,7 +126,7 @@ export function CreateUserDialog({
           <form.Field name="password">
             {(field) => (
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="create-password">Password</Label>
+                <Label htmlFor="create-password">{m.common_label_password()}</Label>
                 <div className="relative">
                   <Input
                     id="create-password"
@@ -133,7 +134,7 @@ export function CreateUserDialog({
                     value={field.state.value}
                     onChange={(e) => field.handleChange(e.target.value)}
                     onBlur={field.handleBlur}
-                    placeholder="Minimum 8 characters"
+                    placeholder={m.admin_placeholder_password()}
                   />
                   <Button
                     type="button"
@@ -156,7 +157,7 @@ export function CreateUserDialog({
           <form.Field name="role">
             {(field) => (
               <div className="flex flex-col gap-1.5">
-                <Label>Role</Label>
+                <Label>{m.common_label_role()}</Label>
                 <Select
                   value={field.state.value}
                   onValueChange={(val: string | null) => {
@@ -167,8 +168,8 @@ export function CreateUserDialog({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="user">User</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
+                    <SelectItem value="user">{m.common_role_user()}</SelectItem>
+                    <SelectItem value="admin">{m.common_role_admin()}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -179,7 +180,7 @@ export function CreateUserDialog({
             <form.Subscribe selector={(s) => s.isSubmitting}>
               {(isSubmitting) => (
                 <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Creating..." : "Create User"}
+                  {isSubmitting ? m.common_creating() : m.admin_create_user_title()}
                 </Button>
               )}
             </form.Subscribe>

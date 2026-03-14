@@ -12,6 +12,7 @@ import { TanStackDevtools } from '@tanstack/react-devtools'
 import { TooltipProvider } from '#/components/ui/tooltip'
 import { Toaster } from '#/components/ui/sonner'
 import { ImpersonationBanner } from '#/components/admin/impersonation-banner'
+import { getLocale } from '#/paraglide/runtime'
 
 import appCss from '../styles.css?url'
 
@@ -39,7 +40,7 @@ function RootComponent() {
 
 function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={getLocale()} suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>

@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "#/components/ui/select";
 import { toast } from "sonner";
+import { m } from "#/paraglide/messages";
 
 interface InviteMemberDialogProps {
   organizationId: string;
@@ -49,11 +50,11 @@ export function InviteMemberDialog({
         });
 
       if (inviteError) {
-        setError(inviteError.message ?? "Failed to send invitation");
+        setError(inviteError.message ?? m.org_invite_failed());
         return;
       }
 
-      toast.success(`Invitation sent to ${value.email}`);
+      toast.success(m.org_invite_success({ email: value.email }));
       onOpenChange(false);
       onSuccess();
     },
@@ -72,9 +73,9 @@ export function InviteMemberDialog({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Invite Member</DialogTitle>
+          <DialogTitle>{m.org_invite_title()}</DialogTitle>
           <DialogDescription>
-            Send an invitation to join this organization.
+            {m.org_invite_description()}
           </DialogDescription>
         </DialogHeader>
 
@@ -90,14 +91,14 @@ export function InviteMemberDialog({
           <form.Field name="email">
             {(field) => (
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="invite-email">Email</Label>
+                <Label htmlFor="invite-email">{m.common_label_email()}</Label>
                 <Input
                   id="invite-email"
                   type="email"
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   onBlur={field.handleBlur}
-                  placeholder="colleague@example.com"
+                  placeholder={m.org_invite_placeholder_email()}
                 />
               </div>
             )}
@@ -106,7 +107,7 @@ export function InviteMemberDialog({
           <form.Field name="role">
             {(field) => (
               <div className="flex flex-col gap-1.5">
-                <Label>Role</Label>
+                <Label>{m.common_label_role()}</Label>
                 <Select
                   value={field.state.value}
                   onValueChange={(val: string | null) => {
@@ -117,9 +118,9 @@ export function InviteMemberDialog({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="admin">Admin</SelectItem>
-                    <SelectItem value="editor">Editor</SelectItem>
-                    <SelectItem value="viewer">Viewer</SelectItem>
+                    <SelectItem value="admin">{m.common_role_admin()}</SelectItem>
+                    <SelectItem value="editor">{m.common_role_editor()}</SelectItem>
+                    <SelectItem value="viewer">{m.common_role_viewer()}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -130,7 +131,7 @@ export function InviteMemberDialog({
             <form.Subscribe selector={(s) => s.isSubmitting}>
               {(isSubmitting) => (
                 <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Sending..." : "Send Invitation"}
+                  {isSubmitting ? m.org_invite_sending() : m.org_invite_submit()}
                 </Button>
               )}
             </form.Subscribe>

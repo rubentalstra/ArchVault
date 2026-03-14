@@ -10,6 +10,7 @@ import {
 } from "#/components/ui/card";
 import { toast } from "sonner";
 import { WorkspaceList } from "#/components/workspace/workspace-list";
+import { m } from "#/paraglide/messages";
 
 export const Route = createFileRoute("/_protected/_onboarded/dashboard")({
   component: DashboardPage,
@@ -24,7 +25,7 @@ function DashboardPage() {
     await authClient.signOut({
       fetchOptions: {
         onSuccess: () => {
-          toast.success("Signed out");
+          toast.success(m.auth_signed_out());
           navigate({ to: "/login" });
         },
       },
@@ -35,35 +36,35 @@ function DashboardPage() {
     <main className="mx-auto max-w-2xl p-6">
       <Card>
         <CardHeader>
-          <CardTitle>Dashboard</CardTitle>
+          <CardTitle>{m.dashboard_title()}</CardTitle>
           <CardDescription>
-            Welcome back, {user.name}
+            {m.dashboard_welcome({ name: user.name })}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
           <p className="text-sm text-muted-foreground">{user.email}</p>
           {activeOrg && (
             <p className="text-sm">
-              Active organization: <strong>{activeOrg.name}</strong>
+              {m.dashboard_active_org()} <strong>{activeOrg.name}</strong>
             </p>
           )}
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" asChild>
-              <Link to="/org/members">Manage Organization</Link>
+              <Link to="/org/members">{m.dashboard_manage_org()}</Link>
             </Button>
             <Button
               variant="outline"
               onClick={() => navigate({ to: "/settings" })}
             >
-              Settings
+              {m.dashboard_settings()}
             </Button>
             {user.role === "admin" && (
               <Button variant="outline" asChild>
-                <Link to="/admin/users">Admin</Link>
+                <Link to="/admin/users">{m.dashboard_admin()}</Link>
               </Button>
             )}
             <Button variant="ghost" onClick={handleSignOut}>
-              Sign Out
+              {m.auth_sign_out()}
             </Button>
           </div>
         </CardContent>

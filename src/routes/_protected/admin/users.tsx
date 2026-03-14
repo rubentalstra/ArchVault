@@ -40,6 +40,7 @@ import { RoleChangeDialog } from "#/components/admin/role-change-dialog";
 import { RemoveUserDialog } from "#/components/admin/remove-user-dialog";
 import { RevokeSessionsDialog } from "#/components/admin/revoke-sessions-dialog";
 import { toast } from "sonner";
+import { m } from "#/paraglide/messages";
 
 const searchSchema = z.object({
   search: z.string().optional().default(""),
@@ -170,10 +171,10 @@ function UsersPage() {
     onUnban: async (user) => {
       const { error } = await authClient.admin.unbanUser({ userId: user.id });
       if (error) {
-        toast.error(error.message ?? "Failed to unban user");
+        toast.error(error.message ?? m.admin_unban_user_failed());
         return;
       }
-      toast.success(`${user.name} has been unbanned`);
+      toast.success(m.admin_unban_user_success({ name: user.name }));
       refetchUsers();
     },
     onImpersonate: async (user) => {
@@ -181,7 +182,7 @@ function UsersPage() {
         userId: user.id,
       });
       if (error) {
-        toast.error(error.message ?? "Failed to impersonate user");
+        toast.error(error.message ?? m.admin_impersonate_failed());
         return;
       }
       navigate({ to: "/dashboard" });
@@ -234,17 +235,17 @@ function UsersPage() {
   return (
     <div className="flex flex-col gap-4 p-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Users</h1>
+        <h1 className="text-2xl font-bold">{m.admin_users_title()}</h1>
         <Button onClick={() => setCreateOpen(true)}>
           <Plus className="size-4" />
-          Create User
+          {m.admin_create_user_title()}
         </Button>
       </div>
 
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-3">
         <Input
-          placeholder="Search users..."
+          placeholder={m.admin_users_search_placeholder()}
           value={searchInput}
           onChange={(e) => handleSearchChange(e.target.value)}
           className="w-64"
@@ -260,8 +261,8 @@ function UsersPage() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="email">Email</SelectItem>
-            <SelectItem value="name">Name</SelectItem>
+            <SelectItem value="email">{m.common_label_email()}</SelectItem>
+            <SelectItem value="name">{m.common_label_name()}</SelectItem>
           </SelectContent>
         </Select>
 
@@ -275,9 +276,9 @@ function UsersPage() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Roles</SelectItem>
-            <SelectItem value="admin">Admin</SelectItem>
-            <SelectItem value="user">User</SelectItem>
+            <SelectItem value="all">{m.admin_filter_all_roles()}</SelectItem>
+            <SelectItem value="admin">{m.common_role_admin()}</SelectItem>
+            <SelectItem value="user">{m.common_role_user()}</SelectItem>
           </SelectContent>
         </Select>
 
@@ -291,9 +292,9 @@ function UsersPage() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="banned">Banned</SelectItem>
+            <SelectItem value="all">{m.admin_filter_all_status()}</SelectItem>
+            <SelectItem value="active">{m.common_status_active()}</SelectItem>
+            <SelectItem value="banned">{m.common_status_banned()}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -337,7 +338,7 @@ function UsersPage() {
                   colSpan={columns.length}
                   className="h-24 text-center text-muted-foreground"
                 >
-                  Loading...
+                  {m.common_loading()}
                 </TableCell>
               </TableRow>
             ) : rows.length === 0 ? (
@@ -346,7 +347,7 @@ function UsersPage() {
                   colSpan={columns.length}
                   className="h-24 text-center text-muted-foreground"
                 >
-                  No users found.
+                  {m.admin_users_empty()}
                 </TableCell>
               </TableRow>
             ) : (
@@ -373,7 +374,7 @@ function UsersPage() {
       {/* Pagination */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          {total} total user{total !== 1 ? "s" : ""}
+          {m.admin_users_total({ count: total })}
         </p>
         <div className="flex items-center gap-2">
           <Select
@@ -386,15 +387,15 @@ function UsersPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="10">10 / page</SelectItem>
-              <SelectItem value="25">25 / page</SelectItem>
-              <SelectItem value="50">50 / page</SelectItem>
-              <SelectItem value="100">100 / page</SelectItem>
+              <SelectItem value="10">{m.admin_users_per_page_10()}</SelectItem>
+              <SelectItem value="25">{m.admin_users_per_page_25()}</SelectItem>
+              <SelectItem value="50">{m.admin_users_per_page_50()}</SelectItem>
+              <SelectItem value="100">{m.admin_users_per_page_100()}</SelectItem>
             </SelectContent>
           </Select>
 
           <span className="text-sm text-muted-foreground">
-            Page {search.page} of {totalPages}
+            {m.admin_users_page({ page: search.page, totalPages })}
           </span>
 
           <Button

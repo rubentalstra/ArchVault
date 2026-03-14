@@ -11,6 +11,7 @@ import {
   AlertDialogTitle,
 } from "#/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { m } from "#/paraglide/messages";
 
 interface RemoveTeamDialogProps {
   team: { id: string; name: string } | null;
@@ -41,11 +42,11 @@ export function RemoveTeamDialog({
     setLoading(false);
 
     if (error) {
-      toast.error(error.message ?? "Failed to delete team");
+      toast.error(error.message ?? m.org_delete_team_failed());
       return;
     }
 
-    toast.success(`Team "${team.name}" deleted`);
+    toast.success(m.org_delete_team_success({ name: team.name }));
     onOpenChange(false);
     onSuccess();
   };
@@ -56,20 +57,19 @@ export function RemoveTeamDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete Team</AlertDialogTitle>
+          <AlertDialogTitle>{m.org_delete_team_title()}</AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to delete the team &ldquo;{team.name}&rdquo;?
-            This action cannot be undone.
+            {m.org_delete_team_confirm({ name: team.name })}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>{m.common_cancel()}</AlertDialogCancel>
           <Button
             variant="destructive"
             onClick={handleRemove}
             disabled={loading}
           >
-            {loading ? "Deleting..." : "Delete Team"}
+            {loading ? m.common_deleting() : m.org_delete_team_title()}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

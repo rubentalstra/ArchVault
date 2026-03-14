@@ -23,14 +23,15 @@ import {
 import { Textarea } from "#/components/ui/textarea";
 import { toast } from "sonner";
 import { Eye, EyeOff } from "lucide-react";
+import { m } from "#/paraglide/messages";
 
 const registerSSOSchema = z.object({
   providerId: z
     .string()
-    .min(2, "Provider ID must be at least 2 characters")
-    .regex(/^[a-z0-9-]+$/, "Only lowercase alphanumeric and hyphens"),
-  issuer: z.url("Must be a valid URL"),
-  domain: z.string().min(3, "Domain is required"),
+    .min(2, m.validation_provider_id_min())
+    .regex(/^[a-z0-9-]+$/, m.validation_provider_id_format()),
+  issuer: z.url(m.validation_url_invalid()),
+  domain: z.string().min(3, m.validation_domain_required()),
   type: z.enum(["oidc", "saml"]),
   // OIDC fields
   clientId: z.string().optional(),
@@ -92,7 +93,7 @@ export function RegisterSSODialog({
 
       if (type === "oidc") {
         if (!parsed.data.clientId || !parsed.data.clientSecret) {
-          setError("Client ID and Client Secret are required for OIDC");
+          setError(m.validation_oidc_credentials_required());
           return;
         }
         body.oidcConfig = {
@@ -101,7 +102,7 @@ export function RegisterSSODialog({
         };
       } else {
         if (!parsed.data.entryPoint || !parsed.data.certificate) {
-          setError("Entry Point and Certificate are required for SAML");
+          setError(m.validation_saml_credentials_required());
           return;
         }
         body.samlConfig = {
@@ -116,11 +117,11 @@ export function RegisterSSODialog({
       );
 
       if (registerError) {
-        setError((registerError as { message?: string }).message ?? "Failed to register SSO provider");
+        setError((registerError as { message?: string }).message ?? m.admin_sso_register_failed());
         return;
       }
 
-      toast.success("SSO provider registered successfully");
+      toast.success(m.admin_sso_register_success());
       onOpenChange(false);
       onSuccess();
     },
@@ -130,9 +131,9 @@ export function RegisterSSODialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Register SSO Provider</DialogTitle>
+          <DialogTitle>{m.admin_sso_register_title()}</DialogTitle>
           <DialogDescription>
-            Register a new OIDC or SAML identity provider for enterprise SSO.
+            {m.admin_sso_register_description()}
           </DialogDescription>
         </DialogHeader>
 
@@ -148,13 +149,13 @@ export function RegisterSSODialog({
           <form.Field name="providerId">
             {(field) => (
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="sso-provider-id">Provider ID</Label>
+                <Label htmlFor="sso-provider-id">{m.admin_sso_label_provider_id()}</Label>
                 <Input
                   id="sso-provider-id"
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   onBlur={field.handleBlur}
-                  placeholder="acme-corp"
+                  placeholder={m.admin_sso_placeholder_provider_id()}
                 />
               </div>
             )}
@@ -163,13 +164,13 @@ export function RegisterSSODialog({
           <form.Field name="issuer">
             {(field) => (
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="sso-issuer">Issuer URL</Label>
+                <Label htmlFor="sso-issuer">{m.admin_sso_label_issuer_url()}</Label>
                 <Input
                   id="sso-issuer"
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   onBlur={field.handleBlur}
-                  placeholder="https://idp.example.com"
+                  placeholder={m.admin_sso_placeholder_issuer_url()}
                 />
               </div>
             )}
@@ -178,13 +179,13 @@ export function RegisterSSODialog({
           <form.Field name="domain">
             {(field) => (
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="sso-domain">Domain</Label>
+                <Label htmlFor="sso-domain">{m.admin_sso_label_domain()}</Label>
                 <Input
                   id="sso-domain"
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   onBlur={field.handleBlur}
-                  placeholder="example.com"
+                  placeholder={m.admin_sso_placeholder_domain()}
                 />
               </div>
             )}
@@ -193,7 +194,7 @@ export function RegisterSSODialog({
           <form.Field name="type">
             {(field) => (
               <div className="flex flex-col gap-1.5">
-                <Label>Type</Label>
+                <Label>{m.admin_sso_label_type()}</Label>
                 <Select
                   value={field.state.value}
                   onValueChange={(val: string | null) => {
@@ -219,13 +220,13 @@ export function RegisterSSODialog({
                   <form.Field name="clientId">
                     {(field) => (
                       <div className="flex flex-col gap-1.5">
-                        <Label htmlFor="sso-client-id">Client ID</Label>
+                        <Label htmlFor="sso-client-id">{m.admin_sso_label_client_id()}</Label>
                         <Input
                           id="sso-client-id"
                           value={field.state.value}
                           onChange={(e) => field.handleChange(e.target.value)}
                           onBlur={field.handleBlur}
-                          placeholder="your-client-id"
+                          placeholder={m.admin_sso_placeholder_client_id()}
                         />
                       </div>
                     )}
@@ -234,7 +235,7 @@ export function RegisterSSODialog({
                   <form.Field name="clientSecret">
                     {(field) => (
                       <div className="flex flex-col gap-1.5">
-                        <Label htmlFor="sso-client-secret">Client Secret</Label>
+                        <Label htmlFor="sso-client-secret">{m.admin_sso_label_client_secret()}</Label>
                         <div className="relative">
                           <Input
                             id="sso-client-secret"
@@ -242,7 +243,7 @@ export function RegisterSSODialog({
                             value={field.state.value}
                             onChange={(e) => field.handleChange(e.target.value)}
                             onBlur={field.handleBlur}
-                            placeholder="your-client-secret"
+                            placeholder={m.admin_sso_placeholder_client_secret()}
                           />
                           <Button
                             type="button"
@@ -259,7 +260,7 @@ export function RegisterSSODialog({
                           </Button>
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          Other OIDC endpoints are auto-discovered from the issuer URL.
+                          {m.admin_sso_oidc_auto_discover()}
                         </p>
                       </div>
                     )}
@@ -270,13 +271,13 @@ export function RegisterSSODialog({
                   <form.Field name="entryPoint">
                     {(field) => (
                       <div className="flex flex-col gap-1.5">
-                        <Label htmlFor="sso-entry-point">SSO Entry Point URL</Label>
+                        <Label htmlFor="sso-entry-point">{m.admin_sso_label_entry_point()}</Label>
                         <Input
                           id="sso-entry-point"
                           value={field.state.value}
                           onChange={(e) => field.handleChange(e.target.value)}
                           onBlur={field.handleBlur}
-                          placeholder="https://idp.example.com/sso"
+                          placeholder={m.admin_sso_placeholder_entry_point()}
                         />
                       </div>
                     )}
@@ -285,7 +286,7 @@ export function RegisterSSODialog({
                   <form.Field name="certificate">
                     {(field) => (
                       <div className="flex flex-col gap-1.5">
-                        <Label htmlFor="sso-certificate">IdP Certificate</Label>
+                        <Label htmlFor="sso-certificate">{m.admin_sso_label_certificate()}</Label>
                         <Textarea
                           id="sso-certificate"
                           value={field.state.value}
@@ -301,13 +302,13 @@ export function RegisterSSODialog({
                   <form.Field name="callbackUrl">
                     {(field) => (
                       <div className="flex flex-col gap-1.5">
-                        <Label htmlFor="sso-callback-url">Callback URL (optional)</Label>
+                        <Label htmlFor="sso-callback-url">{m.admin_sso_label_callback_url()}</Label>
                         <Input
                           id="sso-callback-url"
                           value={field.state.value}
                           onChange={(e) => field.handleChange(e.target.value)}
                           onBlur={field.handleBlur}
-                          placeholder="https://yourapp.com/api/auth/sso/saml2/callback/provider-id"
+                          placeholder={m.admin_sso_placeholder_callback_url()}
                         />
                       </div>
                     )}
@@ -320,13 +321,13 @@ export function RegisterSSODialog({
           <form.Field name="organizationId">
             {(field) => (
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="sso-org-id">Organization ID (optional)</Label>
+                <Label htmlFor="sso-org-id">{m.admin_sso_label_org_id()}</Label>
                 <Input
                   id="sso-org-id"
                   value={field.state.value}
                   onChange={(e) => field.handleChange(e.target.value)}
                   onBlur={field.handleBlur}
-                  placeholder="Link to an organization"
+                  placeholder={m.admin_sso_placeholder_org_link()}
                 />
               </div>
             )}
@@ -336,7 +337,7 @@ export function RegisterSSODialog({
             <form.Subscribe selector={(s) => s.isSubmitting}>
               {(isSubmitting) => (
                 <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Registering..." : "Register Provider"}
+                  {isSubmitting ? m.admin_sso_registering() : m.admin_sso_register()}
                 </Button>
               )}
             </form.Subscribe>

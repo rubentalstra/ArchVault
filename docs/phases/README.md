@@ -11,7 +11,7 @@
 | 1e    | Organizations & Teams        | Complete    | 1c           |
 | 1f    | Workspaces                   | Complete    | 1e           |
 | 1g    | ESLint                       | Complete    | 1a           |
-| 1h    | Internationalization (i18n)  | Not Started | 1a, 1c       |
+| 1h    | Internationalization (i18n)  | Complete    | 1a, 1c       |
 | 1i    | SSO (Single Sign-On)         | Complete    | 1c           |
 | 1j    | SCIM Provisioning            | Complete    | 1i           |
 | 2a    | Elements                     | Not Started | 1f           |

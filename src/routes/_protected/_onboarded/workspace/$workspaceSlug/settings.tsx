@@ -27,6 +27,7 @@ import {
   updateWorkspace,
   deleteWorkspace,
 } from "#/lib/workspace.functions";
+import { m } from "#/paraglide/messages";
 
 export const Route = createFileRoute(
   "/_protected/_onboarded/workspace/$workspaceSlug/settings",
@@ -65,7 +66,7 @@ function WorkspaceSettingsPage() {
             iconEmoji: value.iconEmoji || undefined,
           },
         });
-        toast.success("Workspace updated");
+        toast.success(m.workspace_settings_update_success());
 
         if (value.slug !== workspace.slug) {
           navigate({
@@ -75,7 +76,7 @@ function WorkspaceSettingsPage() {
         }
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : "Failed to update workspace",
+          err instanceof Error ? err.message : m.workspace_settings_update_failed(),
         );
       }
     },
@@ -85,12 +86,12 @@ function WorkspaceSettingsPage() {
     setDeleteLoading(true);
     try {
       await deleteWorkspace({ data: { id: workspace.id } });
-      toast.success("Workspace deleted");
+      toast.success(m.workspace_delete_workspace_success());
       setDeleteOpen(false);
       navigate({ to: "/dashboard" });
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : "Failed to delete workspace",
+        err instanceof Error ? err.message : m.workspace_delete_workspace_failed(),
       );
     } finally {
       setDeleteLoading(false);
@@ -99,15 +100,15 @@ function WorkspaceSettingsPage() {
 
   return (
     <div className="mx-auto max-w-2xl p-6">
-      <h1 className="mb-6 text-2xl font-bold">Workspace Settings</h1>
+      <h1 className="mb-6 text-2xl font-bold">{m.workspace_settings_title()}</h1>
 
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>General</CardTitle>
+          <CardTitle>{m.workspace_settings_general()}</CardTitle>
           <CardDescription>
             {canEdit
-              ? "Update your workspace details."
-              : "Workspace details (read-only)."}
+              ? m.workspace_settings_description_edit()
+              : m.workspace_settings_description_readonly()}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -124,7 +125,7 @@ function WorkspaceSettingsPage() {
             <form.Field name="name">
               {(field) => (
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="ws-settings-name">Name</Label>
+                  <Label htmlFor="ws-settings-name">{m.common_label_name()}</Label>
                   <Input
                     id="ws-settings-name"
                     value={field.state.value}
@@ -139,7 +140,7 @@ function WorkspaceSettingsPage() {
             <form.Field name="slug">
               {(field) => (
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="ws-settings-slug">Slug</Label>
+                  <Label htmlFor="ws-settings-slug">{m.common_label_slug()}</Label>
                   <Input
                     id="ws-settings-slug"
                     value={field.state.value}
@@ -160,7 +161,7 @@ function WorkspaceSettingsPage() {
             <form.Field name="description">
               {(field) => (
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="ws-settings-desc">Description</Label>
+                  <Label htmlFor="ws-settings-desc">{m.common_label_description()}</Label>
                   <Textarea
                     id="ws-settings-desc"
                     value={field.state.value}
@@ -176,7 +177,7 @@ function WorkspaceSettingsPage() {
             <form.Field name="iconEmoji">
               {(field) => (
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="ws-settings-emoji">Icon Emoji</Label>
+                  <Label htmlFor="ws-settings-emoji">{m.workspace_label_icon_emoji()}</Label>
                   <Input
                     id="ws-settings-emoji"
                     value={field.state.value}
@@ -198,7 +199,7 @@ function WorkspaceSettingsPage() {
                     disabled={isSubmitting}
                     className="self-end"
                   >
-                    {isSubmitting ? "Saving..." : "Save Changes"}
+                    {isSubmitting ? m.common_saving() : m.common_save_changes()}
                   </Button>
                 )}
               </form.Subscribe>
@@ -210,9 +211,9 @@ function WorkspaceSettingsPage() {
       {canDelete && (
         <Card className="border-destructive">
           <CardHeader>
-            <CardTitle className="text-destructive">Danger Zone</CardTitle>
+            <CardTitle className="text-destructive">{m.workspace_danger_zone()}</CardTitle>
             <CardDescription>
-              Permanently delete this workspace and all its data.
+              {m.workspace_danger_zone_description()}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -220,7 +221,7 @@ function WorkspaceSettingsPage() {
               variant="destructive"
               onClick={() => setDeleteOpen(true)}
             >
-              Delete Workspace
+              {m.workspace_delete_workspace()}
             </Button>
           </CardContent>
         </Card>
@@ -229,20 +230,19 @@ function WorkspaceSettingsPage() {
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Workspace</AlertDialogTitle>
+            <AlertDialogTitle>{m.workspace_delete_workspace()}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete{" "}
-              <strong>{workspace.name}</strong>? This action cannot be undone.
+              {m.workspace_delete_workspace_confirm({ name: workspace.name })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{m.common_cancel()}</AlertDialogCancel>
             <Button
               variant="destructive"
               onClick={handleDelete}
               disabled={deleteLoading}
             >
-              {deleteLoading ? "Deleting..." : "Delete Workspace"}
+              {deleteLoading ? m.common_deleting() : m.workspace_delete_workspace()}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

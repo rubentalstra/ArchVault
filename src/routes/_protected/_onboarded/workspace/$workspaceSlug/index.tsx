@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "#/components/ui/card";
+import { m } from "#/paraglide/messages";
 
 export const Route = createFileRoute(
   "/_protected/_onboarded/workspace/$workspaceSlug/",
@@ -41,15 +42,14 @@ function WorkspaceDashboardPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Architecture Models</CardTitle>
+          <CardTitle>{m.workspace_architecture_models()}</CardTitle>
           <CardDescription>
-            Elements and diagrams will appear here in future phases.
+            {m.workspace_architecture_models_description()}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">
-            This workspace is ready. C4 elements and diagrams will be available
-            once those features are implemented.
+            {m.workspace_architecture_models_placeholder()}
           </p>
         </CardContent>
       </Card>

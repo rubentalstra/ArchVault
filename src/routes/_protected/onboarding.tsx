@@ -14,6 +14,7 @@ import {
 import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
 import { toast } from "sonner";
+import { m } from "#/paraglide/messages";
 
 export const Route = createFileRoute("/_protected/onboarding")({
   beforeLoad: async () => {
@@ -49,7 +50,7 @@ function OnboardingPage() {
         });
 
       if (createError) {
-        setError(createError.message ?? "Failed to create organization");
+        setError(createError.message ?? m.onboarding_create_failed());
         return;
       }
 
@@ -59,7 +60,7 @@ function OnboardingPage() {
         });
       }
 
-      toast.success("Organization created!");
+      toast.success(m.onboarding_create_success());
       navigate({ to: "/dashboard" });
     },
   });
@@ -69,10 +70,10 @@ function OnboardingPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">
-            Create Your Organization
+            {m.onboarding_title()}
           </CardTitle>
           <CardDescription>
-            Set up your first organization to get started with Archvault.
+            {m.onboarding_description()}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -91,7 +92,7 @@ function OnboardingPage() {
             <form.Field name="name">
               {(field) => (
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="org-name">Organization Name</Label>
+                  <Label htmlFor="org-name">{m.onboarding_label_name()}</Label>
                   <Input
                     id="org-name"
                     value={field.state.value}
@@ -103,7 +104,7 @@ function OnboardingPage() {
                       }
                     }}
                     onBlur={field.handleBlur}
-                    placeholder="My Organization"
+                    placeholder={m.onboarding_placeholder_name()}
                   />
                 </div>
               )}
@@ -112,7 +113,7 @@ function OnboardingPage() {
             <form.Field name="slug">
               {(field) => (
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="org-slug">Slug</Label>
+                  <Label htmlFor="org-slug">{m.common_label_slug()}</Label>
                   <Input
                     id="org-slug"
                     value={field.state.value}
@@ -124,10 +125,10 @@ function OnboardingPage() {
                       )
                     }
                     onBlur={field.handleBlur}
-                    placeholder="my-organization"
+                    placeholder={m.onboarding_placeholder_slug()}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Lowercase letters, numbers, and hyphens only.
+                    {m.onboarding_slug_hint()}
                   </p>
                 </div>
               )}
@@ -136,7 +137,7 @@ function OnboardingPage() {
             <form.Subscribe selector={(s) => s.isSubmitting}>
               {(isSubmitting) => (
                 <Button type="submit" disabled={isSubmitting} className="mt-2">
-                  {isSubmitting ? "Creating..." : "Create Organization"}
+                  {isSubmitting ? m.common_creating() : m.onboarding_submit()}
                 </Button>
               )}
             </form.Subscribe>

@@ -12,6 +12,7 @@ import {
 } from "#/components/ui/alert-dialog";
 import { toast } from "sonner";
 import type { AdminUser } from "./user-table-columns";
+import { m } from "#/paraglide/messages";
 
 interface RemoveUserDialogProps {
   user: AdminUser | null;
@@ -39,11 +40,11 @@ export function RemoveUserDialog({
     setLoading(false);
 
     if (error) {
-      toast.error(error.message ?? "Failed to remove user");
+      toast.error(error.message ?? m.admin_remove_user_failed());
       return;
     }
 
-    toast.success(`${user.name} has been removed`);
+    toast.success(m.admin_remove_user_success({ name: user.name }));
     onOpenChange(false);
     onSuccess();
   };
@@ -54,20 +55,19 @@ export function RemoveUserDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Remove User</AlertDialogTitle>
+          <AlertDialogTitle>{m.admin_remove_user_title()}</AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to remove {user.name} ({user.email})? This
-            action cannot be undone. All user data will be permanently deleted.
+            {m.admin_remove_user_confirm({ name: user.name, email: user.email })}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>{m.common_cancel()}</AlertDialogCancel>
           <Button
             variant="destructive"
             onClick={handleRemove}
             disabled={loading}
           >
-            {loading ? "Removing..." : "Remove User"}
+            {loading ? m.common_removing() : m.admin_remove_user_submit()}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

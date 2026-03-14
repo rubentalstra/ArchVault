@@ -82,6 +82,19 @@ queryClient.invalidateQueries({ queryKey: ["my-data"] });
 - **`authClient.use*` hooks** — Better Auth reactive state (`useSession`, `useActiveOrganization`, `useActiveMember`). These are not replaced by Query.
 - **Direct calls** — mutations (form submissions, delete actions). These are fire-and-forget, not queries.
 
+### Internationalization (i18n)
+Paraglide JS v2 provides compile-time type-safe translations. Source files: `messages/*.json` (one flat file per locale with domain-prefixed keys). Auto-generated output: `src/paraglide/` (gitignored).
+
+**Usage:** `import { m } from '#/paraglide/messages'` then `m.domain_key()` or `m.domain_key({ param: value })`. Example: `m.auth_sign_in()`, `m.org_create_success()`.
+
+**Locale runtime:** `import { getLocale, setLocale, locales } from '#/paraglide/runtime'`
+
+**URL strategy:** English (base locale) has no prefix (`/login`). Dutch uses `/nl/` prefix (`/nl/login`). Cookie `ARCHVAULT_LOCALE` persists locale.
+
+**Adding a locale:** Add to `project.inlang/settings.json` `locales` + add URL pattern to `vite.config.ts` `urlPatterns` + create `messages/{locale}.json`.
+
+**Key convention:** `{domain}_{context}_{descriptor}` — e.g., `auth_login_title`, `org_create_success`. Domain = JSON filename.
+
 ### shadcn/ui
 Config in `components.json`. Style: `base-nova`. RSC: `false`. Components install to `src/components/ui/`. Add new components with `pnpm dlx shadcn@latest add <component>`.
 
@@ -94,3 +107,4 @@ Config in `components.json`. Style: `base-nova`. RSC: `false`. Components instal
 - **Strict TypeScript.** `noUnusedLocals`, `noUnusedParameters`, `verbatimModuleSyntax` are all enabled.
 - Forms use TanStack Form + Zod. Tables use TanStack Table. Toasts use Sonner.
 - Client-side data fetching uses TanStack Query (`useQuery` + `useServerFn`). Never use `useState`/`useEffect` for data fetching.
+- All user-facing strings use Paraglide message functions (`import { m } from '#/paraglide/messages'`). Never hardcode user-facing text.

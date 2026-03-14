@@ -25,6 +25,7 @@ import {
   UserCheck,
 } from "lucide-react";
 import { formatRelativeDate } from "#/lib/admin.utils";
+import { m } from "#/paraglide/messages";
 
 export interface AdminUser {
   id: string;
@@ -55,7 +56,7 @@ const columnHelper = createColumnHelper<AdminUser>();
 export function getUserColumns(actions: UserTableActions) {
   return [
     columnHelper.accessor("name", {
-      header: "User",
+      header: m.admin_column_user(),
       enableSorting: true,
       cell: (info) => {
         const user = info.row.original;
@@ -82,7 +83,7 @@ export function getUserColumns(actions: UserTableActions) {
       },
     }),
     columnHelper.accessor("role", {
-      header: "Role",
+      header: m.admin_column_role(),
       enableSorting: true,
       cell: (info) => {
         const role = info.getValue();
@@ -94,19 +95,19 @@ export function getUserColumns(actions: UserTableActions) {
       },
     }),
     columnHelper.accessor("banned", {
-      header: "Status",
+      header: m.admin_column_status(),
       enableSorting: true,
       cell: (info) => {
         const banned = info.getValue();
         return (
           <Badge variant={banned ? "destructive" : "secondary"}>
-            {banned ? "Banned" : "Active"}
+            {banned ? m.common_status_banned() : m.common_status_active()}
           </Badge>
         );
       },
     }),
     columnHelper.accessor("twoFactorEnabled", {
-      header: "2FA",
+      header: m.admin_column_2fa(),
       enableSorting: false,
       cell: (info) => {
         const enabled = info.getValue();
@@ -118,14 +119,14 @@ export function getUserColumns(actions: UserTableActions) {
               />
             </TooltipTrigger>
             <TooltipContent>
-              {enabled ? "2FA enabled" : "2FA not enabled"}
+              {enabled ? m.admin_2fa_enabled() : m.admin_2fa_not_enabled()}
             </TooltipContent>
           </Tooltip>
         );
       },
     }),
     columnHelper.accessor("createdAt", {
-      header: "Created",
+      header: m.admin_column_created(),
       enableSorting: true,
       cell: (info) => {
         const date = info.getValue();
@@ -159,7 +160,7 @@ export function getUserColumns(actions: UserTableActions) {
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => actions.onViewDetails(user)}>
                 <Eye className="size-4" />
-                View Details
+                {m.admin_view_details()}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -167,7 +168,7 @@ export function getUserColumns(actions: UserTableActions) {
                 disabled={isSelf}
               >
                 <UserCog className="size-4" />
-                Change Role
+                {m.admin_change_role()}
               </DropdownMenuItem>
               {user.banned ? (
                 <DropdownMenuItem
@@ -175,7 +176,7 @@ export function getUserColumns(actions: UserTableActions) {
                   disabled={isSelf}
                 >
                   <UserCheck className="size-4" />
-                  Unban User
+                  {m.admin_unban_user()}
                 </DropdownMenuItem>
               ) : (
                 <DropdownMenuItem
@@ -183,7 +184,7 @@ export function getUserColumns(actions: UserTableActions) {
                   disabled={isSelf}
                 >
                   <Ban className="size-4" />
-                  Ban User
+                  {m.admin_ban_user_title()}
                 </DropdownMenuItem>
               )}
               <DropdownMenuItem
@@ -191,14 +192,14 @@ export function getUserColumns(actions: UserTableActions) {
                 disabled={isSelf}
               >
                 <UserCog className="size-4" />
-                Impersonate
+                {m.admin_impersonate()}
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => actions.onRevokeSessions(user)}
                 disabled={isSelf}
               >
                 <LogOut className="size-4" />
-                Revoke Sessions
+                {m.admin_revoke_sessions_title()}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -207,7 +208,7 @@ export function getUserColumns(actions: UserTableActions) {
                 disabled={isSelf}
               >
                 <UserX className="size-4" />
-                Remove User
+                {m.admin_remove_user_title()}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

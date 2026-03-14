@@ -59,6 +59,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@inlang/paraglide-js": "^2.15.0",
     "@tailwindcss/typography": "^0.5.19",
     "@tanstack/eslint-plugin-query": "^5.91.4",
     "@tanstack/eslint-plugin-router": "^1.161.4",

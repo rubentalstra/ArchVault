@@ -12,6 +12,7 @@ import {
 } from "#/components/ui/alert-dialog";
 import { toast } from "sonner";
 import type { OrgMember } from "./member-table-columns";
+import { m } from "#/paraglide/messages";
 
 interface RemoveMemberDialogProps {
   member: OrgMember | null;
@@ -39,11 +40,11 @@ export function RemoveMemberDialog({
     setLoading(false);
 
     if (error) {
-      toast.error(error.message ?? "Failed to remove member");
+      toast.error(error.message ?? m.org_remove_member_failed());
       return;
     }
 
-    toast.success(`${member.user.name} has been removed`);
+    toast.success(m.org_remove_member_success({ name: member.user.name }));
     onOpenChange(false);
     onSuccess();
   };
@@ -54,21 +55,19 @@ export function RemoveMemberDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Remove Member</AlertDialogTitle>
+          <AlertDialogTitle>{m.org_remove_member_title()}</AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to remove {member.user.name} (
-            {member.user.email}) from this organization? They will lose access
-            to all organization resources.
+            {m.org_remove_member_confirm({ name: member.user.name, email: member.user.email })}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>{m.common_cancel()}</AlertDialogCancel>
           <Button
             variant="destructive"
             onClick={handleRemove}
             disabled={loading}
           >
-            {loading ? "Removing..." : "Remove Member"}
+            {loading ? m.common_removing() : m.org_remove_member_submit()}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

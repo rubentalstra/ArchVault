@@ -25,6 +25,7 @@ import {
 } from "#/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { QRCodeSVG } from "qrcode.react";
+import { m } from "#/paraglide/messages";
 
 export const Route = createFileRoute("/_protected/settings")({
   component: SettingsPage,
@@ -48,7 +49,7 @@ function SettingsPage() {
         });
 
       if (enableError) {
-        setError(enableError.message ?? "Failed to enable 2FA");
+        setError(enableError.message ?? m.settings_two_factor_enable_failed());
         return;
       }
 
@@ -68,11 +69,11 @@ function SettingsPage() {
       });
 
       if (verifyError) {
-        setError(verifyError.message ?? "Invalid code");
+        setError(verifyError.message ?? m.settings_two_factor_invalid_code());
         return;
       }
 
-      toast.success("2FA enabled successfully!");
+      toast.success(m.settings_two_factor_enable_success());
       setTotpUri(null);
       setBackupCodes(null);
       window.location.reload();
@@ -88,25 +89,25 @@ function SettingsPage() {
     });
 
     if (disableError) {
-      toast.error(disableError.message ?? "Failed to disable 2FA");
+      toast.error(disableError.message ?? m.settings_two_factor_disable_failed());
       return;
     }
 
-    toast.success("2FA disabled");
+    toast.success(m.settings_two_factor_disable_success());
     window.location.reload();
   };
 
   return (
     <main className="mx-auto max-w-2xl p-6">
-      <h1 className="text-2xl font-bold mb-6">Settings</h1>
+      <h1 className="text-2xl font-bold mb-6">{m.settings_title()}</h1>
 
       <Card>
         <CardHeader>
-          <CardTitle>Two-Factor Authentication</CardTitle>
+          <CardTitle>{m.settings_two_factor_title()}</CardTitle>
           <CardDescription>
             {is2FAEnabled
-              ? "2FA is currently enabled on your account."
-              : "Add an extra layer of security to your account."}
+              ? m.settings_two_factor_enabled()
+              : m.settings_two_factor_disabled()}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
@@ -119,20 +120,19 @@ function SettingsPage() {
               <AlertDialogTrigger
                 render={<Button variant="destructive" />}
               >
-                Disable 2FA
+                {m.settings_two_factor_disable()}
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Disable 2FA?</AlertDialogTitle>
+                  <AlertDialogTitle>{m.settings_two_factor_disable_title()}</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This will remove two-factor authentication from your
-                    account. You can re-enable it at any time.
+                    {m.settings_two_factor_disable_description()}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel>{m.common_cancel()}</AlertDialogCancel>
                   <AlertDialogAction onClick={handleDisable}>
-                    Disable
+                    {m.settings_two_factor_disable_confirm()}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -151,7 +151,7 @@ function SettingsPage() {
                 {(field) => (
                   <div className="flex flex-col gap-1.5">
                     <Label htmlFor="2fa-password">
-                      Enter your password to enable 2FA
+                      {m.settings_two_factor_enable_password()}
                     </Label>
                     <Input
                       id="2fa-password"
@@ -167,7 +167,7 @@ function SettingsPage() {
               <enableForm.Subscribe selector={(s) => s.isSubmitting}>
                 {(isSubmitting) => (
                   <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? "Setting up..." : "Enable 2FA"}
+                    {isSubmitting ? m.settings_two_factor_setting_up() : m.settings_two_factor_enable()}
                   </Button>
                 )}
               </enableForm.Subscribe>
@@ -178,7 +178,7 @@ function SettingsPage() {
             <div className="flex flex-col gap-4">
               <div className="flex flex-col items-center gap-3">
                 <p className="text-sm text-muted-foreground">
-                  Scan this QR code with your authenticator app
+                  {m.settings_two_factor_qr_description()}
                 </p>
                 <div className="rounded-lg border p-4 bg-white">
                   <QRCodeSVG value={totpUri} size={200} />
@@ -188,7 +188,7 @@ function SettingsPage() {
               {backupCodes && (
                 <div className="flex flex-col gap-2">
                   <p className="text-sm font-medium">
-                    Save these backup codes in a safe place:
+                    {m.settings_two_factor_backup_codes()}
                   </p>
                   <div className="grid grid-cols-2 gap-1 rounded-lg border p-3 bg-muted font-mono text-sm">
                     {backupCodes.map((code) => (
@@ -209,7 +209,7 @@ function SettingsPage() {
                   {(field) => (
                     <div className="flex flex-col gap-1.5">
                       <Label htmlFor="verify-totp">
-                        Enter the code from your authenticator app to confirm
+                        {m.settings_two_factor_verify_label()}
                       </Label>
                       <Input
                         id="verify-totp"
@@ -226,7 +226,7 @@ function SettingsPage() {
                 <verifyForm.Subscribe selector={(s) => s.isSubmitting}>
                   {(isSubmitting) => (
                     <Button type="submit" disabled={isSubmitting}>
-                      {isSubmitting ? "Verifying..." : "Verify & Enable"}
+                      {isSubmitting ? m.common_verifying() : m.settings_two_factor_verify_submit()}
                     </Button>
                   )}
                 </verifyForm.Subscribe>

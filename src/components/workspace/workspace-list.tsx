@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from "#/components/ui/card";
 import { getWorkspaces } from "#/lib/workspace.functions";
+import { m } from "#/paraglide/messages";
 import { CreateWorkspaceDialog } from "./create-workspace-dialog";
 
 export function WorkspaceList() {
@@ -28,14 +29,14 @@ export function WorkspaceList() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>Workspaces</CardTitle>
+            <CardTitle>{m.workspace_list_title()}</CardTitle>
             <CardDescription>
-              Workspaces contain your architecture models and diagrams.
+              {m.workspace_list_description()}
             </CardDescription>
           </div>
           <Button size="sm" onClick={() => setCreateOpen(true)}>
             <Plus className="mr-1 size-4" />
-            New Workspace
+            {m.workspace_new_workspace()}
           </Button>
         </CardHeader>
         <CardContent>
@@ -43,11 +44,11 @@ export function WorkspaceList() {
             <div className="flex flex-col items-center gap-3 py-8 text-center">
               <FolderOpen className="size-10 text-muted-foreground" />
               <p className="text-sm text-muted-foreground">
-                No workspaces yet. Create one to get started.
+                {m.workspace_list_empty()}
               </p>
               <Button variant="outline" onClick={() => setCreateOpen(true)}>
                 <Plus className="mr-1 size-4" />
-                Create Workspace
+                {m.workspace_create_workspace()}
               </Button>
             </div>
           ) : (

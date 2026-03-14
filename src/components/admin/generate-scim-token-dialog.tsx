@@ -15,9 +15,10 @@ import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
 import { toast } from "sonner";
 import { Copy, AlertTriangle } from "lucide-react";
+import { m } from "#/paraglide/messages";
 
 const generateTokenSchema = z.object({
-  providerId: z.string().min(1, "Provider ID is required"),
+  providerId: z.string().min(1, m.validation_provider_id_required()),
   organizationId: z.string().optional(),
 });
 
@@ -59,13 +60,13 @@ export function GenerateScimTokenDialog({
       const { data, error: genError } = await authClient.scim.generateToken(body);
 
       if (genError) {
-        setError((genError as { message?: string }).message ?? "Failed to generate SCIM token");
+        setError((genError as { message?: string }).message ?? m.admin_scim_generate_failed());
         return;
       }
 
       const token = (data as { token?: string })?.token ?? String(data);
       setGeneratedToken(token);
-      toast.success("SCIM token generated");
+      toast.success(m.admin_scim_generate_success());
       onSuccess();
     },
   });
@@ -73,7 +74,7 @@ export function GenerateScimTokenDialog({
   const handleCopyToken = async () => {
     if (!generatedToken) return;
     await navigator.clipboard.writeText(generatedToken);
-    toast.success("Token copied to clipboard");
+    toast.success(m.admin_scim_token_copied());
   };
 
   const handleClose = (nextOpen: boolean) => {
@@ -88,9 +89,9 @@ export function GenerateScimTokenDialog({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Generate SCIM Token</DialogTitle>
+          <DialogTitle>{m.admin_scim_generate_title()}</DialogTitle>
           <DialogDescription>
-            Generate a bearer token for your identity provider to authenticate SCIM requests.
+            {m.admin_scim_generate_description()}
           </DialogDescription>
         </DialogHeader>
 
@@ -99,7 +100,7 @@ export function GenerateScimTokenDialog({
             <div className="flex items-start gap-2 rounded-lg border border-amber-500/50 bg-amber-50 p-3 dark:bg-amber-950/20">
               <AlertTriangle className="mt-0.5 size-4 shrink-0 text-amber-600" />
               <p className="text-sm text-amber-800 dark:text-amber-200">
-                Copy this token now. It will not be shown again.
+                {m.admin_scim_token_warning()}
               </p>
             </div>
 
@@ -114,7 +115,7 @@ export function GenerateScimTokenDialog({
 
             <div className="rounded-lg border bg-muted/30 p-3">
               <p className="text-sm">
-                <span className="font-medium">SCIM Base URL: </span>
+                <span className="font-medium">{m.admin_scim_base_url()} </span>
                 <code className="rounded bg-muted px-1.5 py-0.5 text-xs">
                   {typeof window !== "undefined" ? window.location.origin : ""}/api/auth/scim/v2
                 </code>
@@ -122,7 +123,7 @@ export function GenerateScimTokenDialog({
             </div>
 
             <DialogFooter>
-              <Button onClick={() => handleClose(false)}>Done</Button>
+              <Button onClick={() => handleClose(false)}>{m.common_done()}</Button>
             </DialogFooter>
           </div>
         ) : (
@@ -138,16 +139,16 @@ export function GenerateScimTokenDialog({
             <form.Field name="providerId">
               {(field) => (
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="scim-provider-id">Provider ID</Label>
+                  <Label htmlFor="scim-provider-id">{m.admin_scim_label_provider_id()}</Label>
                   <Input
                     id="scim-provider-id"
                     value={field.state.value}
                     onChange={(e) => field.handleChange(e.target.value)}
                     onBlur={field.handleBlur}
-                    placeholder="acme-corp"
+                    placeholder={m.admin_scim_placeholder_provider_id()}
                   />
                   <p className="text-xs text-muted-foreground">
-                    The ID of an existing provider (e.g. an SSO provider or built-in like &quot;credential&quot;).
+                    {m.admin_scim_provider_id_hint()}
                   </p>
                 </div>
               )}
@@ -156,13 +157,13 @@ export function GenerateScimTokenDialog({
             <form.Field name="organizationId">
               {(field) => (
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="scim-org-id">Organization ID (optional)</Label>
+                  <Label htmlFor="scim-org-id">{m.admin_scim_label_org_id()}</Label>
                   <Input
                     id="scim-org-id"
                     value={field.state.value}
                     onChange={(e) => field.handleChange(e.target.value)}
                     onBlur={field.handleBlur}
-                    placeholder="Restrict token to an organization"
+                    placeholder={m.admin_scim_placeholder_org_id()}
                   />
                 </div>
               )}
@@ -172,7 +173,7 @@ export function GenerateScimTokenDialog({
               <form.Subscribe selector={(s) => s.isSubmitting}>
                 {(isSubmitting) => (
                   <Button type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? "Generating..." : "Generate Token"}
+                    {isSubmitting ? m.admin_scim_generating() : m.admin_scim_generate_token()}
                   </Button>
                 )}
               </form.Subscribe>

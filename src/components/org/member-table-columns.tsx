@@ -16,6 +16,7 @@ import {
 } from "#/components/ui/dropdown-menu";
 import { MoreHorizontal, UserCog, UserX } from "lucide-react";
 import { formatRelativeDate } from "#/lib/admin.utils";
+import { m } from "#/paraglide/messages";
 
 export interface OrgMember {
   id: string;
@@ -41,7 +42,7 @@ export function getMemberColumns(actions: MemberTableActions) {
   return [
     columnHelper.display({
       id: "user",
-      header: "User",
+      header: m.org_column_user(),
       cell: (info) => {
         const member = info.row.original;
         const initials = (member.user.name ?? member.user.email)
@@ -69,7 +70,7 @@ export function getMemberColumns(actions: MemberTableActions) {
       },
     }),
     columnHelper.accessor("role", {
-      header: "Role",
+      header: m.org_column_role(),
       cell: (info) => {
         const role = info.getValue();
         return (
@@ -88,7 +89,7 @@ export function getMemberColumns(actions: MemberTableActions) {
       },
     }),
     columnHelper.accessor("createdAt", {
-      header: "Joined",
+      header: m.org_column_joined(),
       cell: (info) => {
         const date = info.getValue();
         return (
@@ -124,7 +125,7 @@ export function getMemberColumns(actions: MemberTableActions) {
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => actions.onChangeRole(member)}>
                 <UserCog className="size-4" />
-                Change Role
+                {m.org_change_role_title()}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -132,7 +133,7 @@ export function getMemberColumns(actions: MemberTableActions) {
                 onClick={() => actions.onRemove(member)}
               >
                 <UserX className="size-4" />
-                Remove Member
+                {m.org_remove_member_submit()}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

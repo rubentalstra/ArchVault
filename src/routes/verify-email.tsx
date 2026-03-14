@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
+import { m } from "#/paraglide/messages";
 import { authClient } from "#/lib/auth-client";
 import { Button } from "#/components/ui/button";
 import {
@@ -35,7 +36,7 @@ function VerifyEmailPage() {
     onSubmit: async ({ value }) => {
       setError(null);
       if (!email) {
-        setError("Email is required");
+        setError(m.auth_verify_email_required());
         return;
       }
 
@@ -46,11 +47,11 @@ function VerifyEmailPage() {
         });
 
       if (verifyError) {
-        setError(verifyError.message ?? "Verification failed");
+        setError(verifyError.message ?? m.auth_verify_email_failed());
         return;
       }
 
-      toast.success("Email verified!");
+      toast.success(m.auth_verify_email_success());
       navigate({ to: "/login" });
     },
   });
@@ -66,9 +67,9 @@ function VerifyEmailPage() {
       });
 
     if (resendError) {
-      toast.error(resendError.message ?? "Failed to resend");
+      toast.error(resendError.message ?? m.auth_verify_email_resend_failed());
     } else {
-      toast.success("Code resent!");
+      toast.success(m.auth_verify_email_resend_success());
     }
 
     setTimeout(() => setResendCooldown(false), 30000);
@@ -79,12 +80,12 @@ function VerifyEmailPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">
-            Verify Your Email
+            {m.auth_verify_email_title()}
           </CardTitle>
           <CardDescription>
             {email
-              ? `Enter the verification code sent to ${email}`
-              : "Check your email for a verification code"}
+              ? m.auth_verify_email_description({ email })
+              : m.auth_verify_email_description_generic()}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-4">
@@ -102,13 +103,13 @@ function VerifyEmailPage() {
             <form.Field name="otp">
               {(field) => (
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="otp">Verification Code</Label>
+                  <Label htmlFor="otp">{m.auth_verify_email_label()}</Label>
                   <Input
                     id="otp"
                     value={field.state.value}
                     onChange={(e) => field.handleChange(e.target.value)}
                     onBlur={field.handleBlur}
-                    placeholder="Enter code"
+                    placeholder={m.auth_reset_code_placeholder()}
                     autoFocus
                   />
                 </div>
@@ -118,7 +119,7 @@ function VerifyEmailPage() {
             <form.Subscribe selector={(s) => s.isSubmitting}>
               {(isSubmitting) => (
                 <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Verifying..." : "Verify Email"}
+                  {isSubmitting ? m.common_verifying() : m.auth_verify_email_submit()}
                 </Button>
               )}
             </form.Subscribe>
@@ -129,12 +130,12 @@ function VerifyEmailPage() {
             disabled={resendCooldown || !email}
             onClick={handleResend}
           >
-            {resendCooldown ? "Code sent (wait 30s)" : "Resend Code"}
+            {resendCooldown ? m.auth_verify_email_resend_cooldown() : m.auth_verify_email_resend()}
           </Button>
 
           <p className="text-center text-sm text-muted-foreground">
             <Link to="/login" className="text-primary underline">
-              Back to sign in
+              {m.common_back_to_sign_in()}
             </Link>
           </p>
         </CardContent>

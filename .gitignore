@@ -34,6 +34,9 @@ coverage/
 # TypeScript
 *.tsbuildinfo
 
+# Paraglide (auto-generated)
+src/paraglide/
+
 # Misc
 __unconfig*
 todos.json

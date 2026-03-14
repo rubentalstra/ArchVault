@@ -19,6 +19,7 @@ import {
 } from "#/components/ui/select";
 import { toast } from "sonner";
 import type { OrgMember } from "./member-table-columns";
+import { m } from "#/paraglide/messages";
 
 interface MemberRoleDialogProps {
   member: OrgMember | null;
@@ -51,11 +52,11 @@ export function MemberRoleDialog({
     setLoading(false);
 
     if (roleError) {
-      setError(roleError.message ?? "Failed to change role");
+      setError(roleError.message ?? m.org_change_role_failed());
       return;
     }
 
-    toast.success(`Role changed to ${role}`);
+    toast.success(m.org_change_role_success({ role }));
     onOpenChange(false);
     onSuccess();
   };
@@ -72,16 +73,16 @@ export function MemberRoleDialog({
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Change Role</DialogTitle>
+          <DialogTitle>{m.org_change_role_title()}</DialogTitle>
           <DialogDescription>
-            Change the role for {member.user.name} ({member.user.email}).
+            {m.org_change_role_description({ name: member.user.name, email: member.user.email })}
           </DialogDescription>
         </DialogHeader>
 
         {error && <p className="text-sm text-destructive">{error}</p>}
 
         <div className="flex flex-col gap-1.5">
-          <Label>New Role</Label>
+          <Label>{m.org_label_new_role()}</Label>
           <Select
             value={role}
             onValueChange={(val: string | null) => {
@@ -92,14 +93,14 @@ export function MemberRoleDialog({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="admin">Admin</SelectItem>
-              <SelectItem value="editor">Editor</SelectItem>
-              <SelectItem value="viewer">Viewer</SelectItem>
+              <SelectItem value="admin">{m.common_role_admin()}</SelectItem>
+              <SelectItem value="editor">{m.common_role_editor()}</SelectItem>
+              <SelectItem value="viewer">{m.common_role_viewer()}</SelectItem>
             </SelectContent>
           </Select>
           {role === member.role && (
             <p className="text-xs text-muted-foreground">
-              This is already the current role.
+              {m.org_role_already_current()}
             </p>
           )}
         </div>
@@ -109,7 +110,7 @@ export function MemberRoleDialog({
             onClick={handleSubmit}
             disabled={loading || role === member.role}
           >
-            {loading ? "Updating..." : "Update Role"}
+            {loading ? m.common_updating() : m.org_update_role()}
           </Button>
         </DialogFooter>
       </DialogContent>
