@@ -5,6 +5,7 @@ import {
   Boxes,
   ArrowLeftRight,
   PanelsTopLeft,
+  Tags,
   ArrowLeft,
   FolderOpen,
 } from "lucide-react";
@@ -44,9 +45,10 @@ function WorkspaceLayout() {
 
   const navItems = [
     { to: "/workspace/$workspaceSlug", icon: LayoutDashboard, label: () => m.workspace_nav_dashboard(), exact: true },
+    { to: "/workspace/$workspaceSlug/diagrams", icon: PanelsTopLeft, label: () => m.diagram_nav_title() },
     { to: "/workspace/$workspaceSlug/elements", icon: Boxes, label: () => m.element_nav_title() },
     { to: "/workspace/$workspaceSlug/relationships", icon: ArrowLeftRight, label: () => m.relationship_nav_title() },
-    { to: "/workspace/$workspaceSlug/diagrams", icon: PanelsTopLeft, label: () => m.diagram_nav_title() },
+    { to: "/workspace/$workspaceSlug/tags", icon: Tags, label: () => m.tag_manager_title() },
     { to: "/workspace/$workspaceSlug/settings", icon: Settings, label: () => m.workspace_nav_settings() },
   ] as const;
 

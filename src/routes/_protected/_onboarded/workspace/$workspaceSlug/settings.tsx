@@ -38,7 +38,6 @@ import {
   deleteWorkspace,
 } from "#/lib/workspace.functions";
 import { m } from "#/paraglide/messages";
-import { TagManager } from "#/components/tags/tag-manager";
 
 export const Route = createFileRoute(
   "/_protected/_onboarded/workspace/$workspaceSlug/settings",
@@ -268,12 +267,6 @@ function WorkspaceSettingsPage() {
               </form>
             </CardContent>
           </Card>
-
-          <TagManager
-            workspaceId={workspace.id}
-            canEdit={canEdit}
-            canDelete={canDelete}
-          />
 
           {canDelete && (
             <Card className="border-destructive">
