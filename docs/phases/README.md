@@ -2,40 +2,40 @@
 
 ## Progress Overview
 
-| Phase | Title                            | Status      | Dependencies |
-| ----- | -------------------------------- | ----------- | ------------ |
-| 1a    | Project Scaffold                 | Complete    | —            |
-| 1b    | Database & Docker                | Complete    | 1a           |
-| 1c    | Authentication                   | Complete    | 1b           |
-| 1d    | Platform Admin                   | Complete    | 1c           |
-| 1e    | Organizations & Teams            | Complete    | 1c           |
-| 1f    | Workspaces                       | Complete    | 1e           |
-| 1g    | ESLint                           | Complete    | 1a           |
-| 1h    | Internationalization (i18n)      | Complete    | 1a, 1c       |
-| 1i    | SSO (Single Sign-On)             | Complete    | 1c           |
-| 1j    | SCIM Provisioning                | Complete    | 1i           |
-| 2a    | Elements                         | Complete    | 1f           |
-| 2b    | Relationships                    | Complete    | 2a           |
-| 2c    | Tags                             | Not Started | 2b           |
-| 3a    | Diagram CRUD & Schema            | Not Started | 2a, 2b       |
-| 3b    | Canvas Rendering (React Flow)    | Not Started | 3a           |
-| 3c    | Editor Interactions & Panel      | Not Started | 3b           |
-| 3d    | Canvas Relationships             | Not Started | 3b, 3c       |
-| 3e    | Autosave, Hotkeys, Undo/Redo     | Not Started | 3c, 3d       |
-| 3f    | Revisions                        | Not Started | 3e           |
-| 4a    | Block Schemas & Validation       | Not Started | 3f           |
-| 4b    | Official Blocks                  | Not Started | 4a           |
-| 4c    | Block Browser & Install          | Not Started | 4a           |
-| 5a    | Community Registry               | Not Started | 4c           |
-| 5b    | Save as Block                    | Not Started | 4c           |
-| 5c    | Export & Import                  | Not Started | 4c           |
-| 6a    | Activity Log & Search            | Not Started | 5a, 5b, 5c  |
-| 6b    | Trash UI & Permanent Delete      | Not Started | 5a, 5b, 5c  |
-| 6c    | Docker Deployment                | Not Started | 5a, 5b, 5c  |
-| 6d    | E2E Testing & CI                 | Not Started | 5a, 5b, 5c  |
-| 6e    | Documentation Site (Starlight)   | Not Started | 5a, 5b, 5c  |
-| 7a    | Connection Highlighting & Animation | Not Started | 3e        |
-| 7b    | Flows (Step-by-Step Sequences)   | Not Started | 7a           |
+| Phase | Title                               | Status      | Dependencies |
+|-------|-------------------------------------|-------------|--------------|
+| 1a    | Project Scaffold                    | Complete    | —            |
+| 1b    | Database & Docker                   | Complete    | 1a           |
+| 1c    | Authentication                      | Complete    | 1b           |
+| 1d    | Platform Admin                      | Complete    | 1c           |
+| 1e    | Organizations & Teams               | Complete    | 1c           |
+| 1f    | Workspaces                          | Complete    | 1e           |
+| 1g    | ESLint                              | Complete    | 1a           |
+| 1h    | Internationalization (i18n)         | Complete    | 1a, 1c       |
+| 1i    | SSO (Single Sign-On)                | Complete    | 1c           |
+| 1j    | SCIM Provisioning                   | Complete    | 1i           |
+| 2a    | Elements                            | Complete    | 1f           |
+| 2b    | Relationships                       | Complete    | 2a           |
+| 2c    | Tags                                | Complete    | 2b           |
+| 3a    | Diagram CRUD & Schema               | Complete    | 2a, 2b       |
+| 3b    | Canvas Rendering (React Flow)       | Not Started | 3a           |
+| 3c    | Editor Interactions & Panel         | Not Started | 3b           |
+| 3d    | Canvas Relationships                | Not Started | 3b, 3c       |
+| 3e    | Autosave, Hotkeys, Undo/Redo        | Not Started | 3c, 3d       |
+| 3f    | Revisions                           | Not Started | 3e           |
+| 4a    | Block Schemas & Validation          | Not Started | 3f           |
+| 4b    | Official Blocks                     | Not Started | 4a           |
+| 4c    | Block Browser & Install             | Not Started | 4a           |
+| 5a    | Community Registry                  | Not Started | 4c           |
+| 5b    | Save as Block                       | Not Started | 4c           |
+| 5c    | Export & Import                     | Not Started | 4c           |
+| 6a    | Activity Log & Search               | Not Started | 5a, 5b, 5c   |
+| 6b    | Trash UI & Permanent Delete         | Not Started | 5a, 5b, 5c   |
+| 6c    | Docker Deployment                   | Not Started | 5a, 5b, 5c   |
+| 6d    | E2E Testing & CI                    | Not Started | 5a, 5b, 5c   |
+| 6e    | Documentation Site (Starlight)      | Not Started | 5a, 5b, 5c   |
+| 7a    | Connection Highlighting & Animation | Not Started | 3e           |
+| 7b    | Flows (Step-by-Step Sequences)      | Not Started | 7a           |
 
 ## Dependency Graph
 
@@ -86,47 +86,49 @@ graph TD
     5a --> 6e["6e: Docs Site"]
     5b --> 6e
     5c --> 6e
-    style 1a fill:#e0e7ff,stroke:#4f46e5
-    style 1b fill:#e0e7ff,stroke:#4f46e5
-    style 1c fill:#e0e7ff,stroke:#4f46e5
-    style 1d fill:#e0e7ff,stroke:#4f46e5
-    style 1e fill:#e0e7ff,stroke:#4f46e5
-    style 1f fill:#e0e7ff,stroke:#4f46e5
-    style 1g fill:#e0e7ff,stroke:#4f46e5
-    style 1h fill:#e0e7ff,stroke:#4f46e5
-    style 1i fill:#e0e7ff,stroke:#4f46e5
-    style 1j fill:#e0e7ff,stroke:#4f46e5
-    style 2a fill:#dcfce7,stroke:#16a34a
-    style 2b fill:#dcfce7,stroke:#16a34a
-    style 2c fill:#dcfce7,stroke:#16a34a
-    style 3a fill:#fef9c3,stroke:#ca8a04
-    style 3b fill:#fef9c3,stroke:#ca8a04
-    style 3c fill:#fef9c3,stroke:#ca8a04
-    style 3d fill:#fef9c3,stroke:#ca8a04
-    style 3e fill:#fef9c3,stroke:#ca8a04
-    style 3f fill:#fef9c3,stroke:#ca8a04
-    style 4a fill:#ffe4e6,stroke:#e11d48
-    style 4b fill:#ffe4e6,stroke:#e11d48
-    style 4c fill:#ffe4e6,stroke:#e11d48
-    style 5a fill:#f3e8ff,stroke:#9333ea
-    style 5b fill:#f3e8ff,stroke:#9333ea
-    style 5c fill:#f3e8ff,stroke:#9333ea
-    style 6a fill:#e0f2fe,stroke:#0284c7
-    style 6b fill:#e0f2fe,stroke:#0284c7
-    style 6c fill:#e0f2fe,stroke:#0284c7
-    style 6d fill:#e0f2fe,stroke:#0284c7
-    style 6e fill:#e0f2fe,stroke:#0284c7
-    style 7a fill:#fef3c7,stroke:#d97706
-    style 7b fill:#fef3c7,stroke:#d97706
+    style 1a fill: #e0e7ff, stroke: #4f46e5
+    style 1b fill: #e0e7ff, stroke: #4f46e5
+    style 1c fill: #e0e7ff, stroke: #4f46e5
+    style 1d fill: #e0e7ff, stroke: #4f46e5
+    style 1e fill: #e0e7ff, stroke: #4f46e5
+    style 1f fill: #e0e7ff, stroke: #4f46e5
+    style 1g fill: #e0e7ff, stroke: #4f46e5
+    style 1h fill: #e0e7ff, stroke: #4f46e5
+    style 1i fill: #e0e7ff, stroke: #4f46e5
+    style 1j fill: #e0e7ff, stroke: #4f46e5
+    style 2a fill: #dcfce7, stroke: #16a34a
+    style 2b fill: #dcfce7, stroke: #16a34a
+    style 2c fill: #dcfce7, stroke: #16a34a
+    style 3a fill: #fef9c3, stroke: #ca8a04
+    style 3b fill: #fef9c3, stroke: #ca8a04
+    style 3c fill: #fef9c3, stroke: #ca8a04
+    style 3d fill: #fef9c3, stroke: #ca8a04
+    style 3e fill: #fef9c3, stroke: #ca8a04
+    style 3f fill: #fef9c3, stroke: #ca8a04
+    style 4a fill: #ffe4e6, stroke: #e11d48
+    style 4b fill: #ffe4e6, stroke: #e11d48
+    style 4c fill: #ffe4e6, stroke: #e11d48
+    style 5a fill: #f3e8ff, stroke: #9333ea
+    style 5b fill: #f3e8ff, stroke: #9333ea
+    style 5c fill: #f3e8ff, stroke: #9333ea
+    style 6a fill: #e0f2fe, stroke: #0284c7
+    style 6b fill: #e0f2fe, stroke: #0284c7
+    style 6c fill: #e0f2fe, stroke: #0284c7
+    style 6d fill: #e0f2fe, stroke: #0284c7
+    style 6e fill: #e0f2fe, stroke: #0284c7
+    style 7a fill: #fef3c7, stroke: #d97706
+    style 7b fill: #fef3c7, stroke: #d97706
 ```
 
-**Legend:** Phase 1 (indigo) | Phase 2 (green) | Phase 3 (yellow) | Phase 4 (rose) | Phase 5 (purple) | Phase 6 (sky) | Phase 7 (amber)
+**Legend:** Phase 1 (indigo) | Phase 2 (green) | Phase 3 (yellow) | Phase 4 (rose) | Phase 5 (purple) | Phase 6 (sky) |
+Phase 7 (amber)
 
 ## Cross-Cutting Concerns
 
 These are NOT separate phases — they are built into every phase:
 
-- **Soft delete:** All entity tables have `deleted_at`. All queries filter `WHERE deleted_at IS NULL`. Implemented from phase 2 onwards. Phase 6b adds the trash UI and cleanup.
+- **Soft delete:** All entity tables have `deleted_at`. All queries filter `WHERE deleted_at IS NULL`. Implemented from
+  phase 2 onwards. Phase 6b adds the trash UI and cleanup.
 - **Unit/integration tests:** Written alongside each phase (not deferred to 6d). Phase 6d adds E2E tests.
 - **Internationalization:** All user-facing strings use Paraglide `m.key()`. Added in each phase.
 - **Permission checks:** All server functions check org role-based permissions. Added in each phase.

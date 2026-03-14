@@ -20,6 +20,10 @@ import {elementTechnology} from "./element-technologies";
 import {elementLink} from "./element-links";
 import {relationship} from "./relationships";
 import {tag, elementTag, relationshipTag} from "./tags";
+import {diagram} from "./diagrams";
+import {diagramElement} from "./diagram-elements";
+import {diagramRelationship} from "./diagram-relationships";
+import {diagramRevision} from "./diagram-revisions";
 
 export const relations = defineRelations(
     {
@@ -43,6 +47,10 @@ export const relations = defineRelations(
         tag,
         elementTag,
         relationshipTag,
+        diagram,
+        diagramElement,
+        diagramRelationship,
+        diagramRevision,
     },
     (r) => ({
         // ─────────────────────────────────────────────────────────────────
@@ -79,6 +87,17 @@ export const relations = defineRelations(
                 from: r.user.id,
                 to: r.relationship.updatedBy,
                 alias: "relationship_updated_by",
+            }),
+            // diagram has TWO FKs to user (createdBy & updatedBy) → aliases required
+            createdDiagrams: r.many.diagram({
+                from: r.user.id,
+                to: r.diagram.createdBy,
+                alias: "diagram_created_by",
+            }),
+            updatedDiagrams: r.many.diagram({
+                from: r.user.id,
+                to: r.diagram.updatedBy,
+                alias: "diagram_updated_by",
             }),
         },
 
@@ -237,6 +256,7 @@ export const relations = defineRelations(
             elements: r.many.element(),
             relationships: r.many.relationship(),
             tags: r.many.tag(),
+            diagrams: r.many.diagram(),
         },
 
         // ─────────────────────────────────────────────────────────────────
@@ -287,6 +307,14 @@ export const relations = defineRelations(
             tags: r.many.tag({
                 from: r.element.id.through(r.elementTag.elementId),
                 to: r.tag.id.through(r.elementTag.tagId),
+            }),
+            // diagram_element junction
+            diagramElements: r.many.diagramElement(),
+            // diagrams scoped to this element
+            scopedDiagrams: r.many.diagram({
+                from: r.element.id,
+                to: r.diagram.scopeElementId,
+                alias: "diagram_scope",
             }),
         },
 
@@ -350,6 +378,8 @@ export const relations = defineRelations(
                 from: r.relationship.id.through(r.relationshipTag.relationshipId),
                 to: r.tag.id.through(r.relationshipTag.tagId),
             }),
+            // diagram_relationship junction
+            diagramRelationships: r.many.diagramRelationship(),
         },
 
         // ─────────────────────────────────────────────────────────────────
@@ -369,6 +399,86 @@ export const relations = defineRelations(
             relationships: r.many.relationship({
                 from: r.tag.id.through(r.relationshipTag.tagId),
                 to: r.relationship.id.through(r.relationshipTag.relationshipId),
+            }),
+        },
+
+        // ─────────────────────────────────────────────────────────────────
+        // diagram
+        // ─────────────────────────────────────────────────────────────────
+        diagram: {
+            workspace: r.one.workspace({
+                from: r.diagram.workspaceId,
+                to: r.workspace.id,
+                optional: false,
+            }),
+            scopeElement: r.one.element({
+                from: r.diagram.scopeElementId,
+                to: r.element.id,
+                alias: "diagram_scope",
+            }),
+            currentRevision: r.one.diagramRevision({
+                from: r.diagram.currentRevisionId,
+                to: r.diagramRevision.id,
+            }),
+            createdByUser: r.one.user({
+                from: r.diagram.createdBy,
+                to: r.user.id,
+                alias: "diagram_created_by",
+            }),
+            updatedByUser: r.one.user({
+                from: r.diagram.updatedBy,
+                to: r.user.id,
+                alias: "diagram_updated_by",
+            }),
+            diagramElements: r.many.diagramElement(),
+            diagramRelationships: r.many.diagramRelationship(),
+            revisions: r.many.diagramRevision(),
+        },
+
+        // ─────────────────────────────────────────────────────────────────
+        // diagramElement
+        // ─────────────────────────────────────────────────────────────────
+        diagramElement: {
+            diagram: r.one.diagram({
+                from: r.diagramElement.diagramId,
+                to: r.diagram.id,
+                optional: false,
+            }),
+            element: r.one.element({
+                from: r.diagramElement.elementId,
+                to: r.element.id,
+                optional: false,
+            }),
+        },
+
+        // ─────────────────────────────────────────────────────────────────
+        // diagramRelationship
+        // ─────────────────────────────────────────────────────────────────
+        diagramRelationship: {
+            diagram: r.one.diagram({
+                from: r.diagramRelationship.diagramId,
+                to: r.diagram.id,
+                optional: false,
+            }),
+            relationship: r.one.relationship({
+                from: r.diagramRelationship.relationshipId,
+                to: r.relationship.id,
+                optional: false,
+            }),
+        },
+
+        // ─────────────────────────────────────────────────────────────────
+        // diagramRevision
+        // ─────────────────────────────────────────────────────────────────
+        diagramRevision: {
+            diagram: r.one.diagram({
+                from: r.diagramRevision.diagramId,
+                to: r.diagram.id,
+                optional: false,
+            }),
+            createdByUser: r.one.user({
+                from: r.diagramRevision.createdBy,
+                to: r.user.id,
             }),
         },
     }),

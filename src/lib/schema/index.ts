@@ -12,3 +12,7 @@ export * from "./relationships";
 // Phase 2c: tags
 export * from "./tags";
 // Phase 3a: diagrams, diagram_elements, diagram_relationships, diagram_revisions
+export * from "./diagram-revisions";
+export * from "./diagrams";
+export * from "./diagram-elements";
+export * from "./diagram-relationships";
