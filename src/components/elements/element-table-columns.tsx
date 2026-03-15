@@ -13,7 +13,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
-import {MoreHorizontal, Pencil, Trash2, User, Layers, Server, Package, Database, Cpu} from "lucide-react";
+import {MoreHorizontal, Pencil, Trash2, User, Server, Package, Database, Cpu} from "lucide-react";
 import {formatRelativeDate} from "#/lib/admin.utils";
 import {m} from "#/paraglide/messages";
 import type {ElementType, ElementStatus} from "#/lib/element.validators";
@@ -31,7 +31,6 @@ export interface ElementRow {
     technologies: { technologyId: string; name: string; iconSlug: string | null }[];
     links: { id: string; url: string; label: string | null }[];
     tags: { id: string; name: string; color: string; icon: string | null }[];
-      groups?: { id: string; name: string }[];
 }
 
 export interface ElementTableActions {
@@ -44,7 +43,6 @@ export interface ElementTableActions {
 
 const TYPE_ICONS: Record<ElementType, typeof User> = {
     actor: User,
-    group: Layers,
     system: Server,
     app: Package,
     store: Database,
@@ -53,7 +51,6 @@ const TYPE_ICONS: Record<ElementType, typeof User> = {
 
 const TYPE_LABELS: Record<ElementType, () => string> = {
     actor: () => m.element_type_actor(),
-  group: () => m.element_type_system(),
     system: () => m.element_type_system(),
     app: () => m.element_type_app(),
     store: () => m.element_type_store(),

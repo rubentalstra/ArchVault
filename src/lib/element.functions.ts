@@ -1,14 +1,12 @@
 import {createServerFn} from "@tanstack/react-start";
 import {and, eq, isNull, inArray} from "drizzle-orm";
 import {db} from "./database";
-import {element, technology, elementTechnology, elementLink, tag, elementTag, elementGroup} from "./schema";
+import {element, technology, elementTechnology, elementLink, tag, elementTag} from "./schema";
 import {
     createElementSchema,
     updateElementSchema,
     deleteElementSchema,
     getElementsSchema,
-    addElementToGroupSchema,
-    removeElementFromGroupSchema,
     addLinkSchema,
     updateLinkSchema,
     removeLinkSchema,
@@ -72,16 +70,6 @@ export const getElements = createServerFn({method: "GET"})
             : [];
         const tagMap = new Map(tags.map((t) => [t.id, t]));
 
-        const groupRows = await db
-            .select({
-                elementId: elementGroup.elementId,
-                groupElementId: elementGroup.groupElementId,
-                groupName: element.name,
-            })
-            .from(elementGroup)
-            .innerJoin(element, eq(elementGroup.groupElementId, element.id))
-            .where(inArray(elementGroup.elementId, elementIds));
-
         return elements.map((el) => {
             const iconTech = el.iconTechnologyId ? iconTechMap.get(el.iconTechnologyId) : null;
             return {
@@ -98,9 +86,6 @@ export const getElements = createServerFn({method: "GET"})
                     .filter((r) => r.elementId === el.id)
                     .map((r) => tagMap.get(r.tagId))
                     .filter(Boolean),
-                groups: groupRows
-                    .filter((g) => g.elementId === el.id)
-                    .map((g) => ({id: g.groupElementId, name: g.groupName})),
             };
         });
     });
@@ -134,15 +119,6 @@ export const getElementById = createServerFn({method: "GET"})
             .from(elementLink)
             .where(eq(elementLink.elementId, el.id));
 
-        const groups = await db
-            .select({
-                id: elementGroup.groupElementId,
-                name: element.name,
-            })
-            .from(elementGroup)
-            .innerJoin(element, eq(elementGroup.groupElementId, element.id))
-            .where(eq(elementGroup.elementId, el.id));
-
         // Fetch icon technology info
         let iconTechSlug: string | null = null;
         let iconTechName: string | null = null;
@@ -163,7 +139,6 @@ export const getElementById = createServerFn({method: "GET"})
             iconTechName,
             technologies: technologies.sort((a, b) => a.sortOrder - b.sortOrder),
             links: links.sort((a, b) => a.sortOrder - b.sortOrder),
-            groups,
         };
     });
 
@@ -304,62 +279,6 @@ export const deleteElement = createServerFn({method: "POST"})
                 updated_by = ${session.user.id}
             WHERE id IN (SELECT id FROM descendants)
         `);
-
-        return {success: true};
-    });
-
-// ── Group assignment CRUD ────────────────────────────────────────────
-
-export const addElementToGroup = createServerFn({method: "POST"})
-    .inputValidator((input: unknown) => addElementToGroupSchema.parse(input))
-    .handler(async ({data}) => {
-        const member = await getActiveMember();
-        assertRole(member.role, ["owner", "admin", "editor"]);
-
-        if (data.elementId === data.groupElementId) {
-            throw new Error("An element cannot be assigned to itself as a group.");
-        }
-
-        const [memberElement] = await db
-            .select({id: element.id, workspaceId: element.workspaceId, elementType: element.elementType})
-            .from(element)
-            .where(and(eq(element.id, data.elementId), isNull(element.deletedAt)));
-        const [groupElement] = await db
-            .select({id: element.id, workspaceId: element.workspaceId, elementType: element.elementType})
-            .from(element)
-            .where(and(eq(element.id, data.groupElementId), isNull(element.deletedAt)));
-
-        if (!memberElement || !groupElement) throw new Error("Element not found");
-        if (memberElement.workspaceId !== groupElement.workspaceId) {
-            throw new Error("Elements must belong to the same workspace.");
-        }
-        if (groupElement.elementType !== "group") {
-            throw new Error("Group assignment target must be a group element.");
-        }
-        if (memberElement.elementType === "group") {
-            throw new Error("Groups cannot be assigned to groups.");
-        }
-
-        await db.insert(elementGroup).values({
-            elementId: data.elementId,
-            groupElementId: data.groupElementId,
-        }).onConflictDoNothing();
-
-        return {success: true};
-    });
-
-export const removeElementFromGroup = createServerFn({method: "POST"})
-    .inputValidator((input: unknown) => removeElementFromGroupSchema.parse(input))
-    .handler(async ({data}) => {
-        const member = await getActiveMember();
-        assertRole(member.role, ["owner", "admin", "editor"]);
-
-        await db.delete(elementGroup).where(
-            and(
-                eq(elementGroup.elementId, data.elementId),
-                eq(elementGroup.groupElementId, data.groupElementId),
-            ),
-        );
 
         return {success: true};
     });

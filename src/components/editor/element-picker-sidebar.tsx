@@ -34,7 +34,6 @@ interface WorkspaceElement {
 
 const ELEMENT_TYPE_LABELS: Record<ElementType, () => string> = {
   actor: () => m.element_type_actor(),
-  group: () => m.element_type_system(),
   system: () => m.element_type_system(),
   app: () => m.element_type_app(),
   store: () => m.element_type_store(),
@@ -51,7 +50,6 @@ const SUB_FLOW_ELIGIBLE: Record<DiagramType, ElementType[]> = {
 
 const SUB_FLOW_SIZES: Record<ElementType, { width: number; height: number }> = {
   actor: { width: 160, height: 100 },
-  group: { width: 320, height: 220 },
   system: { width: 500, height: 400 },
   app: { width: 500, height: 400 },
   store: { width: 180, height: 110 },
@@ -89,7 +87,6 @@ export function ElementPickerSidebar() {
 
     const filtered = elements.filter((el) => {
       if (!validateElementForDiagram(diagramType, el.elementType).valid) return false;
-      if (el.elementType === "group") return false;
       if (search && !el.name.toLowerCase().includes(search.toLowerCase())) return false;
       return true;
     });

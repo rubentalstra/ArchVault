@@ -11,6 +11,17 @@ and undo/redo with history stack.
 
 - Phase 3d (Canvas Edges & Connections) — complete
 
+## Current State
+
+The editor store (`src/stores/editor-store.ts`) manages nodes, edges, mode (select/pan/add_connection),
+selection state, grid/minimap toggles, and context menus via Zustand. There is **no undo/redo stack or
+autosave logic** — changes are persisted immediately via fire-and-forget server function calls triggered
+by node drag/resize callbacks.
+
+The toolbar (`src/components/editor/editor-toolbar.tsx`) has mode toggles (select, pan, connection),
+add-element popover with drag-to-add, and grid/minimap/element-picker toggles. Undo/redo buttons and
+save indicators do not yet exist.
+
 ## Tasks
 
 ### Autosave
@@ -18,9 +29,7 @@ and undo/redo with history stack.
 - [ ] Debounced autosave (500ms after last change):
   - Node position/size changes
   - Edge visual property changes
-  - Group position/size changes
 - [ ] Save indicator in toolbar: "Saving..." → "Saved" with timestamp
-- [ ] Conflict detection: if another user changed the diagram, show warning
 - [ ] Batch persistence: collect all pending changes and send in a single server call
 
 ### Keyboard Shortcuts
@@ -33,7 +42,6 @@ and undo/redo with history stack.
   - `Cmd/Ctrl + C` — copy selected
   - `Cmd/Ctrl + V` — paste
   - `Cmd/Ctrl + D` — duplicate selected
-  - `Cmd/Ctrl + G` — group selected elements (assign to group)
   - `Escape` — deselect all / exit current mode
   - `Space` (hold) — activate pan mode
 - [ ] Element creation shortcuts:
@@ -42,7 +50,6 @@ and undo/redo with history stack.
   - `Shift + A` — add App
   - `Shift + D` — add Store
   - `Shift + X` — add Component
-  - `Shift + G` — add Group
 - [ ] Navigation shortcuts:
   - `Cmd/Ctrl + +` — zoom in
   - `Cmd/Ctrl + -` — zoom out
@@ -52,7 +59,10 @@ and undo/redo with history stack.
   - `V` — select mode
   - `H` — pan mode
   - `C` — connection mode
-- [ ] Keyboard shortcut reference panel (show with `?`)
+- [ ] Keyboard shortcut reference panel (show with `?`):
+  - Use shadcn `Kbd` and `KbdGroup` components (`src/components/ui/kbd.tsx`) for all key displays
+  - Example: `<KbdGroup><Kbd>Cmd</Kbd><Kbd>Z</Kbd></KbdGroup>` for undo
+  - Use `Kbd` in toolbar tooltips to show shortcut hints alongside button labels
 
 ### Undo/Redo
 
@@ -74,7 +84,6 @@ and undo/redo with history stack.
   - `add_edge` — connection added to diagram
   - `remove_edge` — connection removed from diagram
   - `update_properties` — any property change
-  - `add_group` / `remove_group` / `move_group`
 - [ ] Batch actions: group rapid changes (e.g., moving multiple selected nodes) into single undo step
 - [ ] Undo/redo buttons in toolbar with disabled state when stack is empty
 - [ ] Clear redo stack when a new action is pushed
@@ -93,20 +102,21 @@ and undo/redo with history stack.
 
 ## Key Files
 
-- `src/stores/editor-store.ts` — undo/redo stack, autosave state
-- `src/hooks/use-autosave.ts` — debounced save logic
-- `src/hooks/use-editor-hotkeys.ts` — keyboard shortcut handler
-- `src/hooks/use-clipboard.ts` — copy/paste logic
-- `src/components/editor/editor-toolbar.tsx` — undo/redo buttons, save indicator
-- `src/components/editor/shortcuts-dialog.tsx` — keyboard shortcut reference
+- `src/stores/editor-store.ts` — undo/redo stack, autosave state (extend existing store)
+- `src/hooks/use-autosave.ts` — debounced save logic (new)
+- `src/hooks/use-editor-hotkeys.ts` — keyboard shortcut handler (new)
+- `src/hooks/use-clipboard.ts` — copy/paste logic (new)
+- `src/components/editor/editor-toolbar.tsx` — undo/redo buttons, save indicator (extend existing)
+- `src/components/editor/shortcuts-dialog.tsx` — keyboard shortcut reference (new)
+- `src/components/ui/kbd.tsx` — shadcn `Kbd` / `KbdGroup` components (installed)
 
 ## Design Notes
 
 - **Undo is local only.** The undo/redo stack is per-session, stored in Zustand (not persisted to DB).
   It tracks diagram-level actions, not model-level changes. If you rename an element in the properties
   panel, that's a model change and is NOT undoable (it would need a different mechanism).
-- **Autosave debouncing:** Collect all changes during the debounce window and send as a batch. This
-  prevents hammering the server during rapid interactions like dragging multiple nodes.
+- **Autosave debouncing:** Currently changes fire immediately via server functions on drag end. This
+  phase replaces that with a debounced batch approach to prevent hammering the server.
 - **Clipboard format:** Use `application/json` MIME type in the clipboard to avoid conflicts with
   plain text paste. Store enough data to recreate elements (name, type, connections, position delta).
 

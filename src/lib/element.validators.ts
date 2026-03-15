@@ -1,6 +1,6 @@
 import { z } from "zod/v4";
 
-export const elementTypes = ["actor", "group", "system", "app", "store", "component"] as const;
+export const elementTypes = ["actor", "system", "app", "store", "component"] as const;
 export type ElementType = (typeof elementTypes)[number];
 
 export const elementStatuses = ["planned", "live", "deprecated"] as const;
@@ -39,16 +39,6 @@ export const getElementsSchema = z.object({
   workspaceId: z.string(),
 });
 
-export const addElementToGroupSchema = z.object({
-  elementId: z.string(),
-  groupElementId: z.string(),
-});
-
-export const removeElementFromGroupSchema = z.object({
-  elementId: z.string(),
-  groupElementId: z.string(),
-});
-
 // ── Link schemas ───────────────────────────────────────────────────────
 
 export const addLinkSchema = z.object({
@@ -72,9 +62,8 @@ export const removeLinkSchema = z.object({
 // ── Hierarchy validation ───────────────────────────────────────────────
 
 const VALID_PARENTS: Record<ElementType, ElementType[] | null> = {
-  actor: ["group"],
-  group: ["group"],
-  system: ["group"],
+  actor: null,
+  system: null,
   app: ["system"],
   store: ["system"],
   component: ["app"],

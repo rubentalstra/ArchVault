@@ -15,7 +15,6 @@ import {technology} from "./technologies";
 
 export const elementTypeEnum = pgEnum("element_type", [
     "actor",
-    "group",
     "system",
     "app",
     "store",

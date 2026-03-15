@@ -22,7 +22,6 @@ import {
   ArrowLeftRight,
   Minus,
   User,
-  Layers,
   Server,
   Package,
   Database,
@@ -54,9 +53,8 @@ export interface ConnectionTableActions {
   elementTypeMap: Map<string, ElementType>;
 }
 
-const TYPE_ICONS: Record<ElementType, typeof User> = {
+const TYPE_ICONS: Partial<Record<ElementType, typeof User>> = {
   actor: User,
-  group: Layers,
   system: Server,
   app: Package,
   store: Database,

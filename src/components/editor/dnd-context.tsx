@@ -29,7 +29,6 @@ export const DEFAULT_SIZES: Record<
     { width: number; height: number }
 > = {
     actor: {width: 160, height: 100},
-    group: {width: 320, height: 220},
     system: {width: 200, height: 120},
     app: {width: 180, height: 110},
     store: {width: 180, height: 110},
@@ -38,7 +37,6 @@ export const DEFAULT_SIZES: Record<
 
 const NEW_ELEMENT_NAMES: Record<ElementType, () => string> = {
     actor: () => m.editor_new_actor(),
-    group: () => m.editor_new_system(),
     system: () => m.editor_new_system(),
     app: () => m.editor_new_app(),
     store: () => m.editor_new_store(),
@@ -315,15 +313,10 @@ export function useCreateElementAtPosition() {
                     }
                     : {x: flowPos.x, y: flowPos.y};
 
-                const isResizable = elementType === "group";
-
                 const newNode: AppNode = {
                     id: diagramElement.id,
                     type: elementType,
                     position,
-                    ...(isResizable
-                        ? {style: {width: size.width, height: size.height}}
-                        : {}),
                     zIndex: 0,
                     data: {
                         elementId: newElement.id,
