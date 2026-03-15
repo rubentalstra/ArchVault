@@ -23,7 +23,6 @@ function SystemNodeComponent({ data, selected }: NodeProps & { data: SystemNodeD
           lineClassName="!border-primary"
           handleClassName="!size-2 !border-primary !bg-background"
         />
-        <NodeHandles />
         <div
           className={`h-full w-full rounded-xl border-2 p-3 ${
             selected ? "border-primary" : "border-dashed border-muted-foreground/40"

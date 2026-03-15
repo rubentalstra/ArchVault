@@ -155,8 +155,15 @@ export function DiagramCanvas({ readOnly = false }: DiagramCanvasProps) {
   const isValidConnection: IsValidConnection = useCallback(
     (connection: Connection | { source: string; target: string }) => {
       if (connection.source === connection.target) return false;
-      const existing = useEditorStore.getState().edges;
-      return !existing.some(
+
+      const { nodes, edges } = useEditorStore.getState();
+
+      // Block connections to/from sub-flow containers
+      const sourceNode = nodes.find((n) => n.id === connection.source);
+      const targetNode = nodes.find((n) => n.id === connection.target);
+      if (sourceNode?.data.isSubFlow || targetNode?.data.isSubFlow) return false;
+
+      return !edges.some(
         (e) =>
           (e.source === connection.source && e.target === connection.target) ||
           (e.source === connection.target && e.target === connection.source),

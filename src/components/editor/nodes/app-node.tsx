@@ -23,7 +23,6 @@ function AppNodeComponentInner({ data, selected }: NodeProps & { data: AppNodeDa
           lineClassName="!border-primary"
           handleClassName="!size-2 !border-primary !bg-background"
         />
-        <NodeHandles />
         <div
           className={`h-full w-full rounded-lg border-2 p-3 ${
             selected ? "border-primary" : "border-dashed border-muted-foreground/40"
