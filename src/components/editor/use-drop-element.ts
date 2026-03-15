@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "react";
+import { useCallback } from "react";
 import { useReactFlow } from "@xyflow/react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -12,6 +12,9 @@ import type { ElementStatus } from "#/lib/element.validators";
 
 type CreatedElement = { id: string; name: string; status: ElementStatus; external: boolean };
 type CreatedDiagramElement = { id: string };
+
+/** MIME type used for drag-and-drop data transfer */
+export const DND_ELEMENT_TYPE = "application/archvault-element-type";
 
 const DEFAULT_SIZES: Record<ElementType, { width: number; height: number }> = {
   actor: { width: 160, height: 100 },
@@ -31,12 +34,11 @@ const NEW_ELEMENT_NAMES: Record<ElementType, () => string> = {
   component: () => m.editor_new_component(),
 };
 
-/** Detect if click position is inside a sub-flow container node */
+/** Detect if a flow position lands inside a sub-flow container node */
 function findSubFlowParent(
   flowPos: { x: number; y: number },
   nodes: AppNode[],
 ): AppNode | null {
-  // Check sub-flow nodes (in reverse order so top-most is found first)
   for (let i = nodes.length - 1; i >= 0; i--) {
     const node = nodes[i];
     if (!node.data.isSubFlow) continue;
@@ -57,10 +59,11 @@ function findSubFlowParent(
   return null;
 }
 
-export function useAddElement() {
-  const mode = useEditorStore((s) => s.mode);
-  const addElementType = useEditorStore((s) => s.addElementType);
-  const setMode = useEditorStore((s) => s.setMode);
+/**
+ * Hook that provides onDragOver + onDrop handlers for the React Flow canvas.
+ * Draggable items set `dataTransfer` with `DND_ELEMENT_TYPE` as the key.
+ */
+export function useDropElement() {
   const addNode = useEditorStore((s) => s.addNode);
   const setSelection = useEditorStore((s) => s.setSelection);
   const reactFlow = useReactFlow();
@@ -68,19 +71,17 @@ export function useAddElement() {
   const createElementFn = useServerFn(createElement);
   const addDiagramElementFn = useServerFn(addDiagramElement);
 
-  // Escape returns to select mode
-  useEffect(() => {
-    if (mode !== "add_element") return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setMode("select");
-    };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
-  }, [mode, setMode]);
+  const onDragOver = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = "move";
+  }, []);
 
-  const onPaneClick = useCallback(
-    async (event: React.MouseEvent) => {
-      if (mode !== "add_element" || !addElementType) return;
+  const onDrop = useCallback(
+    async (event: React.DragEvent) => {
+      event.preventDefault();
+
+      const elementType = event.dataTransfer.getData(DND_ELEMENT_TYPE) as ElementType | "";
+      if (!elementType) return;
 
       const store = useEditorStore.getState();
       if (!store.workspaceId || !store.diagramId) return;
@@ -90,21 +91,22 @@ export function useAddElement() {
         y: event.clientY,
       });
 
-      // Detect if clicking inside a sub-flow container
+      // Detect if dropping inside a sub-flow container
       const parentNode = findSubFlowParent(flowPos, store.nodes);
       const parentElementId = parentNode ? parentNode.data.elementId : null;
+
+      const size = DEFAULT_SIZES[elementType];
 
       try {
         const newElement = (await createElementFn({
           data: {
             workspaceId: store.workspaceId,
-            elementType: addElementType,
-            name: NEW_ELEMENT_NAMES[addElementType](),
+            elementType,
+            name: NEW_ELEMENT_NAMES[elementType](),
             ...(parentElementId ? { parentElementId } : {}),
           },
         })) as CreatedElement;
 
-        const size = DEFAULT_SIZES[addElementType];
         const diagramElement = (await addDiagramElementFn({
           data: {
             diagramId: store.diagramId,
@@ -121,11 +123,11 @@ export function useAddElement() {
           ? { x: flowPos.x - parentNode.position.x, y: flowPos.y - parentNode.position.y }
           : { x: flowPos.x, y: flowPos.y };
 
-        const isResizable = addElementType === "group";
+        const isResizable = elementType === "group";
 
         const newNode: AppNode = {
           id: diagramElement.id,
-          type: addElementType,
+          type: elementType,
           position,
           ...(isResizable ? { style: { width: size.width, height: size.height } } : {}),
           zIndex: 0,
@@ -145,14 +147,13 @@ export function useAddElement() {
         } as unknown as AppNode;
 
         addNode(newNode);
-        setMode("select");
         setSelection([newNode.id], []);
       } catch {
         toast.error(m.editor_panel_save_failed());
       }
     },
-    [mode, addElementType, reactFlow, createElementFn, addDiagramElementFn, addNode, setMode, setSelection],
+    [reactFlow, createElementFn, addDiagramElementFn, addNode, setSelection],
   );
 
-  return { onPaneClick, isAddMode: mode === "add_element" };
+  return { onDragOver, onDrop };
 }

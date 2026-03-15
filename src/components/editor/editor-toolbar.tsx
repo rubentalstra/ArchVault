@@ -1,6 +1,7 @@
 import { Panel, useReactFlow } from "@xyflow/react";
 import { useEditorStore } from "#/stores/editor-store";
 import { validateElementForDiagram } from "#/lib/diagram.validators";
+import { DND_ELEMENT_TYPE } from "#/components/editor/use-drop-element";
 import { Button } from "#/components/ui/button";
 import { Toggle } from "#/components/ui/toggle";
 import { Separator } from "#/components/ui/separator";
@@ -32,6 +33,7 @@ import {
   Package,
   Database,
   Cpu,
+  GripVertical,
 } from "lucide-react";
 import { m } from "#/paraglide/messages";
 import type { ElementType } from "#/lib/element.validators";
@@ -44,10 +46,14 @@ const ADD_ELEMENT_OPTIONS: { type: ElementType; label: () => string; icon: React
   { type: "component", label: () => m.editor_toolbar_add_component(), icon: <Cpu className="mr-2 size-4" /> },
 ];
 
+function onDragStart(event: React.DragEvent, elementType: ElementType) {
+  event.dataTransfer.setData(DND_ELEMENT_TYPE, elementType);
+  event.dataTransfer.effectAllowed = "move";
+}
+
 export function EditorToolbar() {
   const mode = useEditorStore((s) => s.mode);
   const setMode = useEditorStore((s) => s.setMode);
-  const setAddElementType = useEditorStore((s) => s.setAddElementType);
   const diagramType = useEditorStore((s) => s.diagramType);
   const showGrid = useEditorStore((s) => s.showGrid);
   const setShowGrid = useEditorStore((s) => s.setShowGrid);
@@ -90,7 +96,7 @@ export function EditorToolbar() {
               render={
                 <Toggle
                   size="sm"
-                  pressed={mode === "add_element"}
+                  pressed={false}
                   aria-label={m.editor_toolbar_add_element()}
                 >
                   <Plus className="size-4" />
@@ -109,8 +115,11 @@ export function EditorToolbar() {
                 <DropdownMenuItem
                   key={type}
                   disabled={!valid}
-                  onClick={() => setAddElementType(type)}
+                  className={valid ? "cursor-grab active:cursor-grabbing" : ""}
+                  draggable={valid}
+                  onDragStart={(e) => onDragStart(e, type)}
                 >
+                  <GripVertical className="mr-1 size-3 text-muted-foreground" />
                   {icon}
                   {label()}
                 </DropdownMenuItem>

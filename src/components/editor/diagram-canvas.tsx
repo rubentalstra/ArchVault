@@ -31,7 +31,7 @@ import { createConnection, deleteConnection } from "#/lib/connection.functions";
 import { flowNodeToUpdate } from "#/lib/converters/flow-to-diagram";
 import { EditorToolbar } from "#/components/editor/editor-toolbar";
 import { EditorContextMenu } from "#/components/editor/context-menu";
-import { useAddElement } from "#/components/editor/use-add-element";
+import { useDropElement } from "#/components/editor/use-drop-element";
 import { m } from "#/paraglide/messages";
 import type { AppNode, AppEdge } from "#/lib/types/diagram-nodes";
 
@@ -69,7 +69,7 @@ export function DiagramCanvas({ readOnly = false }: DiagramCanvasProps) {
   const setContextMenu = useEditorStore((s) => s.setContextMenu);
   const addEdge = useEditorStore((s) => s.addEdge);
 
-  const { onPaneClick: onAddElementPaneClick, isAddMode } = useAddElement();
+  const { onDragOver, onDrop } = useDropElement();
   const reactFlow = useReactFlow();
 
   const updateDiagramElementFn = useServerFn(updateDiagramElement);
@@ -268,15 +268,9 @@ export function DiagramCanvas({ readOnly = false }: DiagramCanvasProps) {
     [setContextMenu],
   );
 
-  const handlePaneClick = useCallback(
-    (event: React.MouseEvent) => {
-      setContextMenu(null);
-      if (isAddMode) {
-        onAddElementPaneClick(event);
-      }
-    },
-    [setContextMenu, isAddMode, onAddElementPaneClick],
-  );
+  const handlePaneClick = useCallback(() => {
+    setContextMenu(null);
+  }, [setContextMenu]);
 
   // Persist resize dimensions when a node (parent container or group) is resized
   const handleNodesChange = useCallback(
@@ -301,7 +295,6 @@ export function DiagramCanvas({ readOnly = false }: DiagramCanvasProps) {
 
   return (
     <ReactFlow
-      className={isAddMode ? "cursor-crosshair" : ""}
       nodes={nodes}
       edges={edges}
       nodeTypes={nodeTypes}
@@ -312,6 +305,8 @@ export function DiagramCanvas({ readOnly = false }: DiagramCanvasProps) {
       onNodesDelete={readOnly ? undefined : onNodesDelete}
       onEdgesDelete={readOnly ? undefined : onEdgesDelete}
       onConnect={readOnly ? undefined : onConnect}
+      onDragOver={readOnly ? undefined : onDragOver}
+      onDrop={readOnly ? undefined : onDrop}
       onSelectionChange={onSelectionChange}
       onNodeContextMenu={readOnly ? undefined : onNodeContextMenu}
       onEdgeContextMenu={readOnly ? undefined : onEdgeContextMenu}

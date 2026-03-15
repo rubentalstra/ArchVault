@@ -6,7 +6,6 @@ import {
 import type { NodeChange, EdgeChange } from "@xyflow/react";
 import type { AppNode, AppEdge, BaseNodeData, ConnectionEdgeData } from "#/lib/types/diagram-nodes";
 import type { DiagramType } from "#/lib/diagram.validators";
-import type { ElementType } from "#/lib/element.validators";
 
 // ── Context menu state ─────────────────────────────────────────────
 
@@ -39,7 +38,7 @@ function sortNodesTopologically(nodes: AppNode[]): AppNode[] {
 
 // ── Store types ────────────────────────────────────────────────────
 
-type EditorMode = "select" | "pan" | "add_element" | "add_connection";
+type EditorMode = "select" | "pan" | "add_connection";
 
 interface EditorState {
   nodes: AppNode[];
@@ -47,7 +46,6 @@ interface EditorState {
   onNodesChange: (changes: NodeChange<AppNode>[]) => void;
   onEdgesChange: (changes: EdgeChange<AppEdge>[]) => void;
   mode: EditorMode;
-  addElementType: ElementType | null;
   selectedNodeIds: string[];
   selectedEdgeIds: string[];
   diagramId: string | null;
@@ -63,7 +61,6 @@ interface EditorState {
   setNodes: (nodes: AppNode[]) => void;
   setEdges: (edges: AppEdge[]) => void;
   setMode: (mode: EditorMode) => void;
-  setAddElementType: (type: ElementType | null) => void;
   setSelection: (nodeIds: string[], edgeIds: string[]) => void;
   setShowGrid: (show: boolean) => void;
   setShowMinimap: (show: boolean) => void;
@@ -93,7 +90,6 @@ const initialState = {
   nodes: [] as AppNode[],
   edges: [] as AppEdge[],
   mode: "select" as EditorMode,
-  addElementType: null as ElementType | null,
   selectedNodeIds: [] as string[],
   selectedEdgeIds: [] as string[],
   diagramId: null as string | null,
@@ -118,15 +114,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   },
   setNodes: (nodes) => set({ nodes }),
   setEdges: (edges) => set({ edges }),
-  setMode: (mode) => {
-    if (mode !== "add_element") {
-      set({ mode, addElementType: null });
-    } else {
-      set({ mode });
-    }
-  },
-  setAddElementType: (type) =>
-    set({ addElementType: type, mode: type ? "add_element" : "select" }),
+  setMode: (mode) => set({ mode }),
   setSelection: (nodeIds, edgeIds) =>
     set({ selectedNodeIds: nodeIds, selectedEdgeIds: edgeIds }),
   setShowGrid: (show) => set({ showGrid: show }),
