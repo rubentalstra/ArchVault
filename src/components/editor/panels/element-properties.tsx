@@ -2,6 +2,7 @@ import {useCallback, useEffect, useMemo, useState} from "react";
 import {useQuery, useQueryClient} from "@tanstack/react-query";
 import {useServerFn} from "@tanstack/react-start";
 import {toast} from "sonner";
+import {useReactFlow} from "@xyflow/react";
 import {useEditorStore} from "#/stores/editor-store";
 import {getElementById, updateElement, addLink, removeLink} from "#/lib/element.functions";
 import {
@@ -49,7 +50,7 @@ import {StatusDot} from "#/components/editor/nodes/status-dot";
 import {InlineEditable} from "./inline-editable";
 import {
     X, Plus, ExternalLink, BookOpen, History, Tag, Check,
-    Box, Package, Cpu, Database, User,
+    Box, Package, Cpu, Database, User, ChevronRight,
     MoreHorizontal, ImageIcon, Trash2,
 } from "lucide-react";
 import {m} from "#/paraglide/messages";
@@ -73,22 +74,30 @@ const STATUS_OPTIONS: { value: ElementStatus; label: () => string }[] = [
     {value: "deprecated", label: () => m.element_status_deprecated()},
 ];
 
-function getNodeTypeIcon(type: string | undefined) {
+function getNodeTypeIcon(type: string | undefined, className = "size-10 shrink-0 text-foreground") {
     switch (type) {
         case "system":
-            return <Box className="size-10 shrink-0 text-foreground"/>;
+            return <Box className={className}/>;
         case "app":
-            return <Package className="size-10 shrink-0 text-foreground"/>;
+            return <Package className={className}/>;
         case "component":
-            return <Cpu className="size-10 shrink-0 text-foreground"/>;
+            return <Cpu className={className}/>;
         case "store":
-            return <Database className="size-10 shrink-0 text-foreground"/>;
+            return <Database className={className}/>;
         case "actor":
-            return <User className="size-10 shrink-0 text-foreground"/>;
+            return <User className={className}/>;
         default:
-            return <Box className="size-10 shrink-0 text-foreground"/>;
+            return <Box className={className}/>;
     }
 }
+
+const ELEMENT_TYPE_LABELS: Record<string, () => string> = {
+    actor: () => m.element_type_actor(),
+    system: () => m.element_type_system(),
+    app: () => m.element_type_app(),
+    store: () => m.element_type_store(),
+    component: () => m.element_type_component(),
+};
 
 export function ElementProperties({node}: { node: AppNode }) {
     const workspaceId = useEditorStore((s) => s.workspaceId);
@@ -240,9 +249,7 @@ export function ElementProperties({node}: { node: AppNode }) {
                         </PropertyRow>
 
                         {element?.parentElementId && (
-                            <PropertyRow label={m.element_label_parent()}>
-                                <span className="text-sm">{element.parentElementId}</span>
-                            </PropertyRow>
+                            <ParentElementCard parentElementId={element.parentElementId}/>
                         )}
 
                         <Separator/>
@@ -302,6 +309,53 @@ function PropertyRow({
         <div className="flex min-h-10 items-center gap-2 px-4 py-1.5">
             <span className="w-24 shrink-0 text-sm text-muted-foreground">{label}</span>
             <div className="flex min-w-0 flex-1 items-center">{children}</div>
+        </div>
+    );
+}
+
+/* ── Parent Element Card ──────────────────────────────────────────── */
+
+function ParentElementCard({parentElementId}: { parentElementId: string }) {
+    const nodes = useEditorStore((s) => s.nodes);
+    const setSelection = useEditorStore((s) => s.setSelection);
+    const reactFlow = useReactFlow();
+
+    const parentNode = nodes.find((n) => n.data.elementId === parentElementId);
+    if (!parentNode) return null;
+
+    const handleClick = () => {
+        setSelection([parentNode.id], []);
+        void reactFlow.fitView({nodes: [{id: parentNode.id}], duration: 300, padding: 0.5});
+    };
+
+    return (
+        <div className="px-4 py-1.5">
+            <span className="mb-1.5 block text-xs text-muted-foreground">
+                {m.element_label_parent()}
+            </span>
+            <button
+                onClick={handleClick}
+                className="flex w-full items-center gap-3 rounded-lg border bg-muted/30 p-2.5 text-left transition-colors hover:bg-accent"
+            >
+                <div className="shrink-0 rounded-md border bg-background p-1.5">
+                    {parentNode.data.iconTechSlug ? (
+                        <TechIcon
+                            slug={parentNode.data.iconTechSlug}
+                            className="size-5"
+                            fallback={getNodeTypeIcon(parentNode.type, "size-5 shrink-0 text-muted-foreground")}
+                        />
+                    ) : (
+                        getNodeTypeIcon(parentNode.type, "size-5 shrink-0 text-muted-foreground")
+                    )}
+                </div>
+                <div className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-medium">{parentNode.data.name}</span>
+                    <span className="text-xs text-muted-foreground">
+                        {ELEMENT_TYPE_LABELS[parentNode.type]?.() ?? parentNode.type}
+                    </span>
+                </div>
+                <ChevronRight className="size-4 shrink-0 text-muted-foreground"/>
+            </button>
         </div>
     );
 }
