@@ -89,7 +89,7 @@ Paraglide JS v2 provides compile-time type-safe translations. Source files: `mes
 
 **Locale runtime:** `import { getLocale, setLocale, locales } from '#/paraglide/runtime'`
 
-**URL strategy:** English (base locale) has no prefix (`/login`). Dutch uses `/nl/` prefix (`/nl/login`). Cookie `ARCHVAULT_LOCALE` persists locale.
+**URL strategy:** All locales use a URL prefix: English `/en/login`, Dutch `/nl/login`. Unprefixed URLs redirect to the detected locale. Cookie `ARCHVAULT_LOCALE` persists locale.
 
 **Adding a locale:** Add to `project.inlang/settings.json` `locales` + add URL pattern to `vite.config.ts` `urlPatterns` + create `messages/{locale}.json`.
 

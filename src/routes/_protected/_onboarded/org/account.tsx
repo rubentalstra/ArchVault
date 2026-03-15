@@ -18,9 +18,10 @@ export const Route = createFileRoute("/_protected/_onboarded/org/account")({
 
 const NAV_ITEMS = [
   { to: "/org/account", label: () => m.settings_nav_profile(), exact: true },
+  { to: "/org/account/security", label: () => m.settings_nav_security() },
   {
-    to: "/org/account/security",
-    label: () => m.settings_nav_security(),
+    to: "/org/account/preferences",
+    label: () => m.settings_nav_preferences(),
   },
 ] as const;
 
