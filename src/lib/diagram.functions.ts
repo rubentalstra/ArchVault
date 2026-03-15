@@ -146,6 +146,74 @@ export const getDiagramData = createServerFn({method: "GET"})
                 ),
             );
 
+        // Auto-inject scope element if missing from diagram_element table
+        if (d.scopeElementId) {
+            const scopeOnDiagram = elements.some(e => e.elementId === d.scopeElementId);
+            if (!scopeOnDiagram) {
+                const [scopeEl] = await db
+                    .select({
+                        name: element.name,
+                        elementType: element.elementType,
+                        displayDescription: element.displayDescription,
+                        status: element.status,
+                        external: element.external,
+                        parentElementId: element.parentElementId,
+                        iconTechnologyId: element.iconTechnologyId,
+                    })
+                    .from(element)
+                    .where(and(eq(element.id, d.scopeElementId), isNull(element.deletedAt)));
+
+                if (scopeEl) {
+                    // Compute bounding box from children on this diagram
+                    const children = elements.filter(e => e.parentElementId === d.scopeElementId);
+                    const PAD = 60;
+                    const HEADER = 50;
+                    let bounds: { x: number; y: number; width: number; height: number };
+                    if (children.length === 0) {
+                        bounds = {x: 100, y: 50, width: 600, height: 500};
+                    } else {
+                        const minX = Math.min(...children.map(c => c.x)) - PAD;
+                        const minY = Math.min(...children.map(c => c.y)) - PAD - HEADER;
+                        const maxX = Math.max(...children.map(c => c.x + c.width)) + PAD;
+                        const maxY = Math.max(...children.map(c => c.y + c.height)) + PAD;
+                        bounds = {x: minX, y: minY, width: maxX - minX, height: maxY - minY};
+                    }
+
+                    // Persist as diagram_element so it's not re-created on every load
+                    const scopeDeId = crypto.randomUUID();
+                    await db.insert(diagramElement).values({
+                        id: scopeDeId,
+                        diagramId: d.id,
+                        elementId: d.scopeElementId,
+                        x: bounds.x,
+                        y: bounds.y,
+                        width: bounds.width,
+                        height: bounds.height,
+                        zIndex: -1,
+                    });
+
+                    // Prepend to elements array (parent must come before children)
+                    elements.unshift({
+                        id: scopeDeId,
+                        diagramId: d.id,
+                        elementId: d.scopeElementId,
+                        x: bounds.x,
+                        y: bounds.y,
+                        width: bounds.width,
+                        height: bounds.height,
+                        zIndex: -1,
+                        elementName: scopeEl.name,
+                        elementType: scopeEl.elementType,
+                        displayDescription: scopeEl.displayDescription,
+                        status: scopeEl.status,
+                        external: scopeEl.external,
+                        parentElementId: scopeEl.parentElementId,
+                        iconTechnologyId: scopeEl.iconTechnologyId,
+                    });
+                }
+            }
+        }
+
         const connections = await db
             .select({
                 id: diagramConnection.id,
@@ -296,6 +364,20 @@ export const createDiagram = createServerFn({method: "POST"})
                 updatedBy: session.user.id,
             })
             .returning();
+
+        // Auto-add scope element as container on the diagram
+        if (data.scopeElementId) {
+            await db.insert(diagramElement).values({
+                id: crypto.randomUUID(),
+                diagramId: id,
+                elementId: data.scopeElementId,
+                x: 100,
+                y: 50,
+                width: 600,
+                height: 500,
+                zIndex: -1,
+            });
+        }
 
         return created;
     });

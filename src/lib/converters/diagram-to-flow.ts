@@ -59,23 +59,25 @@ export function toFlowNodes(
     elementIdToNodeId.set(row.elementId, row.id);
   }
 
-  // Step 2: Detect parent-child relationships on this diagram
-  // A row is a child if its parentElementId points to an element also on this diagram
+  // Step 2: Detect parent-child — ONLY for scope element as parent
+  // Only children of the scope element form a sub-flow. Other elements
+  // with parents on the diagram remain standalone context nodes.
   const childNodeIdToParentNodeId = new Map<string, string>();
   const parentElementIds = new Set<string>();
 
-  for (const row of rows) {
-    if (!row.parentElementId) continue;
-    const parentNodeId = elementIdToNodeId.get(row.parentElementId);
-    if (!parentNodeId) continue;
-    // Parent element is on this diagram — this is a sub-flow relationship
-    childNodeIdToParentNodeId.set(row.id, parentNodeId);
-    parentElementIds.add(row.parentElementId);
-  }
-
-  // The scope element is also a parent if it exists on this diagram
+  // The scope element is always a parent/container on its diagram
   if (scopeElementId && elementIdToRow.has(scopeElementId)) {
     parentElementIds.add(scopeElementId);
+  }
+
+  for (const row of rows) {
+    if (!row.parentElementId) continue;
+    // Only establish sub-flow if the parent IS the scope element
+    if (row.parentElementId !== scopeElementId) continue;
+    const parentNodeId = elementIdToNodeId.get(row.parentElementId);
+    if (!parentNodeId) continue;
+    childNodeIdToParentNodeId.set(row.id, parentNodeId);
+    parentElementIds.add(row.parentElementId);
   }
 
   // Step 3: Build nodes
