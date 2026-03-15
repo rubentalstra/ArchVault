@@ -40,7 +40,6 @@ type CreatedDiagramConnection = { id: string };
 
 interface DiagramCanvasProps {
   readOnly?: boolean;
-  onNodeDoubleClick?: (event: React.MouseEvent, node: AppNode) => void;
 }
 
 const NODE_COLOR_MAP: Record<string, string> = {
@@ -56,7 +55,7 @@ function getNodeColor(node: { type?: string }) {
   return NODE_COLOR_MAP[node.type ?? ""] ?? "#94a3b8";
 }
 
-export function DiagramCanvas({ readOnly = false, onNodeDoubleClick }: DiagramCanvasProps) {
+export function DiagramCanvas({ readOnly = false }: DiagramCanvasProps) {
   const nodes = useEditorStore((s) => s.nodes);
   const edges = useEditorStore((s) => s.edges);
   const onNodesChange = useEditorStore((s) => s.onNodesChange);
@@ -93,14 +92,24 @@ export function DiagramCanvas({ readOnly = false, onNodeDoubleClick }: DiagramCa
 
   const onNodesDelete = useCallback(
     (deletedNodes: AppNode[]) => {
-      // React Flow includes children automatically when deleting a parent sub-flow node,
-      // but collect child IDs defensively
       const allNodes = useEditorStore.getState().nodes;
+      const currentEdges = useEditorStore.getState().edges;
       const deletedIds = new Set(deletedNodes.map((n) => n.id));
+
       // Include children that might not be in the deletedNodes list
       for (const node of allNodes) {
         if (node.parentId && deletedIds.has(node.parentId)) {
           deletedIds.add(node.id);
+        }
+      }
+
+      // Clean up diagram_connection records for edges touching deleted nodes
+      // (ReactFlow does NOT fire onEdgesDelete for edges removed as a consequence of node deletion)
+      for (const edge of currentEdges) {
+        if (deletedIds.has(edge.source) || deletedIds.has(edge.target)) {
+          if (edge.data) {
+            removeDiagramConnectionFn({ data: { id: edge.data.diagramConnectionId } });
+          }
         }
       }
 
@@ -114,7 +123,7 @@ export function DiagramCanvas({ readOnly = false, onNodeDoubleClick }: DiagramCa
         }
       }
     },
-    [removeDiagramElementFn],
+    [removeDiagramElementFn, removeDiagramConnectionFn],
   );
 
   const onEdgesDelete = useCallback(
@@ -293,7 +302,6 @@ export function DiagramCanvas({ readOnly = false, onNodeDoubleClick }: DiagramCa
       onEdgeContextMenu={readOnly ? undefined : onEdgeContextMenu}
       onPaneContextMenu={readOnly ? undefined : onPaneContextMenu}
       onPaneClick={handlePaneClick}
-      onNodeDoubleClick={onNodeDoubleClick}
       isValidConnection={isValidConnection}
       connectionMode={ConnectionMode.Loose}
       colorMode="system"

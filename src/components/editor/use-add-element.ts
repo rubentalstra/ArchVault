@@ -16,8 +16,8 @@ type CreatedDiagramElement = { id: string };
 const DEFAULT_SIZES: Record<ElementType, { width: number; height: number }> = {
   actor: { width: 160, height: 100 },
   group: { width: 320, height: 220 },
-  system: { width: 500, height: 400 },
-  app: { width: 500, height: 400 },
+  system: { width: 200, height: 120 },
+  app: { width: 180, height: 110 },
   store: { width: 180, height: 110 },
   component: { width: 160, height: 100 },
 };
@@ -31,16 +31,30 @@ const NEW_ELEMENT_NAMES: Record<ElementType, () => string> = {
   component: () => m.editor_new_component(),
 };
 
-/** Determine if the new element should be auto-parented to the scope element */
-function shouldAutoParent(
-  diagramType: string | null,
-  elementType: ElementType,
-  scopeElementId: string | null,
-): boolean {
-  if (!scopeElementId) return false;
-  if (diagramType === "container" && (elementType === "app" || elementType === "store")) return true;
-  if (diagramType === "component" && elementType === "component") return true;
-  return false;
+/** Detect if click position is inside a sub-flow container node */
+function findSubFlowParent(
+  flowPos: { x: number; y: number },
+  nodes: AppNode[],
+): AppNode | null {
+  // Check sub-flow nodes (in reverse order so top-most is found first)
+  for (let i = nodes.length - 1; i >= 0; i--) {
+    const node = nodes[i];
+    if (!node.data.isSubFlow) continue;
+
+    const nodeWidth = Number(node.style?.width ?? 0);
+    const nodeHeight = Number(node.style?.height ?? 0);
+    if (nodeWidth === 0 || nodeHeight === 0) continue;
+
+    if (
+      flowPos.x >= node.position.x &&
+      flowPos.x <= node.position.x + nodeWidth &&
+      flowPos.y >= node.position.y &&
+      flowPos.y <= node.position.y + nodeHeight
+    ) {
+      return node;
+    }
+  }
+  return null;
 }
 
 export function useAddElement() {
@@ -76,14 +90,9 @@ export function useAddElement() {
         y: event.clientY,
       });
 
-      // Determine auto-parenting
-      const autoParent = shouldAutoParent(store.diagramType, addElementType, store.scopeElementId);
-      const parentElementId = autoParent ? store.scopeElementId : null;
-
-      // Find the parent node on the canvas (if auto-parenting)
-      const parentNode = parentElementId
-        ? store.nodes.find((n) => n.data.elementId === parentElementId)
-        : null;
+      // Detect if clicking inside a sub-flow container
+      const parentNode = findSubFlowParent(flowPos, store.nodes);
+      const parentElementId = parentNode ? parentNode.data.elementId : null;
 
       try {
         const newElement = (await createElementFn({
@@ -107,7 +116,7 @@ export function useAddElement() {
           },
         })) as CreatedDiagramElement;
 
-        // Compute position (parent-relative if auto-parented)
+        // Compute position (parent-relative if inside sub-flow)
         const position = parentNode
           ? { x: flowPos.x - parentNode.position.x, y: flowPos.y - parentNode.position.y }
           : { x: flowPos.x, y: flowPos.y };
@@ -129,23 +138,11 @@ export function useAddElement() {
             external: newElement.external,
             technologies: [],
             iconTechSlug: null,
-            isParent: false,
+            isSubFlow: false,
+            deeperDiagrams: [],
           },
           ...(parentNode ? { parentId: parentNode.id, extent: "parent" as const } : {}),
         } as unknown as AppNode;
-
-        // If parent node doesn't have isParent yet, update it and give it container size
-        if (parentNode && !parentNode.data.isParent) {
-          const updatedNodes = store.nodes.map((n) => {
-            if (n.id !== parentNode.id) return n;
-            return {
-              ...n,
-              data: { ...n.data, isParent: true },
-              style: { width: DEFAULT_SIZES[n.type as ElementType]?.width ?? 500, height: DEFAULT_SIZES[n.type as ElementType]?.height ?? 400 },
-            } as AppNode;
-          });
-          useEditorStore.setState({ nodes: updatedNodes });
-        }
 
         addNode(newNode);
         setMode("select");

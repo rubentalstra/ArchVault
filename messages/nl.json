@@ -731,5 +731,15 @@
   "editor_edge_path_orthogonal": "Haaks",
   "editor_edge_line_solid": "Doorlopend",
   "editor_edge_line_dashed": "Gestreept",
-  "editor_edge_line_dotted": "Gestippeld"
+  "editor_edge_line_dotted": "Gestippeld",
+  "editor_picker_title": "Elementen",
+  "editor_picker_search": "Zoek elementen...",
+  "editor_picker_add_as_card": "Toevoegen als kaart",
+  "editor_picker_add_as_container": "Toevoegen als container",
+  "editor_picker_empty": "Geen elementen beschikbaar",
+  "editor_picker_already_on_diagram": "Reeds op diagram",
+  "editor_picker_toggle": "Elementkiezer",
+  "editor_hover_level_2": "Niveau 2 — Containerdiagrammen",
+  "editor_hover_level_3": "Niveau 3 — Componentdiagrammen",
+  "editor_validation_requires_sub_flow": "Moet in een sub-flow container geplaatst worden"
 }

@@ -13,6 +13,9 @@ export type LineStyle = (typeof lineStyles)[number];
 export const anchorPoints = ["auto", "top", "bottom", "left", "right"] as const;
 export type AnchorPoint = (typeof anchorPoints)[number];
 
+export const displayModes = ["normal", "sub_flow"] as const;
+export type DisplayMode = (typeof displayModes)[number];
+
 // ── Diagram CRUD schemas ────────────────────────────────────────────
 
 export const createDiagramSchema = z.object({
@@ -20,7 +23,6 @@ export const createDiagramSchema = z.object({
   name: z.string().min(1).max(100),
   description: z.string().optional(),
   diagramType: z.enum(diagramTypes),
-  scopeElementId: z.string().optional(),
   gridSize: z.number().int().min(5).max(100).default(20),
   snapToGrid: z.boolean().default(true),
 });
@@ -29,7 +31,6 @@ export const updateDiagramSchema = z.object({
   id: z.string(),
   name: z.string().min(1).max(100).optional(),
   description: z.string().nullable().optional(),
-  scopeElementId: z.string().nullable().optional(),
   gridSize: z.number().int().min(5).max(100).optional(),
   snapToGrid: z.boolean().optional(),
 });
@@ -60,6 +61,7 @@ export const addDiagramElementSchema = z.object({
   width: z.number(),
   height: z.number(),
   zIndex: z.number().int().default(0),
+  displayMode: z.enum(displayModes).default("normal"),
   styleJson: z.record(z.string(), z.unknown()).optional(),
 });
 
@@ -70,6 +72,7 @@ export const updateDiagramElementSchema = z.object({
   width: z.number().optional(),
   height: z.number().optional(),
   zIndex: z.number().int().optional(),
+  displayMode: z.enum(displayModes).optional(),
   styleJson: z.record(z.string(), z.unknown()).nullable().optional(),
 });
 
@@ -106,44 +109,47 @@ export const removeDiagramConnectionSchema = z.object({
   id: z.string(),
 });
 
-// ── Scope validation ────────────────────────────────────────────────
+// ── Display mode validation ─────────────────────────────────────────
 
-const VALID_SCOPE_TYPES: Record<DiagramType, ElementType[] | null> = {
-  system_context: null,
+const VALID_SUB_FLOW_TYPES: Record<DiagramType, ElementType[]> = {
+  system_context: [],
   container: ["system"],
   component: ["app"],
 };
 
-const SCOPE_REQUIRED: Record<DiagramType, boolean> = {
-  system_context: false,
-  container: true,
-  component: true,
+export function validateDisplayMode(
+  diagramType: DiagramType,
+  elementType: ElementType,
+  displayMode: DisplayMode,
+): { valid: boolean; message?: string } {
+  if (displayMode === "normal") return { valid: true };
+  const allowed = VALID_SUB_FLOW_TYPES[diagramType];
+  if (!allowed.includes(elementType)) {
+    return { valid: false, message: `A ${elementType} cannot be a sub-flow on a ${diagramType} diagram.` };
+  }
+  return { valid: true };
+}
+
+// ── Child placement validation ──────────────────────────────────────
+
+const REQUIRES_PARENT_SUB_FLOW: Record<DiagramType, ElementType[]> = {
+  system_context: [],
+  container: ["app", "store"],
+  component: ["component"],
 };
 
-export function validateDiagramScope(
+export function validateChildPlacement(
   diagramType: DiagramType,
-  scopeElementType: ElementType | null | undefined,
+  elementType: ElementType,
+  parentElementId: string | null,
+  subFlowElementIds: Set<string>,
 ): { valid: boolean; message?: string } {
-  const required = SCOPE_REQUIRED[diagramType];
-  const allowedTypes = VALID_SCOPE_TYPES[diagramType];
+  const required = REQUIRES_PARENT_SUB_FLOW[diagramType];
+  if (!required.includes(elementType)) return { valid: true };
 
-  if (!scopeElementType) {
-    if (required) {
-      const needed = diagramType === "container" ? "system" : "app";
-      return { valid: false, message: `A ${diagramType} diagram requires a ${needed} as its scope element.` };
-    }
-    return { valid: true };
+  if (!parentElementId || !subFlowElementIds.has(parentElementId)) {
+    return { valid: false, message: `A ${elementType} must be placed inside a sub-flow container.` };
   }
-
-  if (!allowedTypes) {
-    return { valid: false, message: `A ${diagramType} diagram cannot have a scope element.` };
-  }
-
-  if (!allowedTypes.includes(scopeElementType)) {
-    const needed = allowedTypes.join(" or ");
-    return { valid: false, message: `A ${diagramType} diagram scope must be a ${needed}, not a ${scopeElementType}.` };
-  }
-
   return { valid: true };
 }
 

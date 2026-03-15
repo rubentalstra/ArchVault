@@ -24,10 +24,11 @@ import {
     addDiagramConnectionSchema,
     updateDiagramConnectionSchema,
     removeDiagramConnectionSchema,
-    validateDiagramScope,
     validateElementForDiagram,
+    validateDisplayMode,
+    validateChildPlacement,
 } from "./diagram.validators";
-import type {DiagramType} from "./diagram.validators";
+import type {DisplayMode} from "./diagram.validators";
 import type {ElementType} from "./element.validators";
 import {assertRole, getSessionAndOrg} from "./auth.helpers";
 
@@ -61,16 +62,13 @@ export const getDiagrams = createServerFn({method: "GET"})
                 name: diagram.name,
                 description: diagram.description,
                 diagramType: diagram.diagramType,
-                scopeElementId: diagram.scopeElementId,
                 gridSize: diagram.gridSize,
                 snapToGrid: diagram.snapToGrid,
                 createdAt: diagram.createdAt,
                 updatedAt: diagram.updatedAt,
-                scopeElementName: element.name,
                 elementCount: sqlTag<number>`coalesce(${elementCountSubquery.count}, 0)`.as("element_count"),
             })
             .from(diagram)
-            .leftJoin(element, eq(diagram.scopeElementId, element.id))
             .leftJoin(elementCountSubquery, eq(diagram.id, elementCountSubquery.diagramId))
             .where(
                 and(
@@ -129,6 +127,7 @@ export const getDiagramData = createServerFn({method: "GET"})
                 width: diagramElement.width,
                 height: diagramElement.height,
                 zIndex: diagramElement.zIndex,
+                displayMode: diagramElement.displayMode,
                 elementName: element.name,
                 elementType: element.elementType,
                 displayDescription: element.displayDescription,
@@ -145,74 +144,6 @@ export const getDiagramData = createServerFn({method: "GET"})
                     isNull(element.deletedAt),
                 ),
             );
-
-        // Auto-inject scope element if missing from diagram_element table
-        if (d.scopeElementId) {
-            const scopeOnDiagram = elements.some(e => e.elementId === d.scopeElementId);
-            if (!scopeOnDiagram) {
-                const [scopeEl] = await db
-                    .select({
-                        name: element.name,
-                        elementType: element.elementType,
-                        displayDescription: element.displayDescription,
-                        status: element.status,
-                        external: element.external,
-                        parentElementId: element.parentElementId,
-                        iconTechnologyId: element.iconTechnologyId,
-                    })
-                    .from(element)
-                    .where(and(eq(element.id, d.scopeElementId), isNull(element.deletedAt)));
-
-                if (scopeEl) {
-                    // Compute bounding box from children on this diagram
-                    const children = elements.filter(e => e.parentElementId === d.scopeElementId);
-                    const PAD = 60;
-                    const HEADER = 50;
-                    let bounds: { x: number; y: number; width: number; height: number };
-                    if (children.length === 0) {
-                        bounds = {x: 100, y: 50, width: 600, height: 500};
-                    } else {
-                        const minX = Math.min(...children.map(c => c.x)) - PAD;
-                        const minY = Math.min(...children.map(c => c.y)) - PAD - HEADER;
-                        const maxX = Math.max(...children.map(c => c.x + c.width)) + PAD;
-                        const maxY = Math.max(...children.map(c => c.y + c.height)) + PAD;
-                        bounds = {x: minX, y: minY, width: maxX - minX, height: maxY - minY};
-                    }
-
-                    // Persist as diagram_element so it's not re-created on every load
-                    const scopeDeId = crypto.randomUUID();
-                    await db.insert(diagramElement).values({
-                        id: scopeDeId,
-                        diagramId: d.id,
-                        elementId: d.scopeElementId,
-                        x: bounds.x,
-                        y: bounds.y,
-                        width: bounds.width,
-                        height: bounds.height,
-                        zIndex: -1,
-                    });
-
-                    // Prepend to elements array (parent must come before children)
-                    elements.unshift({
-                        id: scopeDeId,
-                        diagramId: d.id,
-                        elementId: d.scopeElementId,
-                        x: bounds.x,
-                        y: bounds.y,
-                        width: bounds.width,
-                        height: bounds.height,
-                        zIndex: -1,
-                        elementName: scopeEl.name,
-                        elementType: scopeEl.elementType,
-                        displayDescription: scopeEl.displayDescription,
-                        status: scopeEl.status,
-                        external: scopeEl.external,
-                        parentElementId: scopeEl.parentElementId,
-                        iconTechnologyId: scopeEl.iconTechnologyId,
-                    });
-                }
-            }
-        }
 
         const connections = await db
             .select({
@@ -269,7 +200,10 @@ export const getDiagramData = createServerFn({method: "GET"})
         // Fetch icon technology slugs for elements
         const elementIconTechIds = [...new Set(elements.map((e) => e.iconTechnologyId).filter(Boolean))] as string[];
         const elementIconTechs = elementIconTechIds.length > 0
-            ? await db.select({id: technology.id, iconSlug: technology.iconSlug}).from(technology).where(inArray(technology.id, elementIconTechIds))
+            ? await db.select({
+                id: technology.id,
+                iconSlug: technology.iconSlug
+            }).from(technology).where(inArray(technology.id, elementIconTechIds))
             : [];
         const elementIconTechMap = new Map(elementIconTechs.map((t) => [t.id, t.iconSlug]));
 
@@ -298,7 +232,10 @@ export const getDiagramData = createServerFn({method: "GET"})
         // Fetch icon technology slugs for connections
         const connIconTechIds = [...new Set(connections.map((c) => c.iconTechnologyId).filter(Boolean))] as string[];
         const connIconTechs = connIconTechIds.length > 0
-            ? await db.select({id: technology.id, iconSlug: technology.iconSlug}).from(technology).where(inArray(technology.id, connIconTechIds))
+            ? await db.select({
+                id: technology.id,
+                iconSlug: technology.iconSlug
+            }).from(technology).where(inArray(technology.id, connIconTechIds))
             : [];
         const connIconTechMap = new Map(connIconTechs.map((t) => [t.id, t.iconSlug]));
 
@@ -314,7 +251,47 @@ export const getDiagramData = createServerFn({method: "GET"})
             iconTechSlug: c.iconTechnologyId ? (connIconTechMap.get(c.iconTechnologyId) ?? null) : null,
         }));
 
-        return {diagram: d, elements: elementsWithTech, connections: connectionsWithTech};
+        // Fetch sub-flow element info for all diagrams in this workspace
+        // (powers the zoom-in HoverCard navigation)
+        const allDiagrams = await db
+            .select({
+                id: diagram.id,
+                name: diagram.name,
+                diagramType: diagram.diagramType,
+            })
+            .from(diagram)
+            .where(
+                and(
+                    eq(diagram.workspaceId, d.workspaceId),
+                    isNull(diagram.deletedAt),
+                ),
+            );
+
+        const allSubFlowElements = await db
+            .select({
+                diagramId: diagramElement.diagramId,
+                elementId: diagramElement.elementId,
+            })
+            .from(diagramElement)
+            .where(eq(diagramElement.displayMode, "sub_flow"));
+
+        // Build reverse map: elementId → diagrams where it's a sub-flow
+        const elementToSubFlowDiagrams = new Map<string, { id: string; name: string; diagramType: string }[]>();
+        const diagramLookup = new Map(allDiagrams.map((d) => [d.id, d]));
+        for (const sf of allSubFlowElements) {
+            const dia = diagramLookup.get(sf.diagramId);
+            if (!dia) continue;
+            const existing = elementToSubFlowDiagrams.get(sf.elementId) ?? [];
+            existing.push({id: dia.id, name: dia.name, diagramType: dia.diagramType});
+            elementToSubFlowDiagrams.set(sf.elementId, existing);
+        }
+
+        return {
+            diagram: d,
+            elements: elementsWithTech,
+            connections: connectionsWithTech,
+            subFlowDiagrams: Object.fromEntries(elementToSubFlowDiagrams),
+        };
     });
 
 export const createDiagram = createServerFn({method: "POST"})
@@ -322,31 +299,6 @@ export const createDiagram = createServerFn({method: "POST"})
     .handler(async ({data}) => {
         const {session, memberRole} = await getSessionAndOrg();
         assertRole(memberRole, ["owner", "admin", "editor"]);
-
-        // Inline helper: fetch element type
-        async function fetchElementType(elementId: string): Promise<{ type: ElementType; workspaceId: string }> {
-            const [el] = await db
-                .select({type: element.elementType, workspaceId: element.workspaceId})
-                .from(element)
-                .where(and(eq(element.id, elementId), isNull(element.deletedAt)));
-            if (!el) throw new Error("Element not found");
-            return {type: el.type, workspaceId: el.workspaceId};
-        }
-
-        if (data.scopeElementId) {
-            const scopeEl = await fetchElementType(data.scopeElementId);
-            const validation = validateDiagramScope(
-                data.diagramType,
-                scopeEl.type,
-            );
-            if (!validation.valid) throw new Error(validation.message);
-        } else {
-            const validation = validateDiagramScope(
-                data.diagramType,
-                null,
-            );
-            if (!validation.valid) throw new Error(validation.message);
-        }
 
         const id = crypto.randomUUID();
         const [created] = await db
@@ -357,27 +309,12 @@ export const createDiagram = createServerFn({method: "POST"})
                 name: data.name,
                 description: data.description ?? null,
                 diagramType: data.diagramType,
-                scopeElementId: data.scopeElementId ?? null,
                 gridSize: data.gridSize,
                 snapToGrid: data.snapToGrid,
                 createdBy: session.user.id,
                 updatedBy: session.user.id,
             })
             .returning();
-
-        // Auto-add scope element as container on the diagram
-        if (data.scopeElementId) {
-            await db.insert(diagramElement).values({
-                id: crypto.randomUUID(),
-                diagramId: id,
-                elementId: data.scopeElementId,
-                x: 100,
-                y: 50,
-                width: 600,
-                height: 500,
-                zIndex: -1,
-            });
-        }
 
         return created;
     });
@@ -388,16 +325,6 @@ export const updateDiagram = createServerFn({method: "POST"})
         const {session, memberRole} = await getSessionAndOrg();
         assertRole(memberRole, ["owner", "admin", "editor"]);
 
-        // Inline helper
-        async function fetchElementType(elementId: string): Promise<{ type: ElementType; workspaceId: string }> {
-            const [el] = await db
-                .select({type: element.elementType, workspaceId: element.workspaceId})
-                .from(element)
-                .where(and(eq(element.id, elementId), isNull(element.deletedAt)));
-            if (!el) throw new Error("Element not found");
-            return {type: el.type, workspaceId: el.workspaceId};
-        }
-
         const {id, ...updates} = data;
 
         const [existing] = await db
@@ -405,23 +332,6 @@ export const updateDiagram = createServerFn({method: "POST"})
             .from(diagram)
             .where(and(eq(diagram.id, id), isNull(diagram.deletedAt)));
         if (!existing) throw new Error("Diagram not found");
-
-        if (updates.scopeElementId !== undefined) {
-            if (updates.scopeElementId) {
-                const scopeEl = await fetchElementType(updates.scopeElementId);
-                const validation = validateDiagramScope(
-                    existing.diagramType,
-                    scopeEl.type,
-                );
-                if (!validation.valid) throw new Error(validation.message);
-            } else {
-                const validation = validateDiagramScope(
-                    existing.diagramType,
-                    null,
-                );
-                if (!validation.valid) throw new Error(validation.message);
-            }
-        }
 
         const [updated] = await db
             .update(diagram)
@@ -471,23 +381,51 @@ export const addDiagramElement = createServerFn({method: "POST"})
             return d;
         }
 
-        async function fetchElementType(elementId: string): Promise<{ type: ElementType; workspaceId: string }> {
+        async function fetchElementInfo(elementId: string): Promise<{
+            type: ElementType;
+            workspaceId: string;
+            parentElementId: string | null
+        }> {
             const [el] = await db
-                .select({type: element.elementType, workspaceId: element.workspaceId})
+                .select({
+                    type: element.elementType,
+                    workspaceId: element.workspaceId,
+                    parentElementId: element.parentElementId
+                })
                 .from(element)
                 .where(and(eq(element.id, elementId), isNull(element.deletedAt)));
             if (!el) throw new Error("Element not found");
-            return {type: el.type, workspaceId: el.workspaceId};
+            return {type: el.type, workspaceId: el.workspaceId, parentElementId: el.parentElementId};
         }
 
         const d = await assertDiagramInWorkspace(data.diagramId);
-        const el = await fetchElementType(data.elementId);
+        const el = await fetchElementInfo(data.elementId);
+        const displayMode = (data.displayMode ?? "normal");
 
-        const validation = validateElementForDiagram(
-            d.diagramType,
-            el.type,
-        );
-        if (!validation.valid) throw new Error(validation.message);
+        // Validate element type for diagram
+        const typeValidation = validateElementForDiagram(d.diagramType, el.type);
+        if (!typeValidation.valid) throw new Error(typeValidation.message);
+
+        // Validate display mode
+        const modeValidation = validateDisplayMode(d.diagramType, el.type, displayMode);
+        if (!modeValidation.valid) throw new Error(modeValidation.message);
+
+        // Validate child placement (apps/stores need parent system as sub-flow, etc.)
+        if (el.parentElementId) {
+            const {inArray} = await import("drizzle-orm");
+            const subFlowElements = await db
+                .select({elementId: diagramElement.elementId})
+                .from(diagramElement)
+                .where(
+                    and(
+                        eq(diagramElement.diagramId, data.diagramId),
+                        eq(diagramElement.displayMode, "sub_flow"),
+                    ),
+                );
+            const subFlowIds = new Set(subFlowElements.map((e) => e.elementId));
+            const childValidation = validateChildPlacement(d.diagramType, el.type, el.parentElementId, subFlowIds);
+            if (!childValidation.valid) throw new Error(childValidation.message);
+        }
 
         const id = crypto.randomUUID();
         const [created] = await db
@@ -501,6 +439,7 @@ export const addDiagramElement = createServerFn({method: "POST"})
                 width: data.width,
                 height: data.height,
                 zIndex: data.zIndex,
+                displayMode,
                 styleJson: data.styleJson ?? null,
             })
             .onConflictDoNothing()
@@ -516,6 +455,34 @@ export const updateDiagramElement = createServerFn({method: "POST"})
         assertRole(memberRole, ["owner", "admin", "editor"]);
 
         const {id, ...updates} = data;
+
+        // If changing display mode, validate it
+        if (updates.displayMode) {
+            const [de] = await db
+                .select({
+                    diagramId: diagramElement.diagramId,
+                    elementId: diagramElement.elementId,
+                })
+                .from(diagramElement)
+                .where(eq(diagramElement.id, id));
+            if (!de) throw new Error("Diagram element not found");
+
+            const [d] = await db
+                .select({diagramType: diagram.diagramType})
+                .from(diagram)
+                .where(eq(diagram.id, de.diagramId));
+            if (!d) throw new Error("Diagram not found");
+
+            const [el] = await db
+                .select({type: element.elementType})
+                .from(element)
+                .where(eq(element.id, de.elementId));
+            if (!el) throw new Error("Element not found");
+
+            const validation = validateDisplayMode(d.diagramType, el.type, updates.displayMode);
+            if (!validation.valid) throw new Error(validation.message);
+        }
+
         const [updated] = await db
             .update(diagramElement)
             .set(updates)

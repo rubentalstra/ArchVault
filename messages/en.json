@@ -731,5 +731,15 @@
   "editor_edge_path_orthogonal": "Orthogonal",
   "editor_edge_line_solid": "Solid",
   "editor_edge_line_dashed": "Dashed",
-  "editor_edge_line_dotted": "Dotted"
+  "editor_edge_line_dotted": "Dotted",
+  "editor_picker_title": "Elements",
+  "editor_picker_search": "Search elements...",
+  "editor_picker_add_as_card": "Add as card",
+  "editor_picker_add_as_container": "Add as container",
+  "editor_picker_empty": "No elements available",
+  "editor_picker_already_on_diagram": "Already on diagram",
+  "editor_picker_toggle": "Element Picker",
+  "editor_hover_level_2": "Level 2 — Container diagrams",
+  "editor_hover_level_3": "Level 3 — Component diagrams",
+  "editor_validation_requires_sub_flow": "Must be placed inside a sub-flow container"
 }

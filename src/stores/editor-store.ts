@@ -53,12 +53,12 @@ interface EditorState {
   diagramId: string | null;
   diagramType: DiagramType | null;
   workspaceId: string | null;
-  scopeElementId: string | null;
   gridSize: number;
   snapToGrid: boolean;
   showGrid: boolean;
   showMinimap: boolean;
   propertiesPanelOpen: boolean;
+  elementPickerOpen: boolean;
   contextMenu: ContextMenuState | null;
   setNodes: (nodes: AppNode[]) => void;
   setEdges: (edges: AppEdge[]) => void;
@@ -68,6 +68,7 @@ interface EditorState {
   setShowGrid: (show: boolean) => void;
   setShowMinimap: (show: boolean) => void;
   setPropertiesPanelOpen: (open: boolean) => void;
+  toggleElementPicker: () => void;
   setContextMenu: (menu: ContextMenuState | null) => void;
   addNode: (node: AppNode) => void;
   addEdge: (edge: AppEdge) => void;
@@ -80,7 +81,6 @@ interface EditorState {
     diagramId: string;
     diagramType: DiagramType;
     workspaceId: string;
-    scopeElementId: string | null;
     nodes: AppNode[];
     edges: AppEdge[];
     gridSize: number;
@@ -99,12 +99,12 @@ const initialState = {
   diagramId: null as string | null,
   diagramType: null as DiagramType | null,
   workspaceId: null as string | null,
-  scopeElementId: null as string | null,
   gridSize: 20,
   snapToGrid: true,
   showGrid: true,
   showMinimap: true,
   propertiesPanelOpen: true,
+  elementPickerOpen: false,
   contextMenu: null as ContextMenuState | null,
 };
 
@@ -132,6 +132,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   setShowGrid: (show) => set({ showGrid: show }),
   setShowMinimap: (show) => set({ showMinimap: show }),
   setPropertiesPanelOpen: (open) => set({ propertiesPanelOpen: open }),
+  toggleElementPicker: () => set((s) => ({ elementPickerOpen: !s.elementPickerOpen })),
   setContextMenu: (menu) => set({ contextMenu: menu }),
   addNode: (node) => set({ nodes: sortNodesTopologically([...get().nodes, node]) }),
   addEdge: (edge) => set({ edges: [...get().edges, edge] }),
@@ -165,7 +166,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         n.id === nodeId ? { ...n, zIndex } : n,
       ),
     }),
-  initDiagram: ({ diagramId, diagramType, workspaceId, scopeElementId, nodes, edges, gridSize, snapToGrid }) =>
-    set({ diagramId, diagramType, workspaceId, scopeElementId, nodes, edges, gridSize, snapToGrid }),
+  initDiagram: ({ diagramId, diagramType, workspaceId, nodes, edges, gridSize, snapToGrid }) =>
+    set({ diagramId, diagramType, workspaceId, nodes, edges, gridSize, snapToGrid }),
   reset: () => set(initialState),
 }));

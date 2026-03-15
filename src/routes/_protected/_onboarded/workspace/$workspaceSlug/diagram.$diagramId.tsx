@@ -1,18 +1,18 @@
-import { useCallback, useEffect } from "react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { ReactFlowProvider } from "@xyflow/react";
-import { useQuery } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { authClient } from "#/lib/auth-client";
-import { getDiagramData, getDiagrams } from "#/lib/diagram.functions";
+import { getDiagramData } from "#/lib/diagram.functions";
 import { useEditorStore } from "#/stores/editor-store";
 import {
   toFlowNodes,
   toFlowEdges,
   buildElementIdToNodeIdMap,
 } from "#/lib/converters/diagram-to-flow";
+import type { DeeperDiagramInfo } from "#/lib/converters/diagram-to-flow";
 import { DiagramCanvas } from "#/components/editor/diagram-canvas";
 import { PropertiesPanel } from "#/components/editor/properties-panel";
+import { ElementPickerSidebar } from "#/components/editor/element-picker-sidebar";
 import { Badge } from "#/components/ui/badge";
 import {
   Breadcrumb,
@@ -26,7 +26,6 @@ import { Separator } from "#/components/ui/separator";
 import { SidebarTrigger } from "#/components/ui/sidebar";
 import { m } from "#/paraglide/messages";
 import type { DiagramType } from "#/lib/diagram.validators";
-import type { AppNode } from "#/lib/types/diagram-nodes";
 
 export const Route = createFileRoute(
   "/_protected/_onboarded/workspace/$workspaceSlug/diagram/$diagramId",
@@ -46,25 +45,26 @@ function DiagramEditorPage() {
   const initDiagram = useEditorStore((s) => s.initDiagram);
   const reset = useEditorStore((s) => s.reset);
   const propertiesPanelOpen = useEditorStore((s) => s.propertiesPanelOpen);
-  const workspaceId = useEditorStore((s) => s.workspaceId);
-  const navigate = useNavigate();
+  const elementPickerOpen = useEditorStore((s) => s.elementPickerOpen);
 
   const memberRole = activeMember?.role;
   const readOnly = !["owner", "admin", "editor"].includes(memberRole ?? "");
 
-  const getDiagramsFn = useServerFn(getDiagrams);
-
-  const { data: diagrams } = useQuery({
-    queryKey: ["diagrams", workspaceId],
-    queryFn: () => getDiagramsFn({ data: { workspaceId: workspaceId! } }),
-    enabled: !!workspaceId,
-  });
-
   useEffect(() => {
+    // Build deeper diagrams map from server data
+    const deeperDiagramsMap = new Map<string, DeeperDiagramInfo[]>();
+    if (diagramData.subFlowDiagrams) {
+      for (const [elementId, diagrams] of Object.entries(
+        diagramData.subFlowDiagrams as Record<string, DeeperDiagramInfo[]>,
+      )) {
+        deeperDiagramsMap.set(elementId, diagrams);
+      }
+    }
+
     const nodes = toFlowNodes(
       diagramData.elements,
       diagramData.diagram.diagramType as DiagramType,
-      diagramData.diagram.scopeElementId,
+      deeperDiagramsMap,
     );
     const elementIdToNodeId = buildElementIdToNodeIdMap(diagramData.elements);
     const edges = toFlowEdges(diagramData.connections, elementIdToNodeId);
@@ -73,7 +73,6 @@ function DiagramEditorPage() {
       diagramId: diagramData.diagram.id,
       diagramType: diagramData.diagram.diagramType as DiagramType,
       workspaceId: diagramData.diagram.workspaceId,
-      scopeElementId: diagramData.diagram.scopeElementId,
       nodes,
       edges,
       gridSize: diagramData.diagram.gridSize,
@@ -84,22 +83,6 @@ function DiagramEditorPage() {
       reset();
     };
   }, [diagramData, initDiagram, reset]);
-
-  const onNodeDoubleClick = useCallback(
-    (_event: React.MouseEvent, node: AppNode) => {
-      if (!diagrams) return;
-      const childDiagram = diagrams.find(
-        (d) => d.scopeElementId === node.data.elementId,
-      );
-      if (childDiagram) {
-        navigate({
-          to: "/workspace/$workspaceSlug/diagram/$diagramId",
-          params: { workspaceSlug: workspace.slug, diagramId: childDiagram.id },
-        });
-      }
-    },
-    [diagrams, navigate, workspace.slug],
-  );
 
   return (
     <div className="flex h-full flex-col">
@@ -153,12 +136,14 @@ function DiagramEditorPage() {
       </header>
 
       <div className="flex flex-1 overflow-hidden">
+        {elementPickerOpen && !readOnly && (
+          <div className="w-72 shrink-0 overflow-y-auto">
+            <ElementPickerSidebar />
+          </div>
+        )}
         <div className="flex-1">
           <ReactFlowProvider>
-            <DiagramCanvas
-              readOnly={readOnly}
-              onNodeDoubleClick={onNodeDoubleClick}
-            />
+            <DiagramCanvas readOnly={readOnly} />
           </ReactFlowProvider>
         </div>
         {propertiesPanelOpen && (

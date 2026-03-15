@@ -23,7 +23,6 @@ export interface DiagramRow {
   id: string;
   name: string;
   diagramType: DiagramType;
-  scopeElementName: string | null;
   elementCount: number;
   updatedAt: string | Date;
 }
@@ -78,15 +77,6 @@ export function getDiagramColumns(actions: DiagramTableActions) {
             {TYPE_LABELS[type]()}
           </Badge>
         );
-      },
-    }),
-    columnHelper.accessor("scopeElementName", {
-      header: m.diagram_column_scope(),
-      enableSorting: false,
-      cell: (info) => {
-        const name = info.getValue();
-        if (!name) return <span className="text-muted-foreground">—</span>;
-        return <span className="text-sm">{name}</span>;
       },
     }),
     columnHelper.accessor("elementCount", {

@@ -4,6 +4,7 @@ import type {
   ConnectionDirection,
 } from "#/lib/connection.validators";
 import type {
+  DiagramType,
   LineStyle,
   AnchorPoint,
   PathType,
@@ -21,7 +22,9 @@ export interface BaseNodeData {
   technologies: string[];
   iconTechSlug: string | null;
   /** Whether this node acts as a sub-flow container (parent of other nodes) */
-  isParent: boolean;
+  isSubFlow: boolean;
+  /** Deeper-level diagrams where this element appears as a sub-flow */
+  deeperDiagrams: { id: string; name: string; diagramType: DiagramType }[];
   [key: string]: unknown;
 }
 

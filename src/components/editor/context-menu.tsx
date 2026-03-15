@@ -231,7 +231,8 @@ function NodeContextMenuItems({
           external: newElement.external,
           technologies: [],
           iconTechSlug: null,
-          isParent: false,
+          isSubFlow: false,
+            deeperDiagrams: [],
         },
       } as AppNode;
       addNode(newNode);
@@ -351,7 +352,8 @@ function PaneContextMenuItems({ position }: { position: { x: number; y: number }
             external: newElement.external,
             technologies: [],
             iconTechSlug: null,
-            isParent: false,
+            isSubFlow: false,
+            deeperDiagrams: [],
           },
         } as AppNode;
         addNode(newNode);

@@ -12,7 +12,6 @@ import {
 import type { SortingState } from "@tanstack/react-table";
 import { authClient } from "#/lib/auth-client";
 import { getDiagrams } from "#/lib/diagram.functions";
-import { getElements } from "#/lib/element.functions";
 import {
   getDiagramColumns,
   type DiagramRow,
@@ -41,15 +40,11 @@ import { Separator } from "#/components/ui/separator";
 import { SidebarTrigger } from "#/components/ui/sidebar";
 import { Plus } from "lucide-react";
 import { m } from "#/paraglide/messages";
-import type { ElementType } from "#/lib/element.validators";
 
-type WorkspaceElement = { id: string; name: string; elementType: ElementType };
 type WorkspaceDiagram = {
   id: string;
   name: string;
   diagramType: DiagramRow["diagramType"];
-  scopeElementName: string | null;
-  scopeElementId: string | null;
   elementCount: number | string;
   description: string | null;
   gridSize: number;
@@ -79,28 +74,11 @@ function DiagramsPage() {
       (await getDiagramsFn({ data: { workspaceId: workspace.id } })) as WorkspaceDiagram[],
   });
 
-  const getElementsFn = useServerFn(getElements);
-  const { data: elements = [] } = useQuery<WorkspaceElement[]>({
-    queryKey: ["elements", workspace.id],
-    queryFn: async () =>
-      (await getElementsFn({ data: { workspaceId: workspace.id } })) as WorkspaceElement[],
-  });
-
   const [createOpen, setCreateOpen] = useState(false);
   const [editDiagram, setEditDiagram] = useState<DiagramRow | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<DiagramRow | null>(null);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
-
-  const scopeElementOptions = useMemo(
-    () =>
-      elements.map((el) => ({
-        id: el.id,
-        name: el.name,
-        elementType: el.elementType,
-      })),
-    [elements],
-  );
 
   const invalidate = () => {
     void queryClient.invalidateQueries({ queryKey: ["diagrams", workspace.id] });
@@ -124,11 +102,9 @@ function DiagramsPage() {
         id: d.id,
         name: d.name,
         diagramType: d.diagramType,
-        scopeElementName: d.scopeElementName,
         elementCount: Number(d.elementCount),
         updatedAt: d.updatedAt,
         description: d.description,
-        scopeElementId: d.scopeElementId,
         gridSize: d.gridSize,
         snapToGrid: d.snapToGrid,
       })),
@@ -148,8 +124,7 @@ function DiagramsPage() {
       const search = filterValue.toLowerCase();
       const d = row.original;
       const name = d.name.toLowerCase();
-      const scope = d.scopeElementName?.toLowerCase() ?? "";
-      return name.includes(search) || scope.includes(search);
+      return name.includes(search);
     },
   });
 
@@ -281,12 +256,6 @@ function DiagramsPage() {
                         }
                       ).description ?? null,
                     diagramType: editDiagram.diagramType,
-                    scopeElementId:
-                      (
-                        editDiagram as unknown as {
-                          scopeElementId: string | null;
-                        }
-                      ).scopeElementId ?? null,
                     gridSize:
                       (editDiagram as unknown as { gridSize: number })
                         .gridSize ?? 20,
@@ -296,7 +265,6 @@ function DiagramsPage() {
                   }
                 : undefined
             }
-            scopeElementOptions={scopeElementOptions}
             onSuccess={invalidate}
           />
         )}

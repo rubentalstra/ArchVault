@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useForm } from "@tanstack/react-form";
 import {
   Dialog,
@@ -13,12 +13,8 @@ import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
 import { toast } from "sonner";
 import { m } from "#/paraglide/messages";
-import {
-  diagramTypes,
-  validateDiagramScope,
-} from "#/lib/diagram.validators";
+import { diagramTypes } from "#/lib/diagram.validators";
 import type { DiagramType } from "#/lib/diagram.validators";
-import type { ElementType } from "#/lib/element.validators";
 import {
   createDiagram,
   updateDiagram,
@@ -29,15 +25,8 @@ interface DiagramData {
   name: string;
   description: string | null;
   diagramType: DiagramType;
-  scopeElementId: string | null;
   gridSize: number;
   snapToGrid: boolean;
-}
-
-interface ScopeElementOption {
-  id: string;
-  name: string;
-  elementType: ElementType;
 }
 
 interface DiagramFormDialogProps {
@@ -45,7 +34,6 @@ interface DiagramFormDialogProps {
   onOpenChange: (open: boolean) => void;
   workspaceId: string;
   diagram?: DiagramData;
-  scopeElementOptions: ScopeElementOption[];
   onSuccess: () => void;
 }
 
@@ -61,28 +49,14 @@ const TYPE_DESCRIPTIONS: Record<DiagramType, () => string> = {
   component: () => m.diagram_level_3_description(),
 };
 
-const SCOPE_LABELS: Record<DiagramType, (() => string) | null> = {
-  system_context: null,
-  container: () => m.diagram_scope_system(),
-  component: () => m.diagram_scope_app(),
-};
-
-const SCOPE_FILTER: Record<DiagramType, ElementType[] | null> = {
-  system_context: null,
-  container: ["system"],
-  component: ["app"],
-};
-
 export function DiagramFormDialog({
   open,
   onOpenChange,
   workspaceId,
   diagram: editDiagram,
-  scopeElementOptions,
   onSuccess,
 }: DiagramFormDialogProps) {
   const isEdit = !!editDiagram;
-  const [scopeError, setScopeError] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<DiagramType>(
     editDiagram?.diagramType ?? "system_context",
   );
@@ -92,39 +66,17 @@ export function DiagramFormDialog({
       diagramType: editDiagram?.diagramType ?? ("system_context" as DiagramType),
       name: editDiagram?.name ?? "",
       description: editDiagram?.description ?? "",
-      scopeElementId: editDiagram?.scopeElementId ?? "",
       gridSize: editDiagram?.gridSize ?? 20,
       snapToGrid: editDiagram?.snapToGrid ?? true,
     },
     onSubmit: async ({ value }) => {
       try {
-        setScopeError(null);
-
-        // Client-side scope validation
-        if (value.scopeElementId) {
-          const scopeEl = scopeElementOptions.find((e) => e.id === value.scopeElementId);
-          if (scopeEl) {
-            const validation = validateDiagramScope(value.diagramType, scopeEl.elementType);
-            if (!validation.valid) {
-              setScopeError(validation.message ?? null);
-              return;
-            }
-          }
-        } else {
-          const validation = validateDiagramScope(value.diagramType, null);
-          if (!validation.valid) {
-            setScopeError(validation.message ?? null);
-            return;
-          }
-        }
-
         if (isEdit) {
           await updateDiagram({
             data: {
               id: editDiagram.id,
               name: value.name,
               description: value.description || null,
-              scopeElementId: value.scopeElementId || null,
               gridSize: value.gridSize,
               snapToGrid: value.snapToGrid,
             },
@@ -137,7 +89,6 @@ export function DiagramFormDialog({
               name: value.name,
               description: value.description || undefined,
               diagramType: value.diagramType,
-              scopeElementId: value.scopeElementId || undefined,
               gridSize: value.gridSize,
               snapToGrid: value.snapToGrid,
             },
@@ -158,29 +109,9 @@ export function DiagramFormDialog({
     },
   });
 
-  const showScope = SCOPE_FILTER[selectedType] !== null;
-
-  const filteredScopeOptions = useMemo(() => {
-    const allowedTypes = SCOPE_FILTER[selectedType];
-    if (!allowedTypes) return [];
-    return scopeElementOptions.filter((e) => allowedTypes.includes(e.elementType));
-  }, [selectedType, scopeElementOptions]);
-
   const handleTypeChange = (newType: DiagramType) => {
     form.setFieldValue("diagramType", newType);
     setSelectedType(newType);
-    // Clear scope if type doesn't support it or current selection is invalid
-    const currentScope = form.getFieldValue("scopeElementId");
-    const allowed = SCOPE_FILTER[newType];
-    if (!allowed) {
-      form.setFieldValue("scopeElementId", "");
-    } else if (currentScope) {
-      const scopeEl = scopeElementOptions.find((e) => e.id === currentScope);
-      if (scopeEl && !allowed.includes(scopeEl.elementType)) {
-        form.setFieldValue("scopeElementId", "");
-      }
-    }
-    setScopeError(null);
   };
 
   return (
@@ -256,35 +187,6 @@ export function DiagramFormDialog({
               </div>
             )}
           </form.Field>
-
-          {/* Scope Element (hidden for Level 1) */}
-          {showScope && (
-            <form.Field name="scopeElementId">
-              {(field) => (
-                <div className="flex flex-col gap-1.5">
-                  <Label>{SCOPE_LABELS[selectedType]?.() ?? m.diagram_label_scope()}</Label>
-                  <select
-                    className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                    value={field.state.value}
-                    onChange={(e) => {
-                      field.handleChange(e.target.value);
-                      setScopeError(null);
-                    }}
-                  >
-                    <option value="">{m.diagram_no_scope()}</option>
-                    {filteredScopeOptions.map((el) => (
-                      <option key={el.id} value={el.id}>
-                        {el.name}
-                      </option>
-                    ))}
-                  </select>
-                  {scopeError && (
-                    <p className="text-xs text-destructive">{scopeError}</p>
-                  )}
-                </div>
-              )}
-            </form.Field>
-          )}
 
           {/* Grid Size */}
           <form.Field name="gridSize">

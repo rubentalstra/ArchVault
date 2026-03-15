@@ -332,12 +332,6 @@ export const relations = defineRelations(
             }),
             // diagram_element junction
             diagramElements: r.many.diagramElement(),
-            // diagrams scoped to this element
-            scopedDiagrams: r.many.diagram({
-                from: r.element.id,
-                to: r.diagram.scopeElementId,
-                alias: "diagram_scope",
-            }),
         },
 
         // ─────────────────────────────────────────────────────────────────
@@ -482,11 +476,6 @@ export const relations = defineRelations(
                 from: r.diagram.workspaceId,
                 to: r.workspace.id,
                 optional: false,
-            }),
-            scopeElement: r.one.element({
-                from: r.diagram.scopeElementId,
-                to: r.element.id,
-                alias: "diagram_scope",
             }),
             currentRevision: r.one.diagramRevision({
                 from: r.diagram.currentRevisionId,

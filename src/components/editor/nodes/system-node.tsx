@@ -7,12 +7,13 @@ import { m } from "#/paraglide/messages";
 import { StatusDot } from "./status-dot";
 import { TechIcon } from "#/components/technologies/tech-icon";
 import { NodeHandles } from "./node-handles";
+import { DiagramHoverCard } from "./diagram-hover-card";
 
 const CONTAINER_MIN_WIDTH = 300;
 const CONTAINER_MIN_HEIGHT = 200;
 
 function SystemNodeComponent({ data, selected }: NodeProps & { data: SystemNodeData }) {
-  if (data.isParent) {
+  if (data.isSubFlow) {
     return (
       <>
         <NodeResizer
@@ -51,6 +52,9 @@ function SystemNodeComponent({ data, selected }: NodeProps & { data: SystemNodeD
   return (
     <>
       <NodeHandles />
+      {data.deeperDiagrams.length > 0 && (
+        <DiagramHoverCard diagrams={data.deeperDiagrams} level="container" />
+      )}
       <div
         className={`flex w-56 flex-col items-center gap-1 rounded-xl border-2 bg-card px-5 py-4 text-card-foreground shadow-sm ${
           data.external ? "border-dashed border-muted-foreground" : "border-border"

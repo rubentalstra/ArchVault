@@ -25,6 +25,7 @@ export interface DiagramElementRow {
   parentElementId: string | null;
   technologies: string[];
   iconTechSlug: string | null;
+  displayMode: "normal" | "sub_flow";
 }
 
 export interface DiagramConnectionRow {
@@ -44,12 +45,20 @@ export interface DiagramConnectionRow {
   iconTechSlug: string | null;
 }
 
+// ── Deeper diagrams info ─────────────────────────────────────────────
+
+export interface DeeperDiagramInfo {
+  id: string;
+  name: string;
+  diagramType: DiagramType;
+}
+
 // ── Convert DB elements to React Flow nodes ──────────────────────────
 
 export function toFlowNodes(
   rows: DiagramElementRow[],
   _diagramType: DiagramType,
-  scopeElementId: string | null,
+  deeperDiagramsMap?: Map<string, DeeperDiagramInfo[]>,
 ): AppNode[] {
   // Step 1: Build lookup maps
   const elementIdToRow = new Map<string, DiagramElementRow>();
@@ -59,33 +68,31 @@ export function toFlowNodes(
     elementIdToNodeId.set(row.elementId, row.id);
   }
 
-  // Step 2: Detect parent-child — ONLY for scope element as parent
-  // Only children of the scope element form a sub-flow. Other elements
-  // with parents on the diagram remain standalone context nodes.
-  const childNodeIdToParentNodeId = new Map<string, string>();
+  // Step 2: Detect sub-flow parents from displayMode
   const parentElementIds = new Set<string>();
-
-  // The scope element is always a parent/container on its diagram
-  if (scopeElementId && elementIdToRow.has(scopeElementId)) {
-    parentElementIds.add(scopeElementId);
+  for (const row of rows) {
+    if (row.displayMode === "sub_flow") {
+      parentElementIds.add(row.elementId);
+    }
   }
 
+  // Step 3: Detect children — elements whose parentElementId is a sub-flow on this diagram
+  const childNodeIdToParentNodeId = new Map<string, string>();
   for (const row of rows) {
     if (!row.parentElementId) continue;
-    // Only establish sub-flow if the parent IS the scope element
-    if (row.parentElementId !== scopeElementId) continue;
+    if (!parentElementIds.has(row.parentElementId)) continue;
     const parentNodeId = elementIdToNodeId.get(row.parentElementId);
     if (!parentNodeId) continue;
     childNodeIdToParentNodeId.set(row.id, parentNodeId);
-    parentElementIds.add(row.parentElementId);
   }
 
-  // Step 3: Build nodes
+  // Step 4: Build nodes
   const nodes: AppNode[] = [];
 
   for (const row of rows) {
-    const isParent = parentElementIds.has(row.elementId);
+    const isSubFlow = parentElementIds.has(row.elementId);
     const parentNodeId = childNodeIdToParentNodeId.get(row.id);
+    const deeperDiagrams = deeperDiagramsMap?.get(row.elementId) ?? [];
 
     const baseData = {
       elementId: row.elementId,
@@ -96,7 +103,8 @@ export function toFlowNodes(
       external: row.external,
       technologies: row.technologies,
       iconTechSlug: row.iconTechSlug,
-      isParent,
+      isSubFlow,
+      deeperDiagrams,
     };
 
     // Determine position — if child, convert to parent-relative coordinates
@@ -114,7 +122,7 @@ export function toFlowNodes(
     }
 
     const nodeType = row.elementType as AppNode["type"];
-    const needsSize = isParent || nodeType === "group";
+    const needsSize = isSubFlow || nodeType === "group";
 
     nodes.push({
       id: row.id,
@@ -127,7 +135,7 @@ export function toFlowNodes(
     } as AppNode);
   }
 
-  // Step 4: Topological sort — parents before children
+  // Step 5: Topological sort — parents before children
   return sortNodesTopologically(nodes);
 }
 

@@ -9,7 +9,6 @@ import {
     type AnyPgColumn,
 } from "drizzle-orm/pg-core";
 import {workspace} from "./workspaces";
-import {element} from "./elements";
 import {user} from "./auth-schema";
 import {diagramRevision} from "./diagram-revisions";
 
@@ -29,10 +28,6 @@ export const diagram = pgTable(
         name: text("name").notNull(),
         description: text("description"),
         diagramType: diagramTypeEnum("diagram_type").notNull(),
-        scopeElementId: text("scope_element_id").references(
-            () => element.id,
-            {onDelete: "set null"},
-        ),
         gridSize: integer("grid_size").default(20).notNull(),
         snapToGrid: boolean("snap_to_grid").default(true).notNull(),
         currentRevisionId: text("current_revision_id").references(
@@ -55,6 +50,5 @@ export const diagram = pgTable(
     },
     (table) => [
         index("diagram_workspace_id_idx").on(table.workspaceId),
-        index("diagram_scope_element_id_idx").on(table.scopeElementId),
     ],
 );

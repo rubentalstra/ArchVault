@@ -1,5 +1,6 @@
 import {
     pgTable,
+    pgEnum,
     text,
     real,
     integer,
@@ -9,6 +10,8 @@ import {
 } from "drizzle-orm/pg-core";
 import {diagram} from "./diagrams";
 import {element} from "./elements";
+
+export const displayModeEnum = pgEnum("display_mode", ["normal", "sub_flow"]);
 
 export const diagramElement = pgTable(
     "diagram_element",
@@ -25,6 +28,7 @@ export const diagramElement = pgTable(
         width: real("width").default(200).notNull(),
         height: real("height").default(120).notNull(),
         zIndex: integer("z_index").default(0).notNull(),
+        displayMode: displayModeEnum("display_mode").default("normal").notNull(),
         styleJson: jsonb("style_json"),
     },
     (table) => [

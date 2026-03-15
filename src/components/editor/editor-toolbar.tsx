@@ -26,6 +26,7 @@ import {
   Grid3x3,
   Map,
   PanelRight,
+  LayoutList,
   User,
   Box,
   Package,
@@ -54,6 +55,8 @@ export function EditorToolbar() {
   const setShowMinimap = useEditorStore((s) => s.setShowMinimap);
   const propertiesPanelOpen = useEditorStore((s) => s.propertiesPanelOpen);
   const setPropertiesPanelOpen = useEditorStore((s) => s.setPropertiesPanelOpen);
+  const elementPickerOpen = useEditorStore((s) => s.elementPickerOpen);
+  const toggleElementPicker = useEditorStore((s) => s.toggleElementPicker);
   const reactFlow = useReactFlow();
 
   return (
@@ -187,6 +190,17 @@ export function EditorToolbar() {
         </ToolbarTooltip>
 
         <Separator orientation="vertical" className="mx-1 data-[orientation=vertical]:h-5" />
+
+        <ToolbarTooltip label={m.editor_picker_toggle()}>
+          <Toggle
+            size="sm"
+            pressed={elementPickerOpen}
+            onPressedChange={toggleElementPicker}
+            aria-label={m.editor_picker_toggle()}
+          >
+            <LayoutList className="size-4" />
+          </Toggle>
+        </ToolbarTooltip>
 
         <ToolbarTooltip label={propertiesPanelOpen ? m.editor_panel_close() : m.editor_panel_open()}>
           <Toggle
