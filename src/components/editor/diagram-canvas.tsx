@@ -1,5 +1,6 @@
 import {
   ReactFlow,
+  Panel,
   Background,
   Controls,
   MiniMap,
@@ -33,6 +34,9 @@ import { EditorToolbar } from "#/components/editor/editor-toolbar";
 import { DiagramNavBar } from "#/components/editor/diagram-nav-bar";
 import type { DiagramNavBarProps } from "#/components/editor/diagram-nav-bar";
 import { EditorContextMenu } from "#/components/editor/context-menu";
+import { Toggle } from "#/components/ui/toggle";
+import { Tooltip, TooltipContent, TooltipTrigger } from "#/components/ui/tooltip";
+import { PanelRight } from "lucide-react";
 import { m } from "#/paraglide/messages";
 import type { AppNode, AppEdge } from "#/lib/types/diagram-nodes";
 
@@ -67,6 +71,8 @@ export function DiagramCanvas({ readOnly = false, navBar }: DiagramCanvasProps) 
   const snapToGrid = useEditorStore((s) => s.snapToGrid);
   const showGrid = useEditorStore((s) => s.showGrid);
   const showMinimap = useEditorStore((s) => s.showMinimap);
+  const propertiesPanelOpen = useEditorStore((s) => s.propertiesPanelOpen);
+  const setPropertiesPanelOpen = useEditorStore((s) => s.setPropertiesPanelOpen);
   const setSelection = useEditorStore((s) => s.setSelection);
   const setContextMenu = useEditorStore((s) => s.setContextMenu);
   const addEdge = useEditorStore((s) => s.addEdge);
@@ -327,6 +333,26 @@ export function DiagramCanvas({ readOnly = false, navBar }: DiagramCanvasProps) 
       )}
       <DiagramNavBar {...navBar} />
       {!readOnly && <EditorToolbar />}
+      <Panel position="top-right">
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <Toggle
+                size="sm"
+                pressed={propertiesPanelOpen}
+                onPressedChange={setPropertiesPanelOpen}
+                aria-label={propertiesPanelOpen ? m.editor_panel_close() : m.editor_panel_open()}
+                className="rounded-lg border bg-card shadow-sm"
+              >
+                <PanelRight className="size-4" />
+              </Toggle>
+            }
+          />
+          <TooltipContent side="bottom" className="text-xs">
+            {propertiesPanelOpen ? m.editor_panel_close() : m.editor_panel_open()}
+          </TooltipContent>
+        </Tooltip>
+      </Panel>
       <Controls showInteractive={false} />
       {showMinimap && (
         <MiniMap nodeColor={getNodeColor} zoomable pannable />

@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { Panel, useReactFlow } from "@xyflow/react";
+import { Panel } from "@xyflow/react";
 import { useEditorStore } from "#/stores/editor-store";
 import { validateElementForDiagram } from "#/lib/diagram.validators";
 import { useDnD, useCreateElementAtPosition } from "#/components/editor/dnd-context";
-import { Button } from "#/components/ui/button";
 import { Toggle } from "#/components/ui/toggle";
 import { Separator } from "#/components/ui/separator";
 import {
@@ -21,12 +20,8 @@ import {
   Hand,
   Plus,
   Cable,
-  ZoomIn,
-  ZoomOut,
-  Maximize,
   Grid3x3,
   Map,
-  PanelRight,
   LayoutList,
   User,
   Box,
@@ -57,11 +52,8 @@ export function EditorToolbar() {
   const setShowGrid = useEditorStore((s) => s.setShowGrid);
   const showMinimap = useEditorStore((s) => s.showMinimap);
   const setShowMinimap = useEditorStore((s) => s.setShowMinimap);
-  const propertiesPanelOpen = useEditorStore((s) => s.propertiesPanelOpen);
-  const setPropertiesPanelOpen = useEditorStore((s) => s.setPropertiesPanelOpen);
   const elementPickerOpen = useEditorStore((s) => s.elementPickerOpen);
   const toggleElementPicker = useEditorStore((s) => s.toggleElementPicker);
-  const reactFlow = useReactFlow();
 
   const [addMenuOpen, setAddMenuOpen] = useState(false);
   const { startDrag } = useDnD();
@@ -145,41 +137,6 @@ export function EditorToolbar() {
 
         <Separator orientation="horizontal" className="data-[orientation=horizontal]:w-full" />
 
-        <ToolbarTooltip label={m.editor_toolbar_zoom_in()}>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-8"
-            onClick={() => reactFlow.zoomIn()}
-          >
-            <ZoomIn className="size-4" />
-          </Button>
-        </ToolbarTooltip>
-
-        <ToolbarTooltip label={m.editor_toolbar_zoom_out()}>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-8"
-            onClick={() => reactFlow.zoomOut()}
-          >
-            <ZoomOut className="size-4" />
-          </Button>
-        </ToolbarTooltip>
-
-        <ToolbarTooltip label={m.editor_toolbar_fit_view()}>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-8"
-            onClick={() => reactFlow.fitView()}
-          >
-            <Maximize className="size-4" />
-          </Button>
-        </ToolbarTooltip>
-
-        <Separator orientation="horizontal" className="data-[orientation=horizontal]:w-full" />
-
         <ToolbarTooltip label={m.editor_toolbar_toggle_grid()}>
           <Toggle
             size="sm"
@@ -212,17 +169,6 @@ export function EditorToolbar() {
             aria-label={m.editor_picker_toggle()}
           >
             <LayoutList className="size-4" />
-          </Toggle>
-        </ToolbarTooltip>
-
-        <ToolbarTooltip label={propertiesPanelOpen ? m.editor_panel_close() : m.editor_panel_open()}>
-          <Toggle
-            size="sm"
-            pressed={propertiesPanelOpen}
-            onPressedChange={setPropertiesPanelOpen}
-            aria-label={propertiesPanelOpen ? m.editor_panel_close() : m.editor_panel_open()}
-          >
-            <PanelRight className="size-4" />
           </Toggle>
         </ToolbarTooltip>
       </div>
