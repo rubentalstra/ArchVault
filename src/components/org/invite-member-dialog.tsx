@@ -114,10 +114,16 @@ export function InviteMemberDialog({
           <form.Field name="role">
             {(field) => {
               const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+              const roleItems = [
+                { value: "admin", label: m.common_role_admin() },
+                { value: "editor", label: m.common_role_editor() },
+                { value: "viewer", label: m.common_role_viewer() },
+              ];
               return (
                 <Field data-invalid={isInvalid}>
                   <FieldLabel>{m.common_label_role()}</FieldLabel>
                   <Select
+                    items={roleItems}
                     value={field.state.value}
                     onValueChange={(val: string | null) => {
                       if (val) field.handleChange(val as "admin" | "editor" | "viewer");
@@ -127,9 +133,9 @@ export function InviteMemberDialog({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="admin">{m.common_role_admin()}</SelectItem>
-                      <SelectItem value="editor">{m.common_role_editor()}</SelectItem>
-                      <SelectItem value="viewer">{m.common_role_viewer()}</SelectItem>
+                      {roleItems.map((item) => (
+                        <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   {isInvalid && <FieldError errors={field.state.meta.errors} />}

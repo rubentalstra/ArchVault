@@ -235,10 +235,15 @@ export function ConnectionFormDialog({
           <form.Field name="sourceElementId">
             {(field) => {
               const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+              const sourceItems = elementOptions.map((el) => ({
+                value: el.id,
+                label: el.name,
+              }));
               return (
                 <Field data-invalid={isInvalid}>
                   <FieldLabel>{m.connection_label_source()}</FieldLabel>
                   <Select
+                    items={sourceItems}
                     value={field.state.value}
                     onValueChange={(val: string | null) => {
                       if (val) {
@@ -251,9 +256,9 @@ export function ConnectionFormDialog({
                       <SelectValue placeholder={m.connection_placeholder_select_source()} />
                     </SelectTrigger>
                     <SelectContent>
-                      {elementOptions.map((el) => (
-                        <SelectItem key={el.id} value={el.id}>
-                          {el.name}
+                      {sourceItems.map((item) => (
+                        <SelectItem key={item.value} value={item.value}>
+                          {item.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -267,10 +272,15 @@ export function ConnectionFormDialog({
           <form.Field name="targetElementId">
             {(field) => {
               const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
+              const targetItems = elementOptions.map((el) => ({
+                value: el.id,
+                label: el.name,
+              }));
               return (
                 <Field data-invalid={isInvalid || !!endpointError}>
                   <FieldLabel>{m.connection_label_target()}</FieldLabel>
                   <Select
+                    items={targetItems}
                     value={field.state.value}
                     onValueChange={(val: string | null) => {
                       if (val) {
@@ -283,9 +293,9 @@ export function ConnectionFormDialog({
                       <SelectValue placeholder={m.connection_placeholder_select_target()} />
                     </SelectTrigger>
                     <SelectContent>
-                      {elementOptions.map((el) => (
-                        <SelectItem key={el.id} value={el.id}>
-                          {el.name}
+                      {targetItems.map((item) => (
+                        <SelectItem key={item.value} value={item.value}>
+                          {item.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -300,28 +310,35 @@ export function ConnectionFormDialog({
           </form.Field>
 
           <form.Field name="direction">
-            {(field) => (
-              <Field>
-                <FieldLabel>{m.connection_label_direction()}</FieldLabel>
-                <Select
-                  value={field.state.value}
-                  onValueChange={(val: string | null) => {
-                    if (val) field.handleChange(val as ConnectionDirection);
-                  }}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {connectionDirections.map((dir) => (
-                      <SelectItem key={dir} value={dir}>
-                        {DIRECTION_LABELS[dir]()}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
-            )}
+            {(field) => {
+              const directionItems = connectionDirections.map((dir) => ({
+                value: dir,
+                label: DIRECTION_LABELS[dir](),
+              }));
+              return (
+                <Field>
+                  <FieldLabel>{m.connection_label_direction()}</FieldLabel>
+                  <Select
+                    items={directionItems}
+                    value={field.state.value}
+                    onValueChange={(val: string | null) => {
+                      if (val) field.handleChange(val as ConnectionDirection);
+                    }}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {directionItems.map((item) => (
+                        <SelectItem key={item.value} value={item.value}>
+                          {item.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+              );
+            }}
           </form.Field>
 
           <form.Field name="description">

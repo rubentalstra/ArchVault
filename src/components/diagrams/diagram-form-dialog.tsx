@@ -156,31 +156,38 @@ export function DiagramFormDialog({
         >
           {!isEdit && (
             <form.Field name="diagramType">
-              {(field) => (
-                <Field>
-                  <FieldLabel>{m.diagram_label_level()}</FieldLabel>
-                  <Select
-                    value={field.state.value}
-                    onValueChange={(val: string | null) => {
-                      if (val) handleTypeChange(val as DiagramType);
-                    }}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {diagramTypes.map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {TYPE_LABELS[type]()}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FieldDescription>
-                    {TYPE_DESCRIPTIONS[selectedType]()}
-                  </FieldDescription>
-                </Field>
-              )}
+              {(field) => {
+                const typeItems = diagramTypes.map((type) => ({
+                  value: type,
+                  label: TYPE_LABELS[type](),
+                }));
+                return (
+                  <Field>
+                    <FieldLabel>{m.diagram_label_level()}</FieldLabel>
+                    <Select
+                      items={typeItems}
+                      value={field.state.value}
+                      onValueChange={(val: string | null) => {
+                        if (val) handleTypeChange(val as DiagramType);
+                      }}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {typeItems.map((item) => (
+                          <SelectItem key={item.value} value={item.value}>
+                            {item.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FieldDescription>
+                      {TYPE_DESCRIPTIONS[selectedType]()}
+                    </FieldDescription>
+                  </Field>
+                );
+              }}
             </form.Field>
           )}
 

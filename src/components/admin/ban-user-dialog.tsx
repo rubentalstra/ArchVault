@@ -99,28 +99,35 @@ export function BanUserDialog({
           </form.Field>
 
           <form.Field name="durationIndex">
-            {(field) => (
-              <Field>
-                <FieldLabel>{m.admin_label_duration()}</FieldLabel>
-                <Select
-                  value={field.state.value}
-                  onValueChange={(val: string | null) => {
-                    if (val) field.handleChange(val);
-                  }}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {BAN_DURATIONS.map((d, i) => (
-                      <SelectItem key={d.label} value={String(i)}>
-                        {d.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
-            )}
+            {(field) => {
+              const durationItems = BAN_DURATIONS.map((d, i) => ({
+                value: String(i),
+                label: d.label,
+              }));
+              return (
+                <Field>
+                  <FieldLabel>{m.admin_label_duration()}</FieldLabel>
+                  <Select
+                    items={durationItems}
+                    value={field.state.value}
+                    onValueChange={(val: string | null) => {
+                      if (val) field.handleChange(val);
+                    }}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {durationItems.map((item) => (
+                        <SelectItem key={item.value} value={item.value}>
+                          {item.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+              );
+            }}
           </form.Field>
 
           <DialogFooter>

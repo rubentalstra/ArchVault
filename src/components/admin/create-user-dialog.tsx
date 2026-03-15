@@ -164,25 +164,33 @@ export function CreateUserDialog({
           </form.Field>
 
           <form.Field name="role">
-            {(field) => (
-              <Field>
-                <FieldLabel>{m.common_label_role()}</FieldLabel>
-                <Select
-                  value={field.state.value}
-                  onValueChange={(val: string | null) => {
-                    if (val) field.handleChange(val as "user" | "admin");
-                  }}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="user">{m.common_role_user()}</SelectItem>
-                    <SelectItem value="admin">{m.common_role_admin()}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </Field>
-            )}
+            {(field) => {
+              const roleItems = [
+                { value: "user", label: m.common_role_user() },
+                { value: "admin", label: m.common_role_admin() },
+              ];
+              return (
+                <Field>
+                  <FieldLabel>{m.common_label_role()}</FieldLabel>
+                  <Select
+                    items={roleItems}
+                    value={field.state.value}
+                    onValueChange={(val: string | null) => {
+                      if (val) field.handleChange(val as "user" | "admin");
+                    }}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {roleItems.map((item) => (
+                        <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+              );
+            }}
           </form.Field>
 
           <DialogFooter>

@@ -348,33 +348,40 @@ export function ElementFormDialog({
         >
           {!isEdit && (
             <form.Field name="elementType">
-              {(field) => (
-                <Field>
-                  <FieldLabel>{m.element_label_type()}</FieldLabel>
-                  <Select
-                    value={field.state.value}
-                    onValueChange={(val: string | null) => {
-                      if (val) {
-                        const newType = val as ElementType;
-                        field.handleChange(newType);
-                        const parentId = form.getFieldValue("parentElementId");
-                        handleTypeOrParentChange(newType, parentId);
-                      }
-                    }}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {elementTypes.map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {TYPE_LABELS[type]()}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </Field>
-              )}
+              {(field) => {
+                const typeItems = elementTypes.map((type) => ({
+                  value: type,
+                  label: TYPE_LABELS[type](),
+                }));
+                return (
+                  <Field>
+                    <FieldLabel>{m.element_label_type()}</FieldLabel>
+                    <Select
+                      items={typeItems}
+                      value={field.state.value}
+                      onValueChange={(val: string | null) => {
+                        if (val) {
+                          const newType = val as ElementType;
+                          field.handleChange(newType);
+                          const parentId = form.getFieldValue("parentElementId");
+                          handleTypeOrParentChange(newType, parentId);
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {typeItems.map((item) => (
+                          <SelectItem key={item.value} value={item.value}>
+                            {item.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                );
+              }}
             </form.Field>
           )}
 
@@ -434,28 +441,35 @@ export function ElementFormDialog({
           </form.Field>
 
           <form.Field name="status">
-            {(field) => (
-              <Field>
-                <FieldLabel>{m.element_label_status()}</FieldLabel>
-                <Select
-                  value={field.state.value}
-                  onValueChange={(val: string | null) => {
-                    if (val) field.handleChange(val as ElementStatus);
-                  }}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {elementStatuses.map((status) => (
-                      <SelectItem key={status} value={status}>
-                        {STATUS_LABELS[status]()}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
-            )}
+            {(field) => {
+              const statusItems = elementStatuses.map((status) => ({
+                value: status,
+                label: STATUS_LABELS[status](),
+              }));
+              return (
+                <Field>
+                  <FieldLabel>{m.element_label_status()}</FieldLabel>
+                  <Select
+                    items={statusItems}
+                    value={field.state.value}
+                    onValueChange={(val: string | null) => {
+                      if (val) field.handleChange(val as ElementStatus);
+                    }}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {statusItems.map((item) => (
+                        <SelectItem key={item.value} value={item.value}>
+                          {item.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+              );
+            }}
           </form.Field>
 
           <form.Field name="elementType">
@@ -464,10 +478,18 @@ export function ElementFormDialog({
                 {(field) => {
                   const validParents = getValidParentOptions(typeField.state.value);
                   const allowsNoParent = ["actor", "group", "system"].includes(typeField.state.value);
+                  const parentItems = [
+                    { value: "__none__", label: m.element_no_parent() },
+                    ...validParents.map((p) => ({
+                      value: p.id,
+                      label: `${p.name} (${TYPE_LABELS[p.elementType]()})`,
+                    })),
+                  ];
                   return (
                     <Field data-invalid={!!hierarchyError}>
                       <FieldLabel>{m.element_label_parent()}</FieldLabel>
                       <Select
+                        items={parentItems}
                         value={field.state.value || "__none__"}
                         onValueChange={(val: string | null) => {
                           const newVal = val === "__none__" ? "" : (val ?? "");
@@ -480,10 +502,9 @@ export function ElementFormDialog({
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="__none__">{m.element_no_parent()}</SelectItem>
-                          {validParents.map((p) => (
-                            <SelectItem key={p.id} value={p.id}>
-                              {p.name} ({TYPE_LABELS[p.elementType]()})
+                          {parentItems.map((item) => (
+                            <SelectItem key={item.value} value={item.value}>
+                              {item.label}
                             </SelectItem>
                           ))}
                         </SelectContent>

@@ -196,25 +196,33 @@ export function RegisterSSODialog({
           </form.Field>
 
           <form.Field name="type">
-            {(field) => (
-              <Field>
-                <FieldLabel>{m.admin_sso_label_type()}</FieldLabel>
-                <Select
-                  value={field.state.value}
-                  onValueChange={(val: string | null) => {
-                    if (val) field.handleChange(val as "oidc" | "saml");
-                  }}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="oidc">OIDC</SelectItem>
-                    <SelectItem value="saml">SAML</SelectItem>
-                  </SelectContent>
-                </Select>
-              </Field>
-            )}
+            {(field) => {
+              const typeItems = [
+                { value: "oidc", label: "OIDC" },
+                { value: "saml", label: "SAML" },
+              ];
+              return (
+                <Field>
+                  <FieldLabel>{m.admin_sso_label_type()}</FieldLabel>
+                  <Select
+                    items={typeItems}
+                    value={field.state.value}
+                    onValueChange={(val: string | null) => {
+                      if (val) field.handleChange(val as "oidc" | "saml");
+                    }}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {typeItems.map((item) => (
+                        <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+              );
+            }}
           </form.Field>
 
           <form.Subscribe selector={(s) => s.values.type}>
