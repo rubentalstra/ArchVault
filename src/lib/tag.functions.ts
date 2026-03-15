@@ -12,15 +12,15 @@ import {
     addConnectionTagSchema,
     removeConnectionTagSchema,
 } from "./tag.validators";
-import {assertRole, getSessionAndOrg} from "./auth.helpers";
+import {assertRole, getActiveMember} from "./auth.helpers";
 
 // ── Tag CRUD ─────────────────────────────────────────────────────────
 
 export const getTags = createServerFn({method: "GET"})
     .inputValidator((input: unknown) => getTagsSchema.parse(input))
     .handler(async ({data}) => {
-        const {memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin", "editor", "viewer"]);
+        const member = await getActiveMember();
+        assertRole(member.role, ["owner", "admin", "editor", "viewer"]);
 
         return db
             .select()
@@ -31,8 +31,8 @@ export const getTags = createServerFn({method: "GET"})
 export const createTag = createServerFn({method: "POST"})
     .inputValidator((input: unknown) => createTagSchema.parse(input))
     .handler(async ({data}) => {
-        const {memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin", "editor"]);
+        const member = await getActiveMember();
+        assertRole(member.role, ["owner", "admin", "editor"]);
 
         const id = crypto.randomUUID();
         const [created] = await db
@@ -52,8 +52,8 @@ export const createTag = createServerFn({method: "POST"})
 export const updateTag = createServerFn({method: "POST"})
     .inputValidator((input: unknown) => updateTagSchema.parse(input))
     .handler(async ({data}) => {
-        const {memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin", "editor"]);
+        const member = await getActiveMember();
+        assertRole(member.role, ["owner", "admin", "editor"]);
 
         const {id, ...updates} = data;
         const [updated] = await db
@@ -69,8 +69,8 @@ export const updateTag = createServerFn({method: "POST"})
 export const deleteTag = createServerFn({method: "POST"})
     .inputValidator((input: unknown) => deleteTagSchema.parse(input))
     .handler(async ({data}) => {
-        const {memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin"]);
+        const member = await getActiveMember();
+        assertRole(member.role, ["owner", "admin"]);
 
         const [deleted] = await db
             .delete(tag)
@@ -86,8 +86,8 @@ export const deleteTag = createServerFn({method: "POST"})
 export const addElementTag = createServerFn({method: "POST"})
     .inputValidator((input: unknown) => addElementTagSchema.parse(input))
     .handler(async ({data}) => {
-        const {memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin", "editor"]);
+        const member = await getActiveMember();
+        assertRole(member.role, ["owner", "admin", "editor"]);
 
         await db
             .insert(elementTag)
@@ -103,8 +103,8 @@ export const addElementTag = createServerFn({method: "POST"})
 export const removeElementTag = createServerFn({method: "POST"})
     .inputValidator((input: unknown) => removeElementTagSchema.parse(input))
     .handler(async ({data}) => {
-        const {memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin", "editor"]);
+        const member = await getActiveMember();
+        assertRole(member.role, ["owner", "admin", "editor"]);
 
         await db
             .delete(elementTag)
@@ -123,8 +123,8 @@ export const removeElementTag = createServerFn({method: "POST"})
 export const addConnectionTag = createServerFn({method: "POST"})
     .inputValidator((input: unknown) => addConnectionTagSchema.parse(input))
     .handler(async ({data}) => {
-        const {memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin", "editor"]);
+        const member = await getActiveMember();
+        assertRole(member.role, ["owner", "admin", "editor"]);
 
         await db
             .insert(connectionTag)
@@ -140,8 +140,8 @@ export const addConnectionTag = createServerFn({method: "POST"})
 export const removeConnectionTag = createServerFn({method: "POST"})
     .inputValidator((input: unknown) => removeConnectionTagSchema.parse(input))
     .handler(async ({data}) => {
-        const {memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin", "editor"]);
+        const member = await getActiveMember();
+        assertRole(member.role, ["owner", "admin", "editor"]);
 
         await db
             .delete(connectionTag)

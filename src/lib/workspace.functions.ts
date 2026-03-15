@@ -6,19 +6,19 @@ import {
     createWorkspaceSchema,
     updateWorkspaceSchema,
 } from "./workspace.validators";
-import {assertRole, getSessionAndOrg} from "./auth.helpers";
+import {assertRole, getActiveMember, getSessionAndMember} from "./auth.helpers";
 
 export const getWorkspaces = createServerFn({method: "GET"}).handler(
     async () => {
-        const {org, memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin", "editor", "viewer"]);
+        const member = await getActiveMember();
+        assertRole(member.role, ["owner", "admin", "editor", "viewer"]);
 
         return db
             .select()
             .from(workspace)
             .where(
                 and(
-                    eq(workspace.organizationId, org.id),
+                    eq(workspace.organizationId, member.organizationId),
                     isNull(workspace.deletedAt),
                 ),
             );
@@ -27,15 +27,15 @@ export const getWorkspaces = createServerFn({method: "GET"}).handler(
 
 export const getWorkspaceBySlug = createServerFn({method: "GET"}).inputValidator((input: { slug: string }) => input)
     .handler(async ({data}) => {
-        const {org, memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin", "editor", "viewer"]);
+        const member = await getActiveMember();
+        assertRole(member.role, ["owner", "admin", "editor", "viewer"]);
 
         const [ws] = await db
             .select()
             .from(workspace)
             .where(
                 and(
-                    eq(workspace.organizationId, org.id),
+                    eq(workspace.organizationId, member.organizationId),
                     eq(workspace.slug, data.slug),
                     isNull(workspace.deletedAt),
                 ),
@@ -48,8 +48,8 @@ export const getWorkspaceBySlug = createServerFn({method: "GET"}).inputValidator
 export const createWorkspace = createServerFn({method: "POST"})
     .inputValidator((input: unknown) => createWorkspaceSchema.parse(input))
     .handler(async ({data}) => {
-        const {session, org, memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin", "editor"]);
+        const {session, member} = await getSessionAndMember();
+        assertRole(member.role, ["owner", "admin", "editor"]);
 
         const id = crypto.randomUUID();
 
@@ -57,7 +57,7 @@ export const createWorkspace = createServerFn({method: "POST"})
             .insert(workspace)
             .values({
                 id,
-                organizationId: org.id,
+                organizationId: member.organizationId,
                 name: data.name,
                 slug: data.slug,
                 description: data.description,
@@ -72,8 +72,8 @@ export const createWorkspace = createServerFn({method: "POST"})
 export const updateWorkspace = createServerFn({method: "POST"})
     .inputValidator((input: unknown) => updateWorkspaceSchema.parse(input))
     .handler(async ({data}) => {
-        const {org, memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin", "editor"]);
+        const member = await getActiveMember();
+        assertRole(member.role, ["owner", "admin", "editor"]);
 
         const {id, ...updates} = data;
 
@@ -81,7 +81,7 @@ export const updateWorkspace = createServerFn({method: "POST"})
             .update(workspace)
             .set(updates)
             .where(
-                and(eq(workspace.id, id), eq(workspace.organizationId, org.id)),
+                and(eq(workspace.id, id), eq(workspace.organizationId, member.organizationId)),
             )
             .returning();
 
@@ -91,22 +91,22 @@ export const updateWorkspace = createServerFn({method: "POST"})
 
 export const assertWorkspaceAdmin = createServerFn({method: "GET"}).handler(
     async () => {
-        const {memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin"]);
+        const member = await getActiveMember();
+        assertRole(member.role, ["owner", "admin"]);
     },
 );
 
 export const deleteWorkspace = createServerFn({method: "POST"})
     .inputValidator((input: { id: string }) => input)
     .handler(async ({data}) => {
-        const {org, memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin"]);
+        const member = await getActiveMember();
+        assertRole(member.role, ["owner", "admin"]);
 
         const [deleted] = await db
             .update(workspace)
             .set({deletedAt: new Date()})
             .where(
-                and(eq(workspace.id, data.id), eq(workspace.organizationId, org.id)),
+                and(eq(workspace.id, data.id), eq(workspace.organizationId, member.organizationId)),
             )
             .returning();
 

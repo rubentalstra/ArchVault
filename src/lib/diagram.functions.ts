@@ -31,7 +31,7 @@ import {
 } from "./diagram.validators";
 import type {AncestrySegment} from "./diagram.validators";
 import type {ElementType} from "./element.validators";
-import {assertRole, getSessionAndOrg} from "./auth.helpers";
+import {assertRole, getActiveMember, getSessionAndMember} from "./auth.helpers";
 
 // NOTE: No module-level helper functions that reference `db`.
 // All helpers are inlined into handlers so the bundler can tree-shake
@@ -42,8 +42,8 @@ import {assertRole, getSessionAndOrg} from "./auth.helpers";
 export const getDiagrams = createServerFn({method: "GET"})
     .inputValidator((input: unknown) => getDiagramsSchema.parse(input))
     .handler(async ({data}) => {
-        const {memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin", "editor", "viewer"]);
+        const member = await getActiveMember();
+        assertRole(member.role, ["owner", "admin", "editor", "viewer"]);
 
         const {sql: sqlTag, count} = await import("drizzle-orm");
 
@@ -84,8 +84,8 @@ export const getDiagrams = createServerFn({method: "GET"})
 export const getDiagram = createServerFn({method: "GET"})
     .inputValidator((input: unknown) => getDiagramSchema.parse(input))
     .handler(async ({data}) => {
-        const {memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin", "editor", "viewer"]);
+        const member = await getActiveMember();
+        assertRole(member.role, ["owner", "admin", "editor", "viewer"]);
 
         const [d] = await db
             .select()
@@ -109,8 +109,8 @@ export const getDiagram = createServerFn({method: "GET"})
 export const getDiagramData = createServerFn({method: "GET"})
     .inputValidator((input: unknown) => getDiagramDataSchema.parse(input))
     .handler(async ({data}) => {
-        const {memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin", "editor", "viewer"]);
+        const member = await getActiveMember();
+        assertRole(member.role, ["owner", "admin", "editor", "viewer"]);
 
         const [d] = await db
             .select()
@@ -298,8 +298,8 @@ export const getDiagramData = createServerFn({method: "GET"})
 export const getDiagramAncestry = createServerFn({method: "GET"})
     .inputValidator((input: unknown) => getDiagramAncestrySchema.parse(input))
     .handler(async ({data}): Promise<AncestrySegment[]> => {
-        const {memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin", "editor", "viewer"]);
+        const member = await getActiveMember();
+        assertRole(member.role, ["owner", "admin", "editor", "viewer"]);
 
         const {inArray} = await import("drizzle-orm");
 
@@ -446,8 +446,8 @@ export const getDiagramAncestry = createServerFn({method: "GET"})
 export const createDiagram = createServerFn({method: "POST"})
     .inputValidator((input: unknown) => createDiagramSchema.parse(input))
     .handler(async ({data}) => {
-        const {session, memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin", "editor"]);
+        const {session, member} = await getSessionAndMember();
+        assertRole(member.role, ["owner", "admin", "editor"]);
 
         const id = crypto.randomUUID();
         const [created] = await db
@@ -471,8 +471,8 @@ export const createDiagram = createServerFn({method: "POST"})
 export const updateDiagram = createServerFn({method: "POST"})
     .inputValidator((input: unknown) => updateDiagramSchema.parse(input))
     .handler(async ({data}) => {
-        const {session, memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin", "editor"]);
+        const {session, member} = await getSessionAndMember();
+        assertRole(member.role, ["owner", "admin", "editor"]);
 
         const {id, ...updates} = data;
 
@@ -495,8 +495,8 @@ export const updateDiagram = createServerFn({method: "POST"})
 export const deleteDiagram = createServerFn({method: "POST"})
     .inputValidator((input: unknown) => deleteDiagramSchema.parse(input))
     .handler(async ({data}) => {
-        const {session, memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin"]);
+        const {session, member} = await getSessionAndMember();
+        assertRole(member.role, ["owner", "admin"]);
 
         const [updated] = await db
             .update(diagram)
@@ -513,8 +513,8 @@ export const deleteDiagram = createServerFn({method: "POST"})
 export const addDiagramElement = createServerFn({method: "POST"})
     .inputValidator((input: unknown) => addDiagramElementSchema.parse(input))
     .handler(async ({data}) => {
-        const {memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin", "editor"]);
+        const member = await getActiveMember();
+        assertRole(member.role, ["owner", "admin", "editor"]);
 
         // Inline helpers
         async function assertDiagramInWorkspace(diagramId: string) {
@@ -600,8 +600,8 @@ export const addDiagramElement = createServerFn({method: "POST"})
 export const updateDiagramElement = createServerFn({method: "POST"})
     .inputValidator((input: unknown) => updateDiagramElementSchema.parse(input))
     .handler(async ({data}) => {
-        const {memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin", "editor"]);
+        const member = await getActiveMember();
+        assertRole(member.role, ["owner", "admin", "editor"]);
 
         const {id, ...updates} = data;
 
@@ -645,8 +645,8 @@ export const updateDiagramElement = createServerFn({method: "POST"})
 export const removeDiagramElement = createServerFn({method: "POST"})
     .inputValidator((input: unknown) => removeDiagramElementSchema.parse(input))
     .handler(async ({data}) => {
-        const {memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin", "editor"]);
+        const member = await getActiveMember();
+        assertRole(member.role, ["owner", "admin", "editor"]);
 
         const [deleted] = await db
             .delete(diagramElement)
@@ -662,8 +662,8 @@ export const removeDiagramElement = createServerFn({method: "POST"})
 export const addDiagramConnection = createServerFn({method: "POST"})
     .inputValidator((input: unknown) => addDiagramConnectionSchema.parse(input))
     .handler(async ({data}) => {
-        const {memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin", "editor"]);
+        const member = await getActiveMember();
+        assertRole(member.role, ["owner", "admin", "editor"]);
 
         const id = crypto.randomUUID();
         const [created] = await db
@@ -689,8 +689,8 @@ export const addDiagramConnection = createServerFn({method: "POST"})
 export const updateDiagramConnection = createServerFn({method: "POST"})
     .inputValidator((input: unknown) => updateDiagramConnectionSchema.parse(input))
     .handler(async ({data}) => {
-        const {memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin", "editor"]);
+        const member = await getActiveMember();
+        assertRole(member.role, ["owner", "admin", "editor"]);
 
         const {id, ...updates} = data;
         const [updated] = await db
@@ -706,8 +706,8 @@ export const updateDiagramConnection = createServerFn({method: "POST"})
 export const removeDiagramConnection = createServerFn({method: "POST"})
     .inputValidator((input: unknown) => removeDiagramConnectionSchema.parse(input))
     .handler(async ({data}) => {
-        const {memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin", "editor"]);
+        const member = await getActiveMember();
+        assertRole(member.role, ["owner", "admin", "editor"]);
 
         const [deleted] = await db
             .delete(diagramConnection)

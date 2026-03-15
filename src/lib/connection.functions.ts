@@ -9,7 +9,7 @@ import {
     getConnectionsSchema,
     validateConnectionEndpoints,
 } from "./connection.validators";
-import {assertRole, getSessionAndOrg} from "./auth.helpers";
+import {assertRole, getActiveMember, getSessionAndMember} from "./auth.helpers";
 
 // NOTE: No module-level helper functions that reference `db`.
 // All helpers are inlined into handlers so the bundler can tree-shake
@@ -20,8 +20,8 @@ import {assertRole, getSessionAndOrg} from "./auth.helpers";
 export const getConnections = createServerFn({method: "GET"})
     .inputValidator((input: unknown) => getConnectionsSchema.parse(input))
     .handler(async ({data}) => {
-        const {memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin", "editor", "viewer"]);
+        const member = await getActiveMember();
+        assertRole(member.role, ["owner", "admin", "editor", "viewer"]);
 
         const connections = await db
             .select()
@@ -84,8 +84,8 @@ export const getConnections = createServerFn({method: "GET"})
 export const createConnection = createServerFn({method: "POST"})
     .inputValidator((input: unknown) => createConnectionSchema.parse(input))
     .handler(async ({data}) => {
-        const {session, memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin", "editor"]);
+        const {session, member} = await getSessionAndMember();
+        assertRole(member.role, ["owner", "admin", "editor"]);
 
         const endpoints = validateConnectionEndpoints(data.sourceElementId, data.targetElementId);
         if (!endpoints.valid) throw new Error(endpoints.message);
@@ -125,8 +125,8 @@ export const createConnection = createServerFn({method: "POST"})
 export const updateConnection = createServerFn({method: "POST"})
     .inputValidator((input: unknown) => updateConnectionSchema.parse(input))
     .handler(async ({data}) => {
-        const {session, memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin", "editor"]);
+        const {session, member} = await getSessionAndMember();
+        assertRole(member.role, ["owner", "admin", "editor"]);
 
         // Inline helper
         async function assertElementInWorkspace(elementId: string, workspaceId: string) {
@@ -173,8 +173,8 @@ export const updateConnection = createServerFn({method: "POST"})
 export const deleteConnection = createServerFn({method: "POST"})
     .inputValidator((input: unknown) => deleteConnectionSchema.parse(input))
     .handler(async ({data}) => {
-        const {session, memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin"]);
+        const {session, member} = await getSessionAndMember();
+        assertRole(member.role, ["owner", "admin"]);
 
         const [updated] = await db
             .update(connection)

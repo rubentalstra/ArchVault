@@ -15,15 +15,15 @@ import {
     validateElementHierarchy,
 } from "./element.validators";
 import type {ElementType} from "./element.validators";
-import {assertRole, getSessionAndOrg} from "./auth.helpers";
+import {assertRole, getActiveMember, getSessionAndMember} from "./auth.helpers";
 
 // ── Element CRUD ───────────────────────────────────────────────────────
 
 export const getElements = createServerFn({method: "GET"})
     .inputValidator((input: unknown) => getElementsSchema.parse(input))
     .handler(async ({data}) => {
-        const {memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin", "editor", "viewer"]);
+        const member = await getActiveMember();
+        assertRole(member.role, ["owner", "admin", "editor", "viewer"]);
 
         const elements = await db
             .select()
@@ -108,8 +108,8 @@ export const getElements = createServerFn({method: "GET"})
 export const getElementById = createServerFn({method: "GET"})
     .inputValidator((input: { id: string }) => input)
     .handler(async ({data}) => {
-        const {memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin", "editor", "viewer"]);
+        const member = await getActiveMember();
+        assertRole(member.role, ["owner", "admin", "editor", "viewer"]);
 
         const [el] = await db
             .select()
@@ -170,8 +170,8 @@ export const getElementById = createServerFn({method: "GET"})
 export const createElement = createServerFn({method: "POST"})
     .inputValidator((input: unknown) => createElementSchema.parse(input))
     .handler(async ({data}) => {
-        const {session, memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin", "editor"]);
+        const {session, member} = await getSessionAndMember();
+        assertRole(member.role, ["owner", "admin", "editor"]);
 
         // Inline helper: get parent element type
         async function getParentType(
@@ -218,8 +218,8 @@ export const createElement = createServerFn({method: "POST"})
 export const updateElement = createServerFn({method: "POST"})
     .inputValidator((input: unknown) => updateElementSchema.parse(input))
     .handler(async ({data}) => {
-        const {session, memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin", "editor"]);
+        const {session, member} = await getSessionAndMember();
+        assertRole(member.role, ["owner", "admin", "editor"]);
 
         // Inline helpers
         async function getParentType(
@@ -286,8 +286,8 @@ export const updateElement = createServerFn({method: "POST"})
 export const deleteElement = createServerFn({method: "POST"})
     .inputValidator((input: unknown) => deleteElementSchema.parse(input))
     .handler(async ({data}) => {
-        const {session, memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin"]);
+        const {session, member} = await getSessionAndMember();
+        assertRole(member.role, ["owner", "admin"]);
 
         const {sql: sqlTag} = await import("drizzle-orm");
         await db.execute(sqlTag`
@@ -313,8 +313,8 @@ export const deleteElement = createServerFn({method: "POST"})
 export const addElementToGroup = createServerFn({method: "POST"})
     .inputValidator((input: unknown) => addElementToGroupSchema.parse(input))
     .handler(async ({data}) => {
-        const {memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin", "editor"]);
+        const member = await getActiveMember();
+        assertRole(member.role, ["owner", "admin", "editor"]);
 
         if (data.elementId === data.groupElementId) {
             throw new Error("An element cannot be assigned to itself as a group.");
@@ -351,8 +351,8 @@ export const addElementToGroup = createServerFn({method: "POST"})
 export const removeElementFromGroup = createServerFn({method: "POST"})
     .inputValidator((input: unknown) => removeElementFromGroupSchema.parse(input))
     .handler(async ({data}) => {
-        const {memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin", "editor"]);
+        const member = await getActiveMember();
+        assertRole(member.role, ["owner", "admin", "editor"]);
 
         await db.delete(elementGroup).where(
             and(
@@ -369,8 +369,8 @@ export const removeElementFromGroup = createServerFn({method: "POST"})
 export const addLink = createServerFn({method: "POST"})
     .inputValidator((input: unknown) => addLinkSchema.parse(input))
     .handler(async ({data}) => {
-        const {memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin", "editor"]);
+        const member = await getActiveMember();
+        assertRole(member.role, ["owner", "admin", "editor"]);
 
         const id = crypto.randomUUID();
         const [created] = await db
@@ -390,8 +390,8 @@ export const addLink = createServerFn({method: "POST"})
 export const updateLink = createServerFn({method: "POST"})
     .inputValidator((input: unknown) => updateLinkSchema.parse(input))
     .handler(async ({data}) => {
-        const {memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin", "editor"]);
+        const member = await getActiveMember();
+        assertRole(member.role, ["owner", "admin", "editor"]);
 
         const {id, ...updates} = data;
         const [updated] = await db
@@ -407,8 +407,8 @@ export const updateLink = createServerFn({method: "POST"})
 export const removeLink = createServerFn({method: "POST"})
     .inputValidator((input: unknown) => removeLinkSchema.parse(input))
     .handler(async ({data}) => {
-        const {memberRole} = await getSessionAndOrg();
-        assertRole(memberRole, ["owner", "admin", "editor"]);
+        const member = await getActiveMember();
+        assertRole(member.role, ["owner", "admin", "editor"]);
 
         const [deleted] = await db
             .delete(elementLink)

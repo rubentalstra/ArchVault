@@ -16,15 +16,15 @@ import {
   setElementIconTechnologySchema,
   setConnectionIconTechnologySchema,
 } from "./technology.validators";
-import { assertRole, getSessionAndOrg } from "./auth.helpers";
+import { assertRole, getActiveMember } from "./auth.helpers";
 
 // ── Technology CRUD ─────────────────────────────────────────────────
 
 export const getTechnologies = createServerFn({ method: "GET" })
   .inputValidator((input: unknown) => getTechnologiesSchema.parse(input))
   .handler(async ({ data }) => {
-    const { memberRole } = await getSessionAndOrg();
-    assertRole(memberRole, ["owner", "admin", "editor", "viewer"]);
+    const member = await getActiveMember();
+    assertRole(member.role, ["owner", "admin", "editor", "viewer"]);
 
     const { count, sql: sqlTag } = await import("drizzle-orm");
 
@@ -71,8 +71,8 @@ export const getTechnologies = createServerFn({ method: "GET" })
 export const createTechnology = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => createTechnologySchema.parse(input))
   .handler(async ({ data }) => {
-    const { memberRole } = await getSessionAndOrg();
-    assertRole(memberRole, ["owner", "admin", "editor"]);
+    const member = await getActiveMember();
+    assertRole(member.role, ["owner", "admin", "editor"]);
 
     const id = crypto.randomUUID();
     const [created] = await db
@@ -95,8 +95,8 @@ export const createTechnology = createServerFn({ method: "POST" })
 export const updateTechnology = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => updateTechnologySchema.parse(input))
   .handler(async ({ data }) => {
-    const { memberRole } = await getSessionAndOrg();
-    assertRole(memberRole, ["owner", "admin", "editor"]);
+    const member = await getActiveMember();
+    assertRole(member.role, ["owner", "admin", "editor"]);
 
     const { id, ...updates } = data;
     const [updated] = await db
@@ -112,8 +112,8 @@ export const updateTechnology = createServerFn({ method: "POST" })
 export const deleteTechnology = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => deleteTechnologySchema.parse(input))
   .handler(async ({ data }) => {
-    const { memberRole } = await getSessionAndOrg();
-    assertRole(memberRole, ["owner", "admin"]);
+    const member = await getActiveMember();
+    assertRole(member.role, ["owner", "admin"]);
 
     const [deleted] = await db
       .delete(technology)
@@ -131,8 +131,8 @@ export const addElementTechnology = createServerFn({ method: "POST" })
     addElementTechnologySchema.parse(input),
   )
   .handler(async ({ data }) => {
-    const { memberRole } = await getSessionAndOrg();
-    assertRole(memberRole, ["owner", "admin", "editor"]);
+    const member = await getActiveMember();
+    assertRole(member.role, ["owner", "admin", "editor"]);
 
     await db
       .insert(elementTechnology)
@@ -151,8 +151,8 @@ export const removeElementTechnology = createServerFn({ method: "POST" })
     removeElementTechnologySchema.parse(input),
   )
   .handler(async ({ data }) => {
-    const { memberRole } = await getSessionAndOrg();
-    assertRole(memberRole, ["owner", "admin", "editor"]);
+    const member = await getActiveMember();
+    assertRole(member.role, ["owner", "admin", "editor"]);
 
     await db
       .delete(elementTechnology)
@@ -171,8 +171,8 @@ export const reorderElementTechnologies = createServerFn({ method: "POST" })
     reorderElementTechnologiesSchema.parse(input),
   )
   .handler(async ({ data }) => {
-    const { memberRole } = await getSessionAndOrg();
-    assertRole(memberRole, ["owner", "admin", "editor"]);
+    const member = await getActiveMember();
+    assertRole(member.role, ["owner", "admin", "editor"]);
 
     await Promise.all(
       data.orderedTechnologyIds.map((technologyId, index) =>
@@ -198,8 +198,8 @@ export const addConnectionTechnology = createServerFn({ method: "POST" })
     addConnectionTechnologySchema.parse(input),
   )
   .handler(async ({ data }) => {
-    const { memberRole } = await getSessionAndOrg();
-    assertRole(memberRole, ["owner", "admin", "editor"]);
+    const member = await getActiveMember();
+    assertRole(member.role, ["owner", "admin", "editor"]);
 
     await db
       .insert(connectionTechnology)
@@ -218,8 +218,8 @@ export const removeConnectionTechnology = createServerFn({ method: "POST" })
     removeConnectionTechnologySchema.parse(input),
   )
   .handler(async ({ data }) => {
-    const { memberRole } = await getSessionAndOrg();
-    assertRole(memberRole, ["owner", "admin", "editor"]);
+    const member = await getActiveMember();
+    assertRole(member.role, ["owner", "admin", "editor"]);
 
     await db
       .delete(connectionTechnology)
@@ -238,8 +238,8 @@ export const reorderConnectionTechnologies = createServerFn({ method: "POST" })
     reorderConnectionTechnologiesSchema.parse(input),
   )
   .handler(async ({ data }) => {
-    const { memberRole } = await getSessionAndOrg();
-    assertRole(memberRole, ["owner", "admin", "editor"]);
+    const member = await getActiveMember();
+    assertRole(member.role, ["owner", "admin", "editor"]);
 
     await Promise.all(
       data.orderedTechnologyIds.map((technologyId, index) =>
@@ -265,8 +265,8 @@ export const setElementIconTechnology = createServerFn({ method: "POST" })
     setElementIconTechnologySchema.parse(input),
   )
   .handler(async ({ data }) => {
-    const { memberRole } = await getSessionAndOrg();
-    assertRole(memberRole, ["owner", "admin", "editor"]);
+    const member = await getActiveMember();
+    assertRole(member.role, ["owner", "admin", "editor"]);
 
     const [updated] = await db
       .update(element)
@@ -283,8 +283,8 @@ export const setConnectionIconTechnology = createServerFn({ method: "POST" })
     setConnectionIconTechnologySchema.parse(input),
   )
   .handler(async ({ data }) => {
-    const { memberRole } = await getSessionAndOrg();
-    assertRole(memberRole, ["owner", "admin", "editor"]);
+    const member = await getActiveMember();
+    assertRole(member.role, ["owner", "admin", "editor"]);
 
     const [updated] = await db
       .update(connection)
