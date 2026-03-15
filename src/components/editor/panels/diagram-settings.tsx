@@ -1,12 +1,12 @@
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { useEditorStore } from "#/stores/editor-store";
 import { updateDiagram } from "#/lib/diagram.functions";
 import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
-import { Textarea } from "#/components/ui/textarea";
 import { Switch } from "#/components/ui/switch";
+import { InlineEditable } from "./inline-editable";
 import { m } from "#/paraglide/messages";
 
 export function DiagramSettings({
@@ -20,32 +20,35 @@ export function DiagramSettings({
   const gridSize = useEditorStore((s) => s.gridSize);
   const snapToGrid = useEditorStore((s) => s.snapToGrid);
 
-  const [name, setName] = useState(diagramName);
-  const [description, setDescription] = useState(diagramDescription ?? "");
-
   const updateDiagramFn = useServerFn(updateDiagram);
 
-  const handleNameBlur = useCallback(async () => {
-    if (!diagramId || name === diagramName) return;
-    try {
-      await updateDiagramFn({ data: { id: diagramId, name } });
-      toast.success(m.editor_panel_save_success());
-    } catch {
-      toast.error(m.editor_panel_save_failed());
-    }
-  }, [diagramId, name, diagramName, updateDiagramFn]);
+  const handleNameSave = useCallback(
+    async (value: string) => {
+      if (!diagramId) return;
+      try {
+        await updateDiagramFn({ data: { id: diagramId, name: value } });
+        toast.success(m.editor_panel_save_success());
+      } catch {
+        toast.error(m.editor_panel_save_failed());
+      }
+    },
+    [diagramId, updateDiagramFn],
+  );
 
-  const handleDescriptionBlur = useCallback(async () => {
-    if (!diagramId || description === (diagramDescription ?? "")) return;
-    try {
-      await updateDiagramFn({
-        data: { id: diagramId, description: description || null },
-      });
-      toast.success(m.editor_panel_save_success());
-    } catch {
-      toast.error(m.editor_panel_save_failed());
-    }
-  }, [diagramId, description, diagramDescription, updateDiagramFn]);
+  const handleDescriptionSave = useCallback(
+    async (value: string) => {
+      if (!diagramId) return;
+      try {
+        await updateDiagramFn({
+          data: { id: diagramId, description: value || null },
+        });
+        toast.success(m.editor_panel_save_success());
+      } catch {
+        toast.error(m.editor_panel_save_failed());
+      }
+    },
+    [diagramId, updateDiagramFn],
+  );
 
   const handleGridSizeBlur = useCallback(
     async (value: number) => {
@@ -75,24 +78,23 @@ export function DiagramSettings({
     <div className="space-y-4 p-4">
       <h3 className="text-sm font-semibold">{m.editor_panel_diagram_settings()}</h3>
 
-      <div className="space-y-2">
-        <Label htmlFor="diagram-name">{m.diagram_label_name()}</Label>
-        <Input
-          id="diagram-name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          onBlur={handleNameBlur}
+      <div className="space-y-1">
+        <Label className="px-2 text-xs text-muted-foreground">{m.diagram_label_name()}</Label>
+        <InlineEditable
+          value={diagramName}
+          onSave={handleNameSave}
+          placeholder={m.diagram_placeholder_name()}
+          textClassName="font-medium"
         />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="diagram-description">{m.diagram_label_description()}</Label>
-        <Textarea
-          id="diagram-description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          onBlur={handleDescriptionBlur}
-          rows={3}
+      <div className="space-y-1">
+        <Label className="px-2 text-xs text-muted-foreground">{m.diagram_label_description()}</Label>
+        <InlineEditable
+          value={diagramDescription ?? ""}
+          onSave={handleDescriptionSave}
+          placeholder={m.diagram_placeholder_description()}
+          multiline
         />
       </div>
 

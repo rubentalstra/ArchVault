@@ -6,11 +6,11 @@ import { useEditorStore } from "#/stores/editor-store";
 import { getElementById, updateElement, addLink, removeLink } from "#/lib/element.functions";
 import { getTechnologies, addElementTechnology, removeElementTechnology, setElementIconTechnology } from "#/lib/technology.functions";
 import { getTags, addElementTag, removeElementTag } from "#/lib/tag.functions";
-import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
 import { Textarea } from "#/components/ui/textarea";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
+import { Input } from "#/components/ui/input";
 import { Switch } from "#/components/ui/switch";
 import { Separator } from "#/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#/components/ui/tabs";
@@ -36,6 +36,7 @@ import { ScrollArea } from "#/components/ui/scroll-area";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "#/components/ui/collapsible";
 import { TechIcon } from "#/components/technologies/tech-icon";
 import { StatusDot } from "#/components/editor/nodes/status-dot";
+import { InlineEditable } from "./inline-editable";
 import {
   X, Plus, ExternalLink, BookOpen, History, Tag, Check,
   Box, Package, Cpu, Database, User,
@@ -86,16 +87,7 @@ export function ElementProperties({ node }: { node: AppNode }) {
     queryFn: async () => (await getElementByIdFn({ data: { id: node.data.elementId } })) as ElementDetails,
   });
 
-  const [name, setName] = useState(node.data.name);
-  const [displayDescription, setDisplayDescription] = useState(
-    node.data.displayDescription ?? "",
-  );
   const [description, setDescription] = useState("");
-
-  useEffect(() => {
-    setName(node.data.name);
-    setDisplayDescription(node.data.displayDescription ?? "");
-  }, [node.data.name, node.data.displayDescription]);
 
   useEffect(() => {
     if (element) {
@@ -117,17 +109,21 @@ export function ElementProperties({ node }: { node: AppNode }) {
     [node.data.elementId, updateElementFn, queryClient],
   );
 
-  const handleNameBlur = useCallback(async () => {
-    if (name === node.data.name) return;
-    await saveField("name", name);
-    updateNodeData(node.id, { name });
-  }, [name, node.data.name, node.id, saveField, updateNodeData]);
+  const handleNameSave = useCallback(
+    async (value: string) => {
+      await saveField("name", value);
+      updateNodeData(node.id, { name: value });
+    },
+    [node.id, saveField, updateNodeData],
+  );
 
-  const handleDisplayDescriptionBlur = useCallback(async () => {
-    if (displayDescription === (node.data.displayDescription ?? "")) return;
-    await saveField("displayDescription", displayDescription || null);
-    updateNodeData(node.id, { displayDescription: displayDescription || null });
-  }, [displayDescription, node.data.displayDescription, node.id, saveField, updateNodeData]);
+  const handleDisplayDescriptionSave = useCallback(
+    async (value: string) => {
+      await saveField("displayDescription", value || null);
+      updateNodeData(node.id, { displayDescription: value || null });
+    },
+    [node.id, saveField, updateNodeData],
+  );
 
   const handleDescriptionBlur = useCallback(async () => {
     if (!element || description === (element.description ?? "")) return;
@@ -154,7 +150,7 @@ export function ElementProperties({ node }: { node: AppNode }) {
   return (
     <div className="flex h-full flex-col">
       {/* Header: Icon + Name */}
-      <div className="flex items-center gap-3 px-4 pt-4 pb-2">
+      <div className="flex items-start gap-3 px-4 pt-4 pb-1">
         {node.type !== "actor" && (
           <div className="shrink-0 rounded-lg border bg-muted/50 p-1.5">
             {node.data.iconTechSlug ? (
@@ -168,24 +164,24 @@ export function ElementProperties({ node }: { node: AppNode }) {
             )}
           </div>
         )}
-        <Input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          onBlur={handleNameBlur}
-          className="h-auto border-none bg-transparent p-0 text-sm font-medium shadow-none focus-visible:ring-0"
-        />
+        <div className="min-w-0 flex-1 pt-1">
+          <InlineEditable
+            value={node.data.name}
+            onSave={handleNameSave}
+            placeholder={m.element_placeholder_name()}
+            textClassName="font-semibold text-base"
+          />
+        </div>
       </div>
 
       {/* Display description */}
       <div className="px-4 pb-2">
-        <Textarea
-          value={displayDescription}
-          onChange={(e) => setDisplayDescription(e.target.value)}
-          onBlur={handleDisplayDescriptionBlur}
-          maxLength={120}
-          rows={2}
+        <InlineEditable
+          value={node.data.displayDescription ?? ""}
+          onSave={handleDisplayDescriptionSave}
           placeholder={m.element_placeholder_display_description()}
-          className="resize-none border-none bg-transparent p-0 text-sm shadow-none focus-visible:ring-0"
+          multiline
+          maxLength={120}
         />
       </div>
 

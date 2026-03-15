@@ -135,26 +135,26 @@ function DiagramEditorPage() {
         </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden">
-        {elementPickerOpen && !readOnly && (
-          <div className="w-72 shrink-0 overflow-y-auto">
-            <ElementPickerSidebar />
-          </div>
-        )}
-        <div className="flex-1">
-          <ReactFlowProvider>
+      <ReactFlowProvider>
+        <div className="flex flex-1 overflow-hidden">
+          {elementPickerOpen && !readOnly && (
+            <div className="w-72 shrink-0 overflow-y-auto">
+              <ElementPickerSidebar />
+            </div>
+          )}
+          <div className="flex-1">
             <DiagramCanvas readOnly={readOnly} />
-          </ReactFlowProvider>
-        </div>
-        {propertiesPanelOpen && (
-          <div className="nowheel nopan w-80 shrink-0 border-l overflow-y-auto">
-            <PropertiesPanel
-              diagramName={diagramData.diagram.name}
-              diagramDescription={diagramData.diagram.description}
-            />
           </div>
-        )}
-      </div>
+          {propertiesPanelOpen && (
+            <div className="nowheel nopan w-80 shrink-0 border-l overflow-y-auto">
+              <PropertiesPanel
+                diagramName={diagramData.diagram.name}
+                diagramDescription={diagramData.diagram.description}
+              />
+            </div>
+          )}
+        </div>
+      </ReactFlowProvider>
     </div>
   );
 }
