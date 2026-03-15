@@ -1,0 +1,51 @@
+name: Feature request
+description: Suggest a new feature or improvement for Archvault
+title: "feat: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for sharing an idea to improve Archvault.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Describe the problem or limitation you are experiencing.
+      placeholder: What is hard or missing today?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: Describe what you would like to happen.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Describe any alternatives you have considered.
+
+  - type: checkboxes
+    id: c4_level
+    attributes:
+      label: C4 level
+      description: Which C4 level(s) does this relate to?
+      options:
+        - label: Level 1 - System Context
+        - label: Level 2 - Container / App
+        - label: Level 3 - Component
+        - label: Not specific to a C4 level
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Add any other context, mockups, or screenshots.
+
