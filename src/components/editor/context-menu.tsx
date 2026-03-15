@@ -16,6 +16,7 @@ import {
 } from "#/lib/element.functions";
 import { deleteConnection } from "#/lib/connection.functions";
 import { validateElementForDiagram } from "#/lib/diagram.validators";
+import { useCreateElementAtPosition, DEFAULT_SIZES } from "#/components/editor/dnd-context";
 import { m } from "#/paraglide/messages";
 import { Separator } from "#/components/ui/separator";
 import { useReactFlow } from "@xyflow/react";
@@ -36,15 +37,6 @@ import { useState } from "react";
 type CreatedElement = { id: string; name: string; status: ElementStatus; external: boolean };
 type CreatedDiagramElement = { id: string };
 
-const DEFAULT_SIZES: Record<ElementType, { width: number; height: number }> = {
-  actor: { width: 160, height: 100 },
-  group: { width: 320, height: 220 },
-  system: { width: 200, height: 120 },
-  app: { width: 180, height: 110 },
-  store: { width: 180, height: 110 },
-  component: { width: 160, height: 100 },
-};
-
 const ELEMENT_TYPES: ElementType[] = ["actor", "group", "system", "app", "store", "component"];
 
 const ELEMENT_LABELS: Record<ElementType, () => string> = {
@@ -54,15 +46,6 @@ const ELEMENT_LABELS: Record<ElementType, () => string> = {
   app: () => m.editor_toolbar_add_app(),
   store: () => m.editor_toolbar_add_store(),
   component: () => m.editor_toolbar_add_component(),
-};
-
-const NEW_ELEMENT_NAMES: Record<ElementType, () => string> = {
-  actor: () => m.editor_new_actor(),
-  group: () => m.editor_new_system(),
-  system: () => m.editor_new_system(),
-  app: () => m.editor_new_app(),
-  store: () => m.editor_new_store(),
-  component: () => m.editor_new_component(),
 };
 
 export function EditorContextMenu() {
@@ -232,7 +215,7 @@ function NodeContextMenuItems({
           technologies: [],
           iconTechSlug: null,
           isSubFlow: false,
-            deeperDiagrams: [],
+          deeperDiagrams: [],
         },
       } as AppNode;
       addNode(newNode);
@@ -305,63 +288,16 @@ function PaneContextMenuItems({ position }: { position: { x: number; y: number }
   const diagramType = useEditorStore((s) => s.diagramType);
   const showGrid = useEditorStore((s) => s.showGrid);
   const setShowGrid = useEditorStore((s) => s.setShowGrid);
-  const addNode = useEditorStore((s) => s.addNode);
   const reactFlow = useReactFlow();
 
-  const createElementFn = useServerFn(createElement);
-  const addDiagramElementFn = useServerFn(addDiagramElement);
+  const createElementAtPosition = useCreateElementAtPosition();
 
   const handleAddElement = useCallback(
     async (type: ElementType) => {
-      const store = useEditorStore.getState();
-      if (!store.workspaceId || !store.diagramId) return;
-
       const flowPos = reactFlow.screenToFlowPosition({ x: position.x, y: position.y });
-
-      try {
-        const newElement = (await createElementFn({
-          data: {
-            workspaceId: store.workspaceId,
-            elementType: type,
-            name: NEW_ELEMENT_NAMES[type](),
-          },
-        })) as CreatedElement;
-        const size = DEFAULT_SIZES[type];
-        const diagramElement = (await addDiagramElementFn({
-          data: {
-            diagramId: store.diagramId,
-            elementId: newElement.id,
-            x: flowPos.x,
-            y: flowPos.y,
-            width: size.width,
-            height: size.height,
-          },
-        })) as CreatedDiagramElement;
-        const newNode: AppNode = {
-          id: diagramElement.id,
-          type,
-          position: { x: flowPos.x, y: flowPos.y },
-          ...(type === "group" ? { style: { width: size.width, height: size.height } } : {}),
-          zIndex: 0,
-          data: {
-            elementId: newElement.id,
-            diagramElementId: diagramElement.id,
-            name: newElement.name,
-            displayDescription: null,
-            status: newElement.status,
-            external: newElement.external,
-            technologies: [],
-            iconTechSlug: null,
-            isSubFlow: false,
-            deeperDiagrams: [],
-          },
-        } as AppNode;
-        addNode(newNode);
-      } catch {
-        toast.error(m.editor_panel_save_failed());
-      }
+      await createElementAtPosition(type, flowPos);
     },
-    [reactFlow, position, createElementFn, addDiagramElementFn, addNode],
+    [reactFlow, position, createElementAtPosition],
   );
 
   return (

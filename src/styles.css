@@ -145,3 +145,7 @@
   --xy-controls-button-color: var(--foreground);
   --xy-controls-button-border-color: var(--border);
 }
+
+.react-flow__panel.top.center {
+  z-index: 5;
+}

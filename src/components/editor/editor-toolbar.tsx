@@ -1,7 +1,7 @@
 import { Panel, useReactFlow } from "@xyflow/react";
 import { useEditorStore } from "#/stores/editor-store";
 import { validateElementForDiagram } from "#/lib/diagram.validators";
-import { DND_ELEMENT_TYPE } from "#/components/editor/use-drop-element";
+import { useDnD, useCreateElementAtPosition } from "#/components/editor/dnd-context";
 import { Button } from "#/components/ui/button";
 import { Toggle } from "#/components/ui/toggle";
 import { Separator } from "#/components/ui/separator";
@@ -33,23 +33,21 @@ import {
   Package,
   Database,
   Cpu,
-  GripVertical,
 } from "lucide-react";
 import { m } from "#/paraglide/messages";
 import type { ElementType } from "#/lib/element.validators";
 
-const ADD_ELEMENT_OPTIONS: { type: ElementType; label: () => string; icon: React.ReactNode }[] = [
+const ADD_ELEMENT_OPTIONS: {
+  type: ElementType;
+  label: () => string;
+  icon: React.ReactNode;
+}[] = [
   { type: "actor", label: () => m.editor_toolbar_add_actor(), icon: <User className="mr-2 size-4" /> },
   { type: "system", label: () => m.editor_toolbar_add_system(), icon: <Box className="mr-2 size-4" /> },
   { type: "app", label: () => m.editor_toolbar_add_app(), icon: <Package className="mr-2 size-4" /> },
   { type: "store", label: () => m.editor_toolbar_add_store(), icon: <Database className="mr-2 size-4" /> },
   { type: "component", label: () => m.editor_toolbar_add_component(), icon: <Cpu className="mr-2 size-4" /> },
 ];
-
-function onDragStart(event: React.DragEvent, elementType: ElementType) {
-  event.dataTransfer.setData(DND_ELEMENT_TYPE, elementType);
-  event.dataTransfer.effectAllowed = "move";
-}
 
 export function EditorToolbar() {
   const mode = useEditorStore((s) => s.mode);
@@ -64,6 +62,9 @@ export function EditorToolbar() {
   const elementPickerOpen = useEditorStore((s) => s.elementPickerOpen);
   const toggleElementPicker = useEditorStore((s) => s.toggleElementPicker);
   const reactFlow = useReactFlow();
+
+  const { startDrag } = useDnD();
+  const createElementAtPosition = useCreateElementAtPosition();
 
   return (
     <Panel position="top-center">
@@ -116,10 +117,16 @@ export function EditorToolbar() {
                   key={type}
                   disabled={!valid}
                   className={valid ? "cursor-grab active:cursor-grabbing" : ""}
-                  draggable={valid}
-                  onDragStart={(e) => onDragStart(e, type)}
+                  onPointerDown={(e) => {
+                    if (!valid) return;
+                    // Prevent default to avoid the dropdown from focusing
+                    e.preventDefault();
+                    const elementLabel = label();
+                    startDrag(e, elementLabel, async (flowPos) => {
+                      await createElementAtPosition(type, flowPos);
+                    });
+                  }}
                 >
-                  <GripVertical className="mr-1 size-3 text-muted-foreground" />
                   {icon}
                   {label()}
                 </DropdownMenuItem>

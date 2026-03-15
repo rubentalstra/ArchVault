@@ -15,6 +15,7 @@ import { useEditorStore } from "#/stores/editor-store";
 import { getElements } from "#/lib/element.functions";
 import { addDiagramElement } from "#/lib/diagram.functions";
 import { validateElementForDiagram } from "#/lib/diagram.validators";
+import { useDnD, DEFAULT_SIZES } from "#/components/editor/dnd-context";
 import { m } from "#/paraglide/messages";
 import type { AppNode } from "#/lib/types/diagram-nodes";
 import type { ElementType } from "#/lib/element.validators";
@@ -48,15 +49,6 @@ const SUB_FLOW_ELIGIBLE: Record<DiagramType, ElementType[]> = {
   component: ["app"],
 };
 
-const DEFAULT_SIZES: Record<ElementType, { width: number; height: number }> = {
-  actor: { width: 160, height: 100 },
-  group: { width: 320, height: 220 },
-  system: { width: 200, height: 120 },
-  app: { width: 180, height: 110 },
-  store: { width: 180, height: 110 },
-  component: { width: 160, height: 100 },
-};
-
 const SUB_FLOW_SIZES: Record<ElementType, { width: number; height: number }> = {
   actor: { width: 160, height: 100 },
   group: { width: 320, height: 220 },
@@ -75,6 +67,7 @@ export function ElementPickerSidebar() {
   const toggleElementPicker = useEditorStore((s) => s.toggleElementPicker);
   const [search, setSearch] = useState("");
   const reactFlow = useReactFlow();
+  const { startDrag } = useDnD();
 
   const getElementsFn = useServerFn(getElements);
   const addDiagramElementFn = useServerFn(addDiagramElement);
@@ -86,22 +79,17 @@ export function ElementPickerSidebar() {
     enabled: !!workspaceId,
   });
 
-  // Element IDs already on the diagram
   const onDiagramElementIds = useMemo(
     () => new Set(nodes.map((n) => n.data.elementId)),
     [nodes],
   );
 
-  // Filter and group elements
   const groupedElements = useMemo(() => {
     if (!diagramType) return new Map<ElementType, WorkspaceElement[]>();
 
     const filtered = elements.filter((el) => {
-      // Must be allowed on this diagram type
       if (!validateElementForDiagram(diagramType, el.elementType).valid) return false;
-      // Skip group type (not placeable from picker)
       if (el.elementType === "group") return false;
-      // Search filter
       if (search && !el.name.toLowerCase().includes(search.toLowerCase())) return false;
       return true;
     });
@@ -117,27 +105,31 @@ export function ElementPickerSidebar() {
   }, [elements, diagramType, search]);
 
   const handleAddElement = useCallback(
-    async (el: WorkspaceElement, displayMode: DisplayMode) => {
+    async (el: WorkspaceElement, displayMode: DisplayMode, flowPos?: { x: number; y: number }) => {
       if (!diagramId || !diagramType) return;
 
       const isSubFlow = displayMode === "sub_flow";
       const size = isSubFlow ? SUB_FLOW_SIZES[el.elementType] : DEFAULT_SIZES[el.elementType];
 
-      // Place at viewport center
-      const viewport = reactFlow.getViewport();
-      const containerEl = document.querySelector(".react-flow");
-      const containerWidth = containerEl?.clientWidth ?? 800;
-      const containerHeight = containerEl?.clientHeight ?? 600;
-      const centerScreen = { x: containerWidth / 2, y: containerHeight / 2 };
-      const flowPos = reactFlow.screenToFlowPosition(centerScreen);
+      // Use provided flow position or fall back to viewport center
+      let position: { x: number; y: number };
+      if (flowPos) {
+        position = flowPos;
+      } else {
+        const containerEl = document.querySelector(".react-flow");
+        const containerWidth = containerEl?.clientWidth ?? 800;
+        const containerHeight = containerEl?.clientHeight ?? 600;
+        const centerScreen = { x: containerWidth / 2, y: containerHeight / 2 };
+        position = reactFlow.screenToFlowPosition(centerScreen);
+      }
 
       try {
         const created = (await addDiagramElementFn({
           data: {
             diagramId,
             elementId: el.id,
-            x: flowPos.x - size.width / 2,
-            y: flowPos.y - size.height / 2,
+            x: position.x - size.width / 2,
+            y: position.y - size.height / 2,
             width: size.width,
             height: size.height,
             displayMode,
@@ -146,22 +138,21 @@ export function ElementPickerSidebar() {
 
         if (!created) return;
 
-        // Find parent node if this element's parent is a sub-flow on the diagram
         const parentNode = el.parentElementId
           ? nodes.find((n) => n.data.elementId === el.parentElementId && n.data.isSubFlow)
           : null;
 
-        const position = parentNode
+        const nodePosition = parentNode
           ? {
-              x: flowPos.x - size.width / 2 - parentNode.position.x,
-              y: flowPos.y - size.height / 2 - parentNode.position.y,
+              x: position.x - size.width / 2 - parentNode.position.x,
+              y: position.y - size.height / 2 - parentNode.position.y,
             }
-          : { x: flowPos.x - size.width / 2, y: flowPos.y - size.height / 2 };
+          : { x: position.x - size.width / 2, y: position.y - size.height / 2 };
 
         const newNode: AppNode = {
           id: created.id,
           type: el.elementType,
-          position,
+          position: nodePosition,
           ...(isSubFlow ? { style: { width: size.width, height: size.height } } : {}),
           zIndex: isSubFlow ? -1 : 0,
           data: {
@@ -265,8 +256,14 @@ export function ElementPickerSidebar() {
                         </>
                       ) : (
                         <button
-                          className="flex w-full items-center gap-2 text-left"
-                          onClick={() => handleAddElement(el, "normal")}
+                          className="flex w-full items-center gap-2 text-left touch-none"
+                          onPointerDown={(e) => {
+                            e.preventDefault();
+                            const elName = el.name;
+                            startDrag(e, elName, async (flowPos) => {
+                              await handleAddElement(el, "normal", flowPos);
+                            });
+                          }}
                         >
                           <span className="truncate">{el.name}</span>
                         </button>

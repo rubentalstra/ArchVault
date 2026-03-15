@@ -31,7 +31,6 @@ import { createConnection, deleteConnection } from "#/lib/connection.functions";
 import { flowNodeToUpdate } from "#/lib/converters/flow-to-diagram";
 import { EditorToolbar } from "#/components/editor/editor-toolbar";
 import { EditorContextMenu } from "#/components/editor/context-menu";
-import { useDropElement } from "#/components/editor/use-drop-element";
 import { m } from "#/paraglide/messages";
 import type { AppNode, AppEdge } from "#/lib/types/diagram-nodes";
 
@@ -69,7 +68,6 @@ export function DiagramCanvas({ readOnly = false }: DiagramCanvasProps) {
   const setContextMenu = useEditorStore((s) => s.setContextMenu);
   const addEdge = useEditorStore((s) => s.addEdge);
 
-  const { onDragOver, onDrop } = useDropElement();
   const reactFlow = useReactFlow();
 
   const updateDiagramElementFn = useServerFn(updateDiagramElement);
@@ -96,15 +94,12 @@ export function DiagramCanvas({ readOnly = false }: DiagramCanvasProps) {
       const currentEdges = useEditorStore.getState().edges;
       const deletedIds = new Set(deletedNodes.map((n) => n.id));
 
-      // Include children that might not be in the deletedNodes list
       for (const node of allNodes) {
         if (node.parentId && deletedIds.has(node.parentId)) {
           deletedIds.add(node.id);
         }
       }
 
-      // Clean up diagram_connection records for edges touching deleted nodes
-      // (ReactFlow does NOT fire onEdgesDelete for edges removed as a consequence of node deletion)
       for (const edge of currentEdges) {
         if (deletedIds.has(edge.source) || deletedIds.has(edge.target)) {
           if (edge.data) {
@@ -116,7 +111,6 @@ export function DiagramCanvas({ readOnly = false }: DiagramCanvasProps) {
       for (const node of deletedNodes) {
         removeDiagramElementFn({ data: { id: node.data.diagramElementId } });
       }
-      // Also delete children not already in deletedNodes
       for (const node of allNodes) {
         if (node.parentId && deletedIds.has(node.parentId) && !deletedNodes.some((d) => d.id === node.id)) {
           removeDiagramElementFn({ data: { id: node.data.diagramElementId } });
@@ -158,7 +152,6 @@ export function DiagramCanvas({ readOnly = false }: DiagramCanvasProps) {
 
       const { nodes, edges } = useEditorStore.getState();
 
-      // Block connections to/from sub-flow containers
       const sourceNode = nodes.find((n) => n.id === connection.source);
       const targetNode = nodes.find((n) => n.id === connection.target);
       if (sourceNode?.data.isSubFlow || targetNode?.data.isSubFlow) return false;
@@ -190,7 +183,6 @@ export function DiagramCanvas({ readOnly = false }: DiagramCanvasProps) {
           },
         })) as CreatedConnection;
 
-        // Map handle IDs to anchor values for DB storage
         const sourceAnchor = (connection.sourceHandle ?? "auto") as "auto" | "top" | "bottom" | "left" | "right";
         const targetAnchor = (connection.targetHandle ?? "auto") as "auto" | "top" | "bottom" | "left" | "right";
 
@@ -272,12 +264,10 @@ export function DiagramCanvas({ readOnly = false }: DiagramCanvasProps) {
     setContextMenu(null);
   }, [setContextMenu]);
 
-  // Persist resize dimensions when a node (parent container or group) is resized
   const handleNodesChange = useCallback(
     (changes: import("@xyflow/react").NodeChange<AppNode>[]) => {
       onNodesChange(changes);
 
-      // After applying changes, check for completed resize operations
       for (const change of changes) {
         if (change.type === "dimensions" && (change as NodeDimensionChange).resizing === false) {
           const dimChange = change as NodeDimensionChange & { id: string };
@@ -305,8 +295,6 @@ export function DiagramCanvas({ readOnly = false }: DiagramCanvasProps) {
       onNodesDelete={readOnly ? undefined : onNodesDelete}
       onEdgesDelete={readOnly ? undefined : onEdgesDelete}
       onConnect={readOnly ? undefined : onConnect}
-      onDragOver={readOnly ? undefined : onDragOver}
-      onDrop={readOnly ? undefined : onDrop}
       onSelectionChange={onSelectionChange}
       onNodeContextMenu={readOnly ? undefined : onNodeContextMenu}
       onEdgeContextMenu={readOnly ? undefined : onEdgeContextMenu}

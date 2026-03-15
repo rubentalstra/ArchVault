@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ReactFlowProvider } from "@xyflow/react";
+import { DnDProvider, DragGhost } from "#/components/editor/dnd-context";
 import { authClient } from "#/lib/auth-client";
 import { getDiagramData } from "#/lib/diagram.functions";
 import { useEditorStore } from "#/stores/editor-store";
@@ -136,24 +137,27 @@ function DiagramEditorPage() {
       </header>
 
       <ReactFlowProvider>
-        <div className="flex flex-1 overflow-hidden">
-          {elementPickerOpen && !readOnly && (
-            <div className="w-72 shrink-0 overflow-y-auto">
-              <ElementPickerSidebar />
+        <DnDProvider>
+          <div className="flex flex-1 overflow-hidden">
+            {elementPickerOpen && !readOnly && (
+              <div className="w-72 shrink-0 overflow-y-auto">
+                <ElementPickerSidebar />
+              </div>
+            )}
+            <div className="flex-1">
+              <DiagramCanvas readOnly={readOnly} />
             </div>
-          )}
-          <div className="flex-1">
-            <DiagramCanvas readOnly={readOnly} />
+            {propertiesPanelOpen && (
+              <div className="nowheel nopan w-80 shrink-0 border-l overflow-y-auto">
+                <PropertiesPanel
+                  diagramName={diagramData.diagram.name}
+                  diagramDescription={diagramData.diagram.description}
+                />
+              </div>
+            )}
           </div>
-          {propertiesPanelOpen && (
-            <div className="nowheel nopan w-80 shrink-0 border-l overflow-y-auto">
-              <PropertiesPanel
-                diagramName={diagramData.diagram.name}
-                diagramDescription={diagramData.diagram.description}
-              />
-            </div>
-          )}
-        </div>
+          <DragGhost />
+        </DnDProvider>
       </ReactFlowProvider>
     </div>
   );
