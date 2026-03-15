@@ -6,7 +6,6 @@ import { useEditorStore } from "#/stores/editor-store";
 import { getElementById, updateElement, addLink, removeLink } from "#/lib/element.functions";
 import { getTechnologies, addElementTechnology, removeElementTechnology, setElementIconTechnology } from "#/lib/technology.functions";
 import { getTags, addElementTag, removeElementTag } from "#/lib/tag.functions";
-import { getGroups, addGroupMembership, removeGroupMembership } from "#/lib/group.functions";
 import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
 import { Textarea } from "#/components/ui/textarea";
@@ -38,7 +37,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "#/component
 import { TechIcon } from "#/components/technologies/tech-icon";
 import { StatusDot } from "#/components/editor/nodes/status-dot";
 import {
-  X, Plus, ExternalLink, BookOpen, History, Tag, Layers, Check,
+  X, Plus, ExternalLink, BookOpen, History, Tag, Check,
   Box, Package, Cpu, Database, User,
   MoreHorizontal, ImageIcon, Trash2, ChevronDown,
 } from "lucide-react";
@@ -55,7 +54,6 @@ interface ElementDetails {
   technologies: Array<{ technologyId: string; name: string; iconSlug: string | null }>;
   links: Array<{ id: string; url: string; label: string | null }>;
   tags?: Array<{ tagId: string }>;
-  groupMemberships?: Array<{ groupId: string }>;
 }
 
 const STATUS_OPTIONS: { value: ElementStatus; label: () => string }[] = [
@@ -250,8 +248,6 @@ export function ElementProperties({ node }: { node: AppNode }) {
                 />
                 <Separator />
                 <TagsSection elementId={element.id} workspaceId={workspaceId} />
-                <Separator />
-                <GroupsSection elementId={element.id} workspaceId={workspaceId} />
                 <Separator />
                 <LinksSection elementId={element.id} links={element.links} />
                 <Separator />
@@ -615,95 +611,6 @@ function TagsSection({
                     />
                     <span className="flex-1 text-left">{tag.name}</span>
                     {elementTagIds.has(tag.id) && (
-                      <span className="text-xs text-primary">✓</span>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </ScrollArea>
-          </PopoverContent>
-        </Popover>
-      </div>
-    </div>
-  );
-}
-
-/* ── Groups Section ───────────────────────────────────────────────── */
-
-function GroupsSection({
-  elementId,
-  workspaceId,
-}: {
-  elementId: string;
-  workspaceId: string | null;
-}) {
-  const queryClient = useQueryClient();
-  const getGroupsFn = useServerFn(getGroups);
-  const addGroupMembershipFn = useServerFn(addGroupMembership);
-  const removeGroupMembershipFn = useServerFn(removeGroupMembership);
-  const getElementByIdFn = useServerFn(getElementById);
-
-  const { data: allGroups } = useQuery({
-    queryKey: ["groups", workspaceId],
-    queryFn: () => getGroupsFn({ data: { workspaceId: workspaceId! } }),
-    enabled: !!workspaceId,
-  });
-
-  const { data: element } = useQuery({
-    queryKey: ["element", elementId],
-    queryFn: () => getElementByIdFn({ data: { id: elementId } }),
-  });
-
-  const elementGroupIds = new Set(
-    (element as { groupMemberships?: Array<{ groupId: string }> })?.groupMemberships?.map((g) => g.groupId) ?? [],
-  );
-
-  const handleToggleGroup = useCallback(
-    async (groupId: string) => {
-      try {
-        if (elementGroupIds.has(groupId)) {
-          await removeGroupMembershipFn({ data: { elementId, groupId } });
-        } else {
-          await addGroupMembershipFn({ data: { elementId, groupId } });
-        }
-        queryClient.invalidateQueries({ queryKey: ["element", elementId] });
-      } catch {
-        toast.error(m.editor_panel_save_failed());
-      }
-    },
-    [elementId, elementGroupIds, addGroupMembershipFn, removeGroupMembershipFn, queryClient],
-  );
-
-  if (!allGroups?.length) return null;
-
-  return (
-    <div className="py-2">
-      <div className="px-4 py-1.5">
-        <span className="text-xs text-muted-foreground">{m.group_picker_title()}</span>
-      </div>
-      <div className="px-4">
-        <Popover>
-          <PopoverTrigger render={
-            <Button variant="outline" size="sm" className="w-full justify-start gap-2">
-              <Layers className="size-3.5" />
-              {m.group_picker_title()}
-            </Button>
-          } />
-          <PopoverContent className="w-56 p-0" align="start">
-            <ScrollArea className="max-h-48">
-              <div className="p-1">
-                {allGroups.map((g) => (
-                  <button
-                    key={g.id}
-                    className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent"
-                    onClick={() => handleToggleGroup(g.id)}
-                  >
-                    <div
-                      className="size-3 rounded-full"
-                      style={{ backgroundColor: g.color ?? undefined }}
-                    />
-                    <span className="flex-1 text-left">{g.name}</span>
-                    {elementGroupIds.has(g.id) && (
                       <span className="text-xs text-primary">✓</span>
                     )}
                   </button>

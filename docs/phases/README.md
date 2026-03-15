@@ -42,7 +42,7 @@ Archvault uses the same terminology as IcePanel:
 | 2b    | Connections (Relationships)    | Complete    | 2a           |
 | 2c    | Tags                           | Complete    | 2b           |
 | 2d    | Naming Migration & Store Type  | Complete    | 2a, 2b, 2c   |
-| 2e    | Groups                         | Complete    | 2d           |
+| 2e    | ~~Groups~~                     | Dropped     | ~~2d~~       |
 | 2f    | Technology Rewrite             | Complete    | 2a, 2b       |
 | 3a    | Diagram CRUD & Schema          | Complete    | 2a, 2b       |
 | 3b    | Canvas Rendering (React Flow)  | Complete    | 3a           |
@@ -62,7 +62,7 @@ Archvault uses the same terminology as IcePanel:
 | 7a    | Import & Export                | Not Started | 6a           |
 | 7b    | Technology Catalog             | Not Started | 2f           |
 | 7c    | Activity Log & Audit           | Not Started | 6a           |
-| 7d    | Trash UI & Permanent Delete    | Not Started | 2d           |
+| 7d    | Trash UI & Permanent Delete    | Not Started | 2d            |
 | 7e    | Docker Self-Hosting            | Not Started | 7a           |
 | 7f    | E2E Testing & CI               | Not Started | 7a           |
 | 7g    | Documentation Site             | Not Started | 7a           |
@@ -92,7 +92,7 @@ graph TD
     2a --> 2d["2d: Naming & Store"]
     2b --> 2d
     2c --> 2d
-    2d --> 2e["2e: Groups"]
+    2d --> 2e["2e: Groups (Dropped)"]
     2a --> 2f["2f: Tech Rewrite"]
     2b --> 2f
     2a --> 3a["3a: Diagram CRUD"]
@@ -102,7 +102,6 @@ graph TD
     3c --> 3d["3d: Canvas Edges"]
     2d --> 3d
     3d --> 3e["3e: Groups on Canvas (Dropped)"]
-    2e --> 3e
     2f["2f: Tech Rewrite"] --> 7b
     3d --> 3f["3f: Autosave & Hotkeys"]
     3d --> 4a["4a: Flow Schema"]
@@ -119,7 +118,7 @@ graph TD
     6a --> 7a["7a: Import & Export"]
     2f --> 7b["7b: Tech Catalog"]
     6a --> 7c["7c: Activity Log"]
-    2e --> 7d["7d: Trash UI"]
+    2d --> 7d["7d: Trash UI"]
     7a --> 7e["7e: Docker Deploy"]
     7a --> 7f["7f: E2E Tests"]
     7a --> 7g["7g: Docs Site"]
@@ -142,7 +141,7 @@ graph TD
     style 2b fill: #dcfce7, stroke: #16a34a
     style 2c fill: #dcfce7, stroke: #16a34a
     style 2d fill: #dcfce7, stroke: #16a34a
-    style 2e fill: #dcfce7, stroke: #16a34a
+    style 2e fill: #f5f5f5, stroke: #9ca3af
     style 2f fill: #dcfce7, stroke: #16a34a
     style 3a fill: #dcfce7, stroke: #16a34a
     style 3b fill: #dcfce7, stroke: #16a34a

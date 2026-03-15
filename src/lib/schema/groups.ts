@@ -4,11 +4,9 @@ import {
   varchar,
   timestamp,
   index,
-  primaryKey,
   type AnyPgColumn,
 } from "drizzle-orm/pg-core";
 import { workspace } from "./workspaces";
-import { element } from "./elements";
 import { user } from "./auth-schema";
 
 export const group = pgTable(
@@ -43,20 +41,3 @@ export const group = pgTable(
     index("group_parent_group_id_idx").on(table.parentGroupId),
   ],
 );
-
-export const groupMembership = pgTable(
-  "group_membership",
-  {
-    elementId: text("element_id")
-      .notNull()
-      .references(() => element.id, { onDelete: "cascade" }),
-    groupId: text("group_id")
-      .notNull()
-      .references(() => group.id, { onDelete: "cascade" }),
-  },
-  (table) => [
-    primaryKey({ columns: [table.elementId, table.groupId] }),
-    index("group_membership_group_id_idx").on(table.groupId),
-  ],
-);
-

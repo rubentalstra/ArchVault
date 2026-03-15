@@ -32,9 +32,7 @@ import {
 } from "#/lib/element.functions";
 import { addElementTechnology, removeElementTechnology } from "#/lib/technology.functions";
 import { addElementTag, removeElementTag } from "#/lib/tag.functions";
-import { addGroupMembership, removeGroupMembership } from "#/lib/group.functions";
 import { TagPicker } from "#/components/tags/tag-picker";
-import { GroupPicker } from "#/components/groups/group-picker";
 import { TechnologyPicker } from "#/components/technologies/technology-picker";
 
 type CreatedElement = { id: string };
@@ -52,7 +50,6 @@ interface ElementData {
   links: { id: string; url: string; label: string | null }[];
   tags: { id: string; name: string; color: string; icon: string | null }[];
   groups: { id: string; name: string }[];
-  groupMemberships: { id: string; name: string; color: string }[];
 }
 
 interface ParentOption {
@@ -66,12 +63,6 @@ interface WorkspaceTag {
   name: string;
   color: string;
   icon: string | null;
-}
-
-interface WorkspaceGroup {
-  id: string;
-  name: string;
-  color: string;
 }
 
 interface WorkspaceTechnology {
@@ -89,7 +80,6 @@ interface ElementFormDialogProps {
   defaultParentId?: string;
   defaultType?: ElementType;
   workspaceTags?: WorkspaceTag[];
-  workspaceGroups?: WorkspaceGroup[];
   workspaceTechnologies?: WorkspaceTechnology[];
   onSuccess: () => void;
 }
@@ -118,7 +108,6 @@ export function ElementFormDialog({
   defaultParentId,
   defaultType,
   workspaceTags = [],
-  workspaceGroups = [],
   workspaceTechnologies = [],
   onSuccess,
 }: ElementFormDialogProps) {
@@ -136,10 +125,6 @@ export function ElementFormDialog({
   const [localGroupIds, setLocalGroupIds] = useState<string[]>(
     editElement?.groups?.map((g) => g.id) ?? [],
   );
-  const [localGroupMembershipIds, setLocalGroupMembershipIds] = useState<string[]>(
-    editElement?.groupMemberships?.map((g) => g.id) ?? [],
-  );
-
   const groupOptions = parentOptions.filter((p) => p.elementType === "group");
 
   const form = useForm({
@@ -241,24 +226,6 @@ export function ElementFormDialog({
             }
           }
 
-          // Sync visual group memberships
-          const existingMembershipIds = new Set(editElement.groupMemberships?.map((g) => g.id) ?? []);
-          const currentMembershipIds = new Set(localGroupMembershipIds);
-          for (const groupId of existingMembershipIds) {
-            if (!currentMembershipIds.has(groupId)) {
-              await removeGroupMembership({
-                data: { elementId: editElement.id, groupId },
-              });
-            }
-          }
-          for (const groupId of currentMembershipIds) {
-            if (!existingMembershipIds.has(groupId)) {
-              await addGroupMembership({
-                data: { elementId: editElement.id, groupId },
-              });
-            }
-          }
-
           toast.success(m.element_edit_success());
         } else {
           const created = (await createElement({
@@ -291,12 +258,6 @@ export function ElementFormDialog({
               data: { elementId: created.id, groupElementId: groupId },
             });
           }
-          for (const groupId of localGroupMembershipIds) {
-            await addGroupMembership({
-              data: { elementId: created.id, groupId },
-            });
-          }
-
           toast.success(m.element_create_success());
         }
         onOpenChange(false);
@@ -582,18 +543,6 @@ export function ElementFormDialog({
                 workspaceTags={workspaceTags}
                 selectedTagIds={localTagIds}
                 onChange={setLocalTagIds}
-              />
-            </div>
-          )}
-
-          {/* Visual group memberships */}
-          {workspaceGroups.length > 0 && (
-            <div className="flex flex-col gap-2">
-              <Label>{m.group_picker_title()}</Label>
-              <GroupPicker
-                workspaceGroups={workspaceGroups}
-                selectedGroupIds={localGroupMembershipIds}
-                onChange={setLocalGroupMembershipIds}
               />
             </div>
           )}

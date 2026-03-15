@@ -20,7 +20,7 @@ import {technology, elementTechnology, connectionTechnology} from "./technologie
 import {elementLink} from "./element-links";
 import {connection} from "./connections";
 import {tag, elementTag, connectionTag} from "./tags";
-import {group, groupMembership} from "./groups";
+import {group} from "./groups";
 import {diagram} from "./diagrams";
 import {diagramElement} from "./diagram-elements";
 import {diagramConnection} from "./diagram-connections";
@@ -51,7 +51,6 @@ export const relations = defineRelations(
         elementTag,
         connectionTag,
         group,
-        groupMembership,
         diagram,
         diagramElement,
         diagramConnection,
@@ -331,11 +330,6 @@ export const relations = defineRelations(
                 from: r.element.id.through(r.elementTag.elementId),
                 to: r.tag.id.through(r.elementTag.tagId),
             }),
-            // Many-to-many via groupMembership junction table
-            groups: r.many.group({
-                from: r.element.id.through(r.groupMembership.elementId),
-                to: r.group.id.through(r.groupMembership.groupId),
-            }),
             // diagram_element junction
             diagramElements: r.many.diagramElement(),
             // diagrams scoped to this element
@@ -575,27 +569,6 @@ export const relations = defineRelations(
                 from: r.group.updatedBy,
                 to: r.user.id,
                 alias: "group_updated_by",
-            }),
-            // Many-to-many reverse side
-            elements: r.many.element({
-                from: r.group.id.through(r.groupMembership.groupId),
-                to: r.element.id.through(r.groupMembership.elementId),
-            }),
-        },
-
-        // ─────────────────────────────────────────────────────────────────
-        // groupMembership
-        // ─────────────────────────────────────────────────────────────────
-        groupMembership: {
-            element: r.one.element({
-                from: r.groupMembership.elementId,
-                to: r.element.id,
-                optional: false,
-            }),
-            group: r.one.group({
-                from: r.groupMembership.groupId,
-                to: r.group.id,
-                optional: false,
             }),
         },
 

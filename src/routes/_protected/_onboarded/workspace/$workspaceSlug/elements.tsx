@@ -311,7 +311,6 @@ function ElementsPage() {
                     links: editElement.links,
                     tags: editElement.tags ?? [],
                     groups: editElement.groups ?? [],
-                    groupMemberships: [],
                   }
                 : undefined
             }

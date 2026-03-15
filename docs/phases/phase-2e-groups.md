@@ -1,8 +1,19 @@
 # Phase 2e — Groups
 
-## Status: Complete
+## Status: Dropped
 
-## Goal
+## Reason
+
+The Phase 2e workspace-level Groups feature was dropped because it duplicated functionality
+already provided by:
+- **Tags (Phase 2c)** — for organizational categorization of elements
+- **`group` element type** — for visual grouping on the canvas via React Flow sub-flows
+
+The `group` and `group_membership` tables, CRUD server functions, validators, UI components,
+and the `/workspace/:slug/groups` route have been removed. The `group` table in the schema
+remains (it was already deployed) but is no longer used by any feature.
+
+## Original Goal
 
 Implement Groups as visual overlays that organize model objects within diagrams. Groups are NOT model
 objects — they are diagram-level organizational containers. Objects can belong to multiple groups.
