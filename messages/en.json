@@ -680,6 +680,7 @@
   "editor_panel_no_connections": "No connections",
   "editor_panel_save_success": "Saved",
   "editor_panel_save_failed": "Failed to save",
+  "editor_drop_requires_container": "{elementType} must be placed inside a container (sub-flow)",
   "editor_panel_connection": "Connection",
   "editor_panel_source": "Source",
   "editor_panel_target": "Target",

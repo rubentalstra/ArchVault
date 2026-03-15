@@ -680,6 +680,7 @@
   "editor_panel_no_connections": "Geen verbindingen",
   "editor_panel_save_success": "Opgeslagen",
   "editor_panel_save_failed": "Opslaan mislukt",
+  "editor_drop_requires_container": "{elementType} moet binnen een container (sub-flow) worden geplaatst",
   "editor_panel_connection": "Connectie",
   "editor_panel_source": "Bron",
   "editor_panel_target": "Doel",

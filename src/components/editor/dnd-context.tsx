@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { useEditorStore } from "#/stores/editor-store";
 import { createElement } from "#/lib/element.functions";
 import { addDiagramElement } from "#/lib/diagram.functions";
+import { validateChildPlacement } from "#/lib/diagram.validators";
 import { m } from "#/paraglide/messages";
 import type { AppNode } from "#/lib/types/diagram-nodes";
 import type { ElementType, ElementStatus } from "#/lib/element.validators";
@@ -263,6 +264,28 @@ export function useCreateElementAtPosition() {
       const parentNode = findSubFlowParent(flowPos, store.nodes);
       const parentElementId = parentNode ? parentNode.data.elementId : null;
       const size = DEFAULT_SIZES[elementType];
+
+      // Validate placement — e.g. apps/stores must be inside a sub-flow container
+      if (store.diagramType) {
+        const subFlowElementIds = new Set(
+          store.nodes
+            .filter((n) => n.data.isSubFlow)
+            .map((n) => n.data.elementId),
+        );
+        const placement = validateChildPlacement(
+          store.diagramType,
+          elementType,
+          parentElementId,
+          subFlowElementIds,
+        );
+        if (!placement.valid) {
+          const typeName = elementType.charAt(0).toUpperCase() + elementType.slice(1);
+          toast.error(
+            m.editor_drop_requires_container({ elementType: typeName }),
+          );
+          return;
+        }
+      }
 
       try {
         const newElement = (await createElementFn({
