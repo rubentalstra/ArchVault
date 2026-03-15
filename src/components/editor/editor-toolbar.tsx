@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Panel, useReactFlow } from "@xyflow/react";
 import { useEditorStore } from "#/stores/editor-store";
 import { validateElementForDiagram } from "#/lib/diagram.validators";
@@ -6,11 +7,10 @@ import { Button } from "#/components/ui/button";
 import { Toggle } from "#/components/ui/toggle";
 import { Separator } from "#/components/ui/separator";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "#/components/ui/dropdown-menu";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "#/components/ui/popover";
 import {
   Tooltip,
   TooltipContent,
@@ -63,6 +63,7 @@ export function EditorToolbar() {
   const toggleElementPicker = useEditorStore((s) => s.toggleElementPicker);
   const reactFlow = useReactFlow();
 
+  const [addMenuOpen, setAddMenuOpen] = useState(false);
   const { startDrag } = useDnD();
   const createElementAtPosition = useCreateElementAtPosition();
 
@@ -91,9 +92,9 @@ export function EditorToolbar() {
           </Toggle>
         </ToolbarTooltip>
 
-        <DropdownMenu>
+        <Popover open={addMenuOpen} onOpenChange={setAddMenuOpen}>
           <ToolbarTooltip label={m.editor_toolbar_add_element()}>
-            <DropdownMenuTrigger
+            <PopoverTrigger
               render={
                 <Toggle
                   size="sm"
@@ -103,38 +104,33 @@ export function EditorToolbar() {
                   <Plus className="size-4" />
                 </Toggle>
               }
-            >
-              <Plus className="size-4" />
-            </DropdownMenuTrigger>
+            />
           </ToolbarTooltip>
-          <DropdownMenuContent align="center">
+          <PopoverContent align="center" className="w-auto min-w-40 p-1">
             {ADD_ELEMENT_OPTIONS.map(({ type, label, icon }) => {
               const valid = diagramType
                 ? validateElementForDiagram(diagramType, type).valid
                 : true;
               return (
-                <DropdownMenuItem
+                <button
                   key={type}
                   disabled={!valid}
-                  className={valid ? "cursor-grab active:cursor-grabbing" : ""}
+                  className="flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-sm cursor-grab active:cursor-grabbing hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
                   onPointerDown={(e) => {
                     if (!valid) return;
-                    const elementLabel = label();
-                    startDrag(e, elementLabel, async (flowPos) => {
+                    setAddMenuOpen(false);
+                    startDrag(e, label(), async (flowPos) => {
                       await createElementAtPosition(type, flowPos);
                     });
                   }}
-                  // Block the dropdown's built-in click/select so it doesn't
-                  // interfere with the pointer-event drag gesture
-                  onClick={(e) => e.preventDefault()}
                 >
                   {icon}
                   {label()}
-                </DropdownMenuItem>
+                </button>
               );
             })}
-          </DropdownMenuContent>
-        </DropdownMenu>
+          </PopoverContent>
+        </Popover>
 
         <ToolbarTooltip label={m.editor_toolbar_add_connection()}>
           <Toggle

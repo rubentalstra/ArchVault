@@ -167,9 +167,13 @@ export function DnDProvider({ children }: { children: React.ReactNode }) {
       };
 
       const onUp = (e: PointerEvent) => {
-        cleanup();
+        // 1. Remove listeners first (prevent double-fire)
+        window.removeEventListener("pointermove", onMove);
+        window.removeEventListener("pointerup", onUp);
 
-        // Check if the pointer is over the react-flow canvas
+        // 2. Run drop logic BEFORE resetting state — resetting triggers a
+        //    synchronous re-render via useSyncExternalStore which could
+        //    interfere with elementFromPoint.
         const target = document.elementFromPoint(e.clientX, e.clientY);
         const flowEl = target?.closest(".react-flow");
 
@@ -181,9 +185,13 @@ export function DnDProvider({ children }: { children: React.ReactNode }) {
           dropActionRef.current(flowPos);
         }
 
+        // 3. Reset state after drop logic
         dropActionRef.current = null;
+        cleanupRef.current = null;
+        store.set({ isDragging: false, dragLabel: null, pointerPos: null });
       };
 
+      // Safety-net cleanup for aborting a stuck previous drag (called from startDrag)
       const cleanup = () => {
         window.removeEventListener("pointermove", onMove);
         window.removeEventListener("pointerup", onUp);
