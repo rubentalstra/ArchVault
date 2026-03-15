@@ -256,7 +256,7 @@
   "workspace_placeholder_name": "Mijn werkruimte",
   "workspace_placeholder_slug": "mijn-werkruimte",
   "workspace_placeholder_description": "Waarvoor is deze werkruimte?",
-  "workspace_label_icon_emoji": "Pictogram-emoji",
+  "workspace_label_color": "Kleur",
   "workspace_back_to_dashboard": "Terug naar dashboard",
   "workspace_nav_dashboard": "Dashboard",
   "workspace_nav_settings": "Instellingen",

@@ -1,4 +1,5 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+import { FolderOpen } from "lucide-react";
 import { Badge } from "#/components/ui/badge";
 import {
   Card,
@@ -50,9 +51,12 @@ function WorkspaceDashboardPage() {
       <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
         <div className="mx-auto w-full max-w-3xl">
           <div className="mb-6 flex items-center gap-3">
-            {workspace.iconEmoji && (
-              <span className="text-2xl">{workspace.iconEmoji}</span>
-            )}
+            <span
+              className="flex size-10 items-center justify-center rounded-lg"
+              style={{ backgroundColor: `${workspace.color}1A` }}
+            >
+              <FolderOpen className="size-5" style={{ color: workspace.color }} />
+            </span>
             <div>
               <h1 className="text-2xl font-bold">{workspace.name}</h1>
               {workspace.description && (

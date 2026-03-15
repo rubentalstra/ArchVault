@@ -11,7 +11,7 @@ export const createWorkspaceSchema = z.object({
       "Slug must be lowercase alphanumeric with hyphens",
     ),
   description: z.string().max(500).optional(),
-  iconEmoji: z.string().optional(),
+  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
 });
 
 export const updateWorkspaceSchema = z.object({
@@ -27,5 +27,5 @@ export const updateWorkspaceSchema = z.object({
     )
     .optional(),
   description: z.string().max(500).optional(),
-  iconEmoji: z.string().optional(),
+  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
 });

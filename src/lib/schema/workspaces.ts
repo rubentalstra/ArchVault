@@ -1,6 +1,7 @@
 import {
     pgTable,
     text,
+    varchar,
     timestamp,
     index,
     uniqueIndex,
@@ -18,7 +19,7 @@ export const workspace = pgTable(
         slug: text("slug").notNull(),
         description: text("description"),
         status: text("status").default("active").notNull(),
-        iconEmoji: text("icon_emoji"),
+        color: varchar("color", { length: 7 }).default("#3B82F6").notNull(),
         settingsJson: text("settings_json"),
         createdBy: text("created_by").references(() => user.id, {
             onDelete: "set null",

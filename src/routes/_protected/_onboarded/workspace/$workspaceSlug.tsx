@@ -10,6 +10,7 @@ import {
   ArrowLeft,
   FolderOpen,
 } from "lucide-react";
+import { authClient } from "#/lib/auth-client";
 import { NavUser } from "#/components/org/nav-user";
 import { getWorkspaceBySlug } from "#/lib/workspace.functions";
 import {
@@ -43,16 +44,22 @@ export const Route = createFileRoute(
 
 function WorkspaceLayout() {
   const { workspace, user } = Route.useRouteContext();
+  const { data: activeMember } = authClient.useActiveMember();
+  const memberRole = activeMember?.role;
 
-  const navItems = [
+  const allNavItems = [
     { to: "/workspace/$workspaceSlug", icon: LayoutDashboard, label: () => m.workspace_nav_dashboard(), exact: true },
     { to: "/workspace/$workspaceSlug/diagrams", icon: PanelsTopLeft, label: () => m.diagram_nav_title() },
     { to: "/workspace/$workspaceSlug/elements", icon: Boxes, label: () => m.element_nav_title() },
     { to: "/workspace/$workspaceSlug/connections", icon: ArrowLeftRight, label: () => m.connection_nav_title() },
     { to: "/workspace/$workspaceSlug/tags", icon: Tags, label: () => m.tag_manager_title() },
-{ to: "/workspace/$workspaceSlug/technologies", icon: Cpu, label: () => m.technology_nav_title() },
-    { to: "/workspace/$workspaceSlug/settings", icon: Settings, label: () => m.workspace_nav_settings() },
+    { to: "/workspace/$workspaceSlug/technologies", icon: Cpu, label: () => m.technology_nav_title() },
+    { to: "/workspace/$workspaceSlug/settings", icon: Settings, label: () => m.workspace_nav_settings(), roles: ["owner", "admin"] as const },
   ] as const;
+
+  const navItems = allNavItems.filter(
+    (item) => !("roles" in item) || (memberRole && item.roles.includes(memberRole as "owner" | "admin")),
+  );
 
   return (
     <SidebarProvider>
@@ -65,12 +72,11 @@ function WorkspaceLayout() {
                 tooltip={m.workspace_back_to_dashboard()}
                 render={<Link to="/org" />}
               >
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                  {workspace.iconEmoji ? (
-                    <span className="text-sm">{workspace.iconEmoji}</span>
-                  ) : (
-                    <FolderOpen className="size-4" />
-                  )}
+                <div
+                  className="flex aspect-square size-8 items-center justify-center rounded-lg"
+                  style={{ backgroundColor: `${workspace.color}1A` }}
+                >
+                  <FolderOpen className="size-4" style={{ color: workspace.color }} />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">

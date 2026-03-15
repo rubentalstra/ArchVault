@@ -138,10 +138,11 @@ function DashboardPage() {
                         params={{ workspaceSlug: ws.slug }}
                         className="flex items-center gap-3 rounded-md border px-4 py-3 transition-colors hover:bg-accent"
                       >
-                        <span className="text-lg">
-                          {ws.iconEmoji || (
-                            <FolderOpen className="size-5 text-muted-foreground" />
-                          )}
+                        <span
+                          className="flex size-7 items-center justify-center rounded-md"
+                          style={{ backgroundColor: `${ws.color}1A` }}
+                        >
+                          <FolderOpen className="size-4" style={{ color: ws.color }} />
                         </span>
                         <div className="flex flex-col">
                           <span className="text-sm font-medium">

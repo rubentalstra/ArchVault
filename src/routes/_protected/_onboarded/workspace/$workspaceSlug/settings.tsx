@@ -2,7 +2,6 @@ import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useForm } from "@tanstack/react-form";
 import { z } from "zod/v4";
-import { authClient } from "#/lib/auth-client";
 import { Button } from "#/components/ui/button";
 import {
   Card,
@@ -23,6 +22,7 @@ import {
 import { Input } from "#/components/ui/input";
 import { Textarea } from "#/components/ui/textarea";
 import { Field, FieldError, FieldLabel } from "#/components/ui/field";
+import { ColorPicker } from "#/components/tags/color-picker";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -38,30 +38,32 @@ import {
   updateWorkspace,
   deleteWorkspace,
 } from "#/lib/workspace.functions";
+import { getActiveMemberRole } from "#/lib/auth.functions";
 import { m } from "#/paraglide/messages";
 
 export const Route = createFileRoute(
   "/_protected/_onboarded/workspace/$workspaceSlug/settings",
 )({
+  beforeLoad: async () => {
+    const { role } = await getActiveMemberRole();
+    if (!["owner", "admin"].includes(role)) {
+      throw new Error("Forbidden");
+    }
+  },
   component: WorkspaceSettingsPage,
 });
 
 function WorkspaceSettingsPage() {
   const { workspace } = Route.useRouteContext();
-  const { data: activeMember } = authClient.useActiveMember();
   const navigate = useNavigate();
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
-
-  const memberRole = activeMember?.role;
-  const canEdit = ["owner", "admin", "editor"].includes(memberRole ?? "");
-  const canDelete = ["owner", "admin"].includes(memberRole ?? "");
 
   const settingsSchema = z.object({
     name: z.string().min(1, m.validation_name_required()),
     slug: z.string().min(1, m.validation_field_required()),
     description: z.string(),
-    iconEmoji: z.string(),
+    color: z.string(),
   });
 
   const form = useForm({
@@ -69,7 +71,7 @@ function WorkspaceSettingsPage() {
       name: workspace.name,
       slug: workspace.slug,
       description: workspace.description ?? "",
-      iconEmoji: workspace.iconEmoji ?? "",
+      color: workspace.color ?? "#3B82F6",
     },
     validators: {
       onSubmit: settingsSchema,
@@ -83,7 +85,7 @@ function WorkspaceSettingsPage() {
             name: value.name,
             slug: value.slug,
             description: value.description || undefined,
-            iconEmoji: value.iconEmoji || undefined,
+            color: value.color || undefined,
           },
         });
         toast.success(m.workspace_settings_update_success());
@@ -166,9 +168,7 @@ function WorkspaceSettingsPage() {
             <CardHeader>
               <CardTitle>{m.workspace_settings_general()}</CardTitle>
               <CardDescription>
-                {canEdit
-                  ? m.workspace_settings_description_edit()
-                  : m.workspace_settings_description_readonly()}
+                {m.workspace_settings_description_edit()}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -192,7 +192,6 @@ function WorkspaceSettingsPage() {
                           value={field.state.value}
                           onChange={(e) => field.handleChange(e.target.value)}
                           onBlur={field.handleBlur}
-                          disabled={!canEdit}
                           aria-invalid={isInvalid}
                         />
                         {isInvalid && <FieldError errors={field.state.meta.errors} />}
@@ -220,7 +219,6 @@ function WorkspaceSettingsPage() {
                             )
                           }
                           onBlur={field.handleBlur}
-                          disabled={!canEdit}
                           aria-invalid={isInvalid}
                         />
                         {isInvalid && <FieldError errors={field.state.meta.errors} />}
@@ -240,53 +238,42 @@ function WorkspaceSettingsPage() {
                         value={field.state.value}
                         onChange={(e) => field.handleChange(e.target.value)}
                         onBlur={field.handleBlur}
-                        disabled={!canEdit}
                         rows={3}
                       />
                     </Field>
                   )}
                 </form.Field>
 
-                <form.Field name="iconEmoji">
+                <form.Field name="color">
                   {(field) => (
                     <Field>
-                      <FieldLabel htmlFor="ws-settings-emoji">
-                        {m.workspace_label_icon_emoji()}
-                      </FieldLabel>
-                      <Input
-                        id="ws-settings-emoji"
+                      <FieldLabel>{m.workspace_label_color()}</FieldLabel>
+                      <ColorPicker
                         value={field.state.value}
-                        onChange={(e) => field.handleChange(e.target.value)}
-                        onBlur={field.handleBlur}
-                        disabled={!canEdit}
-                        placeholder="📁"
-                        className="w-20"
+                        onChange={(color) => field.handleChange(color)}
                       />
                     </Field>
                   )}
                 </form.Field>
 
-                {canEdit && (
-                  <form.Subscribe selector={(s) => s.isSubmitting}>
-                    {(isSubmitting) => (
-                      <Button
-                        type="submit"
-                        disabled={isSubmitting}
-                        className="self-end"
-                      >
-                        {isSubmitting
-                          ? m.common_saving()
-                          : m.common_save_changes()}
-                      </Button>
-                    )}
-                  </form.Subscribe>
-                )}
+                <form.Subscribe selector={(s) => s.isSubmitting}>
+                  {(isSubmitting) => (
+                    <Button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="self-end"
+                    >
+                      {isSubmitting
+                        ? m.common_saving()
+                        : m.common_save_changes()}
+                    </Button>
+                  )}
+                </form.Subscribe>
               </form>
             </CardContent>
           </Card>
 
-          {canDelete && (
-            <Card className="border-destructive">
+          <Card className="border-destructive">
               <CardHeader>
                 <CardTitle className="text-destructive">
                   {m.workspace_danger_zone()}
@@ -304,7 +291,6 @@ function WorkspaceSettingsPage() {
                 </Button>
               </CardContent>
             </Card>
-          )}
 
           <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
             <AlertDialogContent>

@@ -256,7 +256,7 @@
   "workspace_placeholder_name": "My Workspace",
   "workspace_placeholder_slug": "my-workspace",
   "workspace_placeholder_description": "What is this workspace for?",
-  "workspace_label_icon_emoji": "Icon Emoji",
+  "workspace_label_color": "Color",
   "workspace_back_to_dashboard": "Back to Dashboard",
   "workspace_nav_dashboard": "Dashboard",
   "workspace_nav_settings": "Settings",

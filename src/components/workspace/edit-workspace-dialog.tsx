@@ -13,6 +13,7 @@ import {
 import { Input } from "#/components/ui/input";
 import { Textarea } from "#/components/ui/textarea";
 import { Field, FieldError, FieldLabel } from "#/components/ui/field";
+import { ColorPicker } from "#/components/tags/color-picker";
 import { toast } from "sonner";
 import { updateWorkspace } from "#/lib/workspace.functions";
 import { m } from "#/paraglide/messages";
@@ -42,7 +43,7 @@ export function EditWorkspaceDialog({
     name: z.string().min(1, m.validation_name_required()),
     slug: z.string().min(1, m.validation_field_required()),
     description: z.string(),
-    iconEmoji: z.string(),
+    color: z.string(),
   });
 
   const form = useForm({
@@ -50,7 +51,7 @@ export function EditWorkspaceDialog({
       name: workspace?.name ?? "",
       slug: workspace?.slug ?? "",
       description: workspace?.description ?? "",
-      iconEmoji: workspace?.iconEmoji ?? "",
+      color: workspace?.color ?? "#3B82F6",
     },
     validators: {
       onSubmit: editSchema,
@@ -66,7 +67,7 @@ export function EditWorkspaceDialog({
             name: value.name,
             slug: value.slug,
             description: value.description || undefined,
-            iconEmoji: value.iconEmoji || undefined,
+            color: value.color || undefined,
           },
         });
 
@@ -87,7 +88,7 @@ export function EditWorkspaceDialog({
       form.setFieldValue("name", workspace.name);
       form.setFieldValue("slug", workspace.slug);
       form.setFieldValue("description", workspace.description ?? "");
-      form.setFieldValue("iconEmoji", workspace.iconEmoji ?? "");
+      form.setFieldValue("color", workspace.color ?? "#3B82F6");
     }
   }, [workspace, open]);
 
@@ -179,19 +180,13 @@ export function EditWorkspaceDialog({
             )}
           </form.Field>
 
-          <form.Field name="iconEmoji">
+          <form.Field name="color">
             {(field) => (
               <Field>
-                <FieldLabel htmlFor="edit-ws-emoji">
-                  {m.workspace_label_icon_emoji()}
-                </FieldLabel>
-                <Input
-                  id="edit-ws-emoji"
+                <FieldLabel>{m.workspace_label_color()}</FieldLabel>
+                <ColorPicker
                   value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  onBlur={field.handleBlur}
-                  placeholder="📁"
-                  className="w-20"
+                  onChange={(color) => field.handleChange(color)}
                 />
               </Field>
             )}

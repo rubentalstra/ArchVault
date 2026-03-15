@@ -61,7 +61,7 @@ export const createWorkspace = createServerFn({method: "POST"})
                 name: data.name,
                 slug: data.slug,
                 description: data.description,
-                iconEmoji: data.iconEmoji,
+                color: data.color,
                 createdBy: session.user.id,
             })
             .returning();
@@ -88,6 +88,13 @@ export const updateWorkspace = createServerFn({method: "POST"})
         if (!updated) throw new Error("Workspace not found");
         return updated;
     });
+
+export const assertWorkspaceAdmin = createServerFn({method: "GET"}).handler(
+    async () => {
+        const {memberRole} = await getSessionAndOrg();
+        assertRole(memberRole, ["owner", "admin"]);
+    },
+);
 
 export const deleteWorkspace = createServerFn({method: "POST"})
     .inputValidator((input: { id: string }) => input)

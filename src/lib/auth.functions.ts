@@ -22,6 +22,17 @@ export const ensureSession = createServerFn({ method: "GET" }).handler(
   },
 );
 
+export const getActiveMemberRole = createServerFn({ method: "GET" }).handler(
+  async () => {
+    const headers = getRequestHeaders();
+    const member = await auth.api.getActiveMember({ headers });
+    if (!member) {
+      throw new Error("Not a member of this organization");
+    }
+    return { role: member.role };
+  },
+);
+
 export const getEnabledSocialProviders = createServerFn({ method: "GET" }).handler(
   () => enabledSocialProviderIds,
 );

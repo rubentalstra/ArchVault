@@ -13,6 +13,7 @@ import {
 import { Input } from "#/components/ui/input";
 import { Textarea } from "#/components/ui/textarea";
 import { Field, FieldError, FieldLabel } from "#/components/ui/field";
+import { ColorPicker } from "#/components/tags/color-picker";
 import { toast } from "sonner";
 import { createWorkspace } from "#/lib/workspace.functions";
 import { m } from "#/paraglide/messages";
@@ -41,11 +42,11 @@ export function CreateWorkspaceDialog({
     name: z.string().min(1, m.validation_name_required()),
     slug: z.string(),
     description: z.string(),
-    iconEmoji: z.string(),
+    color: z.string(),
   });
 
   const form = useForm({
-    defaultValues: { name: "", slug: "", description: "", iconEmoji: "" },
+    defaultValues: { name: "", slug: "", description: "", color: "#3B82F6" },
     validators: {
       onSubmit: workspaceSchema,
       onBlur: workspaceSchema,
@@ -59,7 +60,7 @@ export function CreateWorkspaceDialog({
             name: value.name,
             slug,
             description: value.description || undefined,
-            iconEmoji: value.iconEmoji || undefined,
+            color: value.color || undefined,
           },
         });
 
@@ -169,17 +170,13 @@ export function CreateWorkspaceDialog({
             )}
           </form.Field>
 
-          <form.Field name="iconEmoji">
+          <form.Field name="color">
             {(field) => (
               <Field>
-                <FieldLabel htmlFor="create-ws-emoji">{m.workspace_label_icon_emoji()}</FieldLabel>
-                <Input
-                  id="create-ws-emoji"
+                <FieldLabel>{m.workspace_label_color()}</FieldLabel>
+                <ColorPicker
                   value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  onBlur={field.handleBlur}
-                  placeholder="📁"
-                  className="w-20"
+                  onChange={(color) => field.handleChange(color)}
                 />
               </Field>
             )}
