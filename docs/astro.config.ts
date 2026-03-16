@@ -5,8 +5,6 @@ import starlightLinksValidator from 'starlight-links-validator';
 import starlightImageZoom from 'starlight-image-zoom';
 import starlightLlmsTxt from 'starlight-llms-txt';
 import starlightKbd from 'starlight-kbd';
-// starlight-versions is installed but not active yet — enable when docs are ready for versioning
-// import starlightVersions from 'starlight-versions';
 import starlightScrollToTop from 'starlight-scroll-to-top';
 import starlightSidebarSwipe from 'starlight-sidebar-swipe';
 
@@ -21,7 +19,30 @@ export default defineConfig({
                 starlightLlmsTxt({
                     projectName: 'ArchVault',
                     description:
-                        'Visual C4 architecture platform for modeling software systems (Levels 1-3), creating diagrams, building reusable architecture blocks, and sharing via a community registry.',
+                        'Visual C4 architecture platform for modeling software systems (Levels 1-3), creating diagrams, building reusable architecture blocks, and sharing via a community registry. Everything is UI-driven — users never write code.',
+                    details:
+                        'ArchVault uses the C4 model (Context, Container, Component) to help teams visualize and document their software architecture. It supports organizations with role-based access, workspaces for grouping systems, a visual drag-and-drop editor, and a community registry for sharing reusable architecture blocks.',
+                    customSets: [
+                        {
+                            label: 'User Guide',
+                            description: 'end-user documentation for working with ArchVault',
+                            paths: ['guide/**'],
+                        },
+                        {
+                            label: 'Administration',
+                            description: 'deployment, database, auth, and operations guides for administrators',
+                            paths: ['admin/**'],
+                        },
+                        {
+                            label: 'Architecture',
+                            description: 'internal architecture and technical design documentation',
+                            paths: ['architecture/**'],
+                        },
+                    ],
+                    promote: ['index*', 'getting-started/**'],
+                    demote: ['community/**'],
+                    exclude: ['changelog/**'],
+                    pageSeparator: '\n---\n',
                 }),
                 starlightKbd({
                     types: [
@@ -55,8 +76,6 @@ export default defineConfig({
                     },
                 }),
                 starlightSidebarSwipe(),
-                // Enable when ready to create a versioned snapshot:
-                // starlightVersions({ versions: [{ slug: '0.x' }] }),
             ],
             title: 'ArchVault',
             favicon: '/favicon.svg',
