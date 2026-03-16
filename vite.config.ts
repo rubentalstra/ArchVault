@@ -10,14 +10,16 @@ const config = defineConfig({
     tsconfigPaths: true,
   },
   ssr: {
-    external: [/^@opentelemetry\//],
-  },
-  test: {
-    server: {
-      deps: {
-        external: [/^@opentelemetry\//],
-      },
-    },
+    external: [
+      '@opentelemetry/api',
+      '@opentelemetry/sdk-node',
+      '@opentelemetry/sdk-trace-node',
+      '@opentelemetry/sdk-metrics',
+      '@opentelemetry/resources',
+      '@opentelemetry/semantic-conventions',
+      '@opentelemetry/exporter-trace-otlp-proto',
+      '@opentelemetry/exporter-metrics-otlp-proto',
+    ],
   },
   plugins: [
     nitro({ rollupConfig: { external: [/^@sentry\//, /^@opentelemetry\//] } }),
