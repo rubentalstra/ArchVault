@@ -23,7 +23,8 @@ import {
 import { toast } from "sonner";
 import { m } from "#/paraglide/messages";
 import { diagramTypes } from "#/lib/diagram.validators";
-import type { DiagramType } from "#/lib/diagram.validators";
+import { DIAGRAM_TYPE_LABELS, DIAGRAM_TYPE_DESCRIPTIONS } from "#/lib/display/diagram.display";
+import type { DiagramType } from "@archvault/shared/diagrams";
 import {
   createDiagram,
   updateDiagram,
@@ -46,17 +47,6 @@ interface DiagramFormDialogProps {
   onSuccess: () => void;
 }
 
-const TYPE_LABELS: Record<DiagramType, () => string> = {
-  system_context: () => `${m.diagram_level_1()} — ${m.diagram_type_system_context()}`,
-  container: () => `${m.diagram_level_2()} — ${m.diagram_type_container()}`,
-  component: () => `${m.diagram_level_3()} — ${m.diagram_type_component()}`,
-};
-
-const TYPE_DESCRIPTIONS: Record<DiagramType, () => string> = {
-  system_context: () => m.diagram_level_1_description(),
-  container: () => m.diagram_level_2_description(),
-  component: () => m.diagram_level_3_description(),
-};
 
 export function DiagramFormDialog({
   open,
@@ -159,7 +149,7 @@ export function DiagramFormDialog({
               {(field) => {
                 const typeItems = diagramTypes.map((type) => ({
                   value: type,
-                  label: TYPE_LABELS[type](),
+                  label: DIAGRAM_TYPE_LABELS[type](),
                 }));
                 return (
                   <Field>
@@ -183,7 +173,7 @@ export function DiagramFormDialog({
                       </SelectContent>
                     </Select>
                     <FieldDescription>
-                      {TYPE_DESCRIPTIONS[selectedType]()}
+                      {DIAGRAM_TYPE_DESCRIPTIONS[selectedType]()}
                     </FieldDescription>
                   </Field>
                 );

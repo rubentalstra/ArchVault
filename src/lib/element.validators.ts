@@ -1,21 +1,23 @@
 import { z } from "zod/v4";
+import { ELEMENT_TYPES, ELEMENT_STATUSES } from "@archvault/shared/elements";
 
-export const elementTypes = ["actor", "system", "app", "store", "component"] as const;
-export type ElementType = (typeof elementTypes)[number];
+export type { ElementType, ElementStatus } from "@archvault/shared/elements";
+export { validateElementHierarchy } from "@archvault/shared/elements";
 
-export const elementStatuses = ["planned", "live", "deprecated"] as const;
-export type ElementStatus = (typeof elementStatuses)[number];
+// Re-export arrays for consumers that still reference the old names
+export const elementTypes = ELEMENT_TYPES;
+export const elementStatuses = ELEMENT_STATUSES;
 
 // ── Element CRUD schemas ───────────────────────────────────────────────
 
 export const createElementSchema = z.object({
   workspaceId: z.string(),
   parentElementId: z.string().optional(),
-  elementType: z.enum(elementTypes),
+  elementType: z.enum(ELEMENT_TYPES),
   name: z.string().min(1).max(100),
   displayDescription: z.string().max(120).optional(),
   description: z.string().optional(),
-  status: z.enum(elementStatuses).default("live"),
+  status: z.enum(ELEMENT_STATUSES).default("live"),
   external: z.boolean().default(false),
   metadataJson: z.record(z.string(), z.unknown()).optional(),
 });
@@ -26,7 +28,7 @@ export const updateElementSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   displayDescription: z.string().max(120).nullable().optional(),
   description: z.string().nullable().optional(),
-  status: z.enum(elementStatuses).optional(),
+  status: z.enum(ELEMENT_STATUSES).optional(),
   external: z.boolean().optional(),
   metadataJson: z.record(z.string(), z.unknown()).nullable().optional(),
 });
@@ -58,45 +60,3 @@ export const updateLinkSchema = z.object({
 export const removeLinkSchema = z.object({
   id: z.string(),
 });
-
-// ── Hierarchy validation ───────────────────────────────────────────────
-
-const VALID_PARENTS: Record<ElementType, ElementType[] | null> = {
-  actor: null,
-  system: null,
-  app: ["system"],
-  store: ["system"],
-  component: ["app"],
-};
-
-export function validateElementHierarchy(
-  elementType: ElementType,
-  parentType: ElementType | null | undefined,
-): { valid: boolean; message?: string } {
-  const allowedParents = VALID_PARENTS[elementType];
-
-  if (!allowedParents) {
-    return parentType
-      ? { valid: false, message: `A ${elementType} cannot have a parent element.` }
-      : { valid: true };
-  }
-
-  if (!parentType) {
-    if (elementType === "app" || elementType === "store" || elementType === "component") {
-      return {
-        valid: false,
-        message: `A ${elementType} must be nested under ${allowedParents.join(" or ")}.`,
-      };
-    }
-    return { valid: true };
-  }
-
-  if (!allowedParents.includes(parentType)) {
-    return {
-      valid: false,
-      message: `A ${elementType} must be nested under ${allowedParents.join(" or ")}, not ${parentType}.`,
-    };
-  }
-
-  return { valid: true };
-}

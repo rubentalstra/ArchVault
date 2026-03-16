@@ -11,10 +11,12 @@ import {toast} from "sonner";
 import {useEditorStore} from "#/stores/editor-store";
 import {createElement} from "#/lib/element.functions";
 import {addDiagramElement} from "#/lib/diagram.functions";
-import {validateChildPlacement} from "#/lib/diagram.validators";
+import {validateChildPlacement} from "@archvault/shared/diagrams";
+import {DEFAULT_ELEMENT_SIZES} from "@archvault/shared/elements";
+import {NEW_ELEMENT_NAMES} from "#/lib/display/element.display";
 import {m} from "#/paraglide/messages";
 import type {AppNode} from "#/lib/types/diagram-nodes";
-import type {ElementType, ElementStatus} from "#/lib/element.validators";
+import type {ElementType, ElementStatus} from "@archvault/shared/elements";
 
 interface CreatedElement {
     id: string;
@@ -24,24 +26,8 @@ interface CreatedElement {
 }
 interface CreatedDiagramElement { id: string }
 
-export const DEFAULT_SIZES: Record<
-    ElementType,
-    { width: number; height: number }
-> = {
-    actor: {width: 160, height: 100},
-    system: {width: 200, height: 120},
-    app: {width: 180, height: 110},
-    store: {width: 180, height: 110},
-    component: {width: 160, height: 100},
-};
-
-const NEW_ELEMENT_NAMES: Record<ElementType, () => string> = {
-    actor: () => m.editor_new_actor(),
-    system: () => m.editor_new_system(),
-    app: () => m.editor_new_app(),
-    store: () => m.editor_new_store(),
-    component: () => m.editor_new_component(),
-};
+// Re-export for backward compatibility
+export const DEFAULT_SIZES = DEFAULT_ELEMENT_SIZES;
 
 /** Detect if a flow position lands inside a sub-flow container node */
 export function findSubFlowParent(

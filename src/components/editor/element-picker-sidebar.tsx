@@ -14,12 +14,14 @@ import {
 import { useEditorStore } from "#/stores/editor-store";
 import { getElements } from "#/lib/element.functions";
 import { addDiagramElement } from "#/lib/diagram.functions";
-import { validateElementForDiagram } from "#/lib/diagram.validators";
-import { useDnD, DEFAULT_SIZES } from "#/components/editor/dnd-context";
+import { validateElementForDiagram, VALID_SUB_FLOW_TYPES } from "@archvault/shared/diagrams";
+import { DEFAULT_ELEMENT_SIZES, SUB_FLOW_ELEMENT_SIZES, ELEMENT_TYPE_ORDER } from "@archvault/shared/elements";
+import { ELEMENT_TYPE_LABELS } from "#/lib/display/element.display";
+import { useDnD } from "#/components/editor/dnd-context";
 import { m } from "#/paraglide/messages";
 import type { AppNode } from "#/lib/types/diagram-nodes";
-import type { ElementType } from "#/lib/element.validators";
-import type { DiagramType, DisplayMode } from "#/lib/diagram.validators";
+import type { ElementType } from "@archvault/shared/elements";
+import type { DisplayMode } from "@archvault/shared/diagrams";
 
 interface CreatedDiagramElement { id: string }
 
@@ -31,30 +33,6 @@ interface WorkspaceElement {
   status: string;
   external: boolean;
 }
-
-const ELEMENT_TYPE_LABELS: Record<ElementType, () => string> = {
-  actor: () => m.element_type_actor(),
-  system: () => m.element_type_system(),
-  app: () => m.element_type_app(),
-  store: () => m.element_type_store(),
-  component: () => m.element_type_component(),
-};
-
-const ELEMENT_TYPE_ORDER: ElementType[] = ["actor", "system", "app", "store", "component"];
-
-const SUB_FLOW_ELIGIBLE: Record<DiagramType, ElementType[]> = {
-  system_context: [],
-  container: ["system"],
-  component: ["app"],
-};
-
-const SUB_FLOW_SIZES: Record<ElementType, { width: number; height: number }> = {
-  actor: { width: 160, height: 100 },
-  system: { width: 500, height: 400 },
-  app: { width: 500, height: 400 },
-  store: { width: 180, height: 110 },
-  component: { width: 160, height: 100 },
-};
 
 export function ElementPickerSidebar() {
   const workspaceId = useEditorStore((s) => s.workspaceId);
@@ -106,7 +84,7 @@ export function ElementPickerSidebar() {
       if (!diagramId || !diagramType) return;
 
       const isSubFlow = displayMode === "sub_flow";
-      const size = isSubFlow ? SUB_FLOW_SIZES[el.elementType] : DEFAULT_SIZES[el.elementType];
+      const size = isSubFlow ? SUB_FLOW_ELEMENT_SIZES[el.elementType] : DEFAULT_ELEMENT_SIZES[el.elementType];
 
       // Use provided flow position or fall back to viewport center
       let position: { x: number; y: number };
@@ -212,7 +190,7 @@ export function ElementPickerSidebar() {
                 {items.map((el) => {
                   const alreadyOnDiagram = onDiagramElementIds.has(el.id);
                   const canBeSubFlow = diagramType
-                    ? SUB_FLOW_ELIGIBLE[diagramType].includes(el.elementType)
+                    ? VALID_SUB_FLOW_TYPES[diagramType].includes(el.elementType)
                     : false;
 
                   return (

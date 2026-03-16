@@ -1,0 +1,20 @@
+{
+  "name": "@archvault/shared",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./elements": "./src/elements.ts",
+    "./connections": "./src/connections.ts",
+    "./diagrams": "./src/diagrams.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "devDependencies": {
+    "eslint": "^10.0.3",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.57.1"
+  }
+}

@@ -11,22 +11,16 @@ import {
   validateElementForDiagram,
   validateChildPlacement,
   REQUIRES_PARENT_SUB_FLOW,
-} from "#/lib/diagram.validators";
+} from "@archvault/shared/diagrams";
+import { DEFAULT_ELEMENT_SIZES } from "@archvault/shared/elements";
 import {
   useCreateElementAtPosition,
-  DEFAULT_SIZES,
   findSubFlowParent,
 } from "#/components/editor/dnd-context";
+import { ADD_ELEMENT_OPTIONS } from "#/lib/display/editor.display";
 import { m } from "#/paraglide/messages";
 import { Separator } from "#/components/ui/separator";
-import {
-  User,
-  Box,
-  Package,
-  Database,
-  Cpu,
-} from "lucide-react";
-import type { ElementType } from "#/lib/element.validators";
+import type { ElementType } from "@archvault/shared/elements";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -38,17 +32,6 @@ import {
   AlertDialogTitle,
 } from "#/components/ui/alert-dialog";
 
-const ADD_ELEMENT_OPTIONS: {
-  type: ElementType;
-  label: () => string;
-  icon: React.ReactNode;
-}[] = [
-  { type: "actor", label: () => m.editor_toolbar_add_actor(), icon: <User className="mr-2 size-4" /> },
-  { type: "system", label: () => m.editor_toolbar_add_system(), icon: <Box className="mr-2 size-4" /> },
-  { type: "app", label: () => m.editor_toolbar_add_app(), icon: <Package className="mr-2 size-4" /> },
-  { type: "store", label: () => m.editor_toolbar_add_store(), icon: <Database className="mr-2 size-4" /> },
-  { type: "component", label: () => m.editor_toolbar_add_component(), icon: <Cpu className="mr-2 size-4" /> },
-];
 
 export function EditorContextMenu() {
   const contextMenu = useEditorStore((s) => s.contextMenu);
@@ -220,7 +203,7 @@ function NodeContextMenuItems({
       if (!node) return;
       const containerW = Number(node.style?.width ?? 320);
       const containerH = Number(node.style?.height ?? 220);
-      const size = DEFAULT_SIZES[type];
+      const size = DEFAULT_ELEMENT_SIZES[type];
       const flowPos = {
         x: node.position.x + containerW / 2 - size.width / 2,
         y: node.position.y + containerH / 2 - size.height / 2,

@@ -17,20 +17,13 @@ import {
   MoreHorizontal,
   Pencil,
   Trash2,
-  ArrowRight,
-  ArrowLeft,
-  ArrowLeftRight,
-  Minus,
-  User,
-  Server,
-  Package,
-  Database,
-  Cpu,
 } from "lucide-react";
 import { formatRelativeDate } from "#/lib/admin.utils";
 import { m } from "#/paraglide/messages";
-import type { ConnectionDirection } from "#/lib/connection.validators";
-import type { ElementType } from "#/lib/element.validators";
+import { ELEMENT_TYPE_ICONS } from "#/lib/display/element.display";
+import { CONNECTION_DIRECTION_ICONS, CONNECTION_DIRECTION_LABELS } from "#/lib/display/connection.display";
+import type { ConnectionDirection } from "@archvault/shared/connections";
+import type { ElementType } from "@archvault/shared/elements";
 import { TagBadge } from "#/components/tags/tag-badge";
 
 export interface ConnectionRow {
@@ -53,27 +46,6 @@ export interface ConnectionTableActions {
   elementTypeMap: Map<string, ElementType>;
 }
 
-const TYPE_ICONS: Partial<Record<ElementType, typeof User>> = {
-  actor: User,
-  system: Server,
-  app: Package,
-  store: Database,
-  component: Cpu,
-};
-
-const DIRECTION_ICONS: Record<ConnectionDirection, typeof ArrowRight> = {
-  outgoing: ArrowRight,
-  incoming: ArrowLeft,
-  bidirectional: ArrowLeftRight,
-  none: Minus,
-};
-
-const DIRECTION_LABELS: Record<ConnectionDirection, () => string> = {
-  outgoing: () => m.connection_direction_outgoing(),
-  incoming: () => m.connection_direction_incoming(),
-  bidirectional: () => m.connection_direction_bidirectional(),
-  none: () => m.connection_direction_none(),
-};
 
 const columnHelper = createColumnHelper<ConnectionRow>();
 
@@ -86,7 +58,7 @@ export function getConnectionColumns(actions: ConnectionTableActions) {
         const id = info.getValue();
         const name = actions.elementNameMap.get(id) ?? "\u2014";
         const type = actions.elementTypeMap.get(id);
-        const Icon = type ? TYPE_ICONS[type] : null;
+        const Icon = type ? ELEMENT_TYPE_ICONS[type] : null;
         return (
           <div className="flex items-center gap-2">
             {Icon && <Icon className="size-4 shrink-0 text-muted-foreground" />}
@@ -102,7 +74,7 @@ export function getConnectionColumns(actions: ConnectionTableActions) {
         const id = info.getValue();
         const name = actions.elementNameMap.get(id) ?? "\u2014";
         const type = actions.elementTypeMap.get(id);
-        const Icon = type ? TYPE_ICONS[type] : null;
+        const Icon = type ? ELEMENT_TYPE_ICONS[type] : null;
         return (
           <div className="flex items-center gap-2">
             {Icon && <Icon className="size-4 shrink-0 text-muted-foreground" />}
@@ -116,11 +88,11 @@ export function getConnectionColumns(actions: ConnectionTableActions) {
       enableSorting: true,
       cell: (info) => {
         const dir = info.getValue();
-        const Icon = DIRECTION_ICONS[dir];
+        const Icon = CONNECTION_DIRECTION_ICONS[dir];
         return (
           <div className="flex items-center gap-1.5">
             <Icon className="size-4 text-muted-foreground" />
-            <span className="text-sm">{DIRECTION_LABELS[dir]()}</span>
+            <span className="text-sm">{CONNECTION_DIRECTION_LABELS[dir]()}</span>
           </div>
         );
       },

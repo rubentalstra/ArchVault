@@ -10,12 +10,9 @@ import {element} from "./elements";
 import {user} from "./auth-schema";
 import {technology} from "./technologies";
 
-export const connectionDirectionEnum = pgEnum("connection_direction", [
-    "outgoing",
-    "incoming",
-    "bidirectional",
-    "none",
-]);
+import { CONNECTION_DIRECTIONS } from "@archvault/shared/connections";
+
+export const connectionDirectionEnum = pgEnum("connection_direction", [...CONNECTION_DIRECTIONS]);
 
 export const connection = pgTable(
     "connection",

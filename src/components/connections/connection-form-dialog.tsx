@@ -24,9 +24,10 @@ import { toast } from "sonner";
 import { m } from "#/paraglide/messages";
 import {
   connectionDirections,
-  validateConnectionEndpoints,
 } from "#/lib/connection.validators";
-import type { ConnectionDirection } from "#/lib/connection.validators";
+import { validateConnectionEndpoints } from "@archvault/shared/connections";
+import { CONNECTION_DIRECTION_LABELS } from "#/lib/display/connection.display";
+import type { ConnectionDirection } from "@archvault/shared/connections";
 import {
   createConnection,
   updateConnection,
@@ -75,12 +76,6 @@ interface ConnectionFormDialogProps {
   onSuccess: () => void;
 }
 
-const DIRECTION_LABELS: Record<ConnectionDirection, () => string> = {
-  outgoing: () => m.connection_direction_outgoing(),
-  incoming: () => m.connection_direction_incoming(),
-  bidirectional: () => m.connection_direction_bidirectional(),
-  none: () => m.connection_direction_none(),
-};
 
 export function ConnectionFormDialog({
   open,
@@ -313,7 +308,7 @@ export function ConnectionFormDialog({
             {(field) => {
               const directionItems = connectionDirections.map((dir) => ({
                 value: dir,
-                label: DIRECTION_LABELS[dir](),
+                label: CONNECTION_DIRECTION_LABELS[dir](),
               }));
               return (
                 <Field>

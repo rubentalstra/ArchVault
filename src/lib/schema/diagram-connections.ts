@@ -10,25 +10,13 @@ import {
 import {diagram} from "./diagrams";
 import {connection} from "./connections";
 
-export const pathTypeEnum = pgEnum("path_type", [
-    "straight",
-    "curved",
-    "orthogonal",
-]);
+import { PATH_TYPES, LINE_STYLES, ANCHOR_POINTS } from "@archvault/shared/diagrams";
 
-export const lineStyleEnum = pgEnum("line_style", [
-    "solid",
-    "dashed",
-    "dotted",
-]);
+export const pathTypeEnum = pgEnum("path_type", [...PATH_TYPES]);
 
-export const anchorPointEnum = pgEnum("anchor_point", [
-    "auto",
-    "top",
-    "bottom",
-    "left",
-    "right",
-]);
+export const lineStyleEnum = pgEnum("line_style", [...LINE_STYLES]);
+
+export const anchorPointEnum = pgEnum("anchor_point", [...ANCHOR_POINTS]);
 
 export const diagramConnection = pgTable(
     "diagram_connection",

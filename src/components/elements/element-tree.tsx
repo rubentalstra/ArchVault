@@ -1,9 +1,11 @@
 import { useState, useMemo } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Button } from "#/components/ui/button";
-import { ChevronRight, ChevronDown, Plus, User, Server, Package, Database, Cpu } from "lucide-react";
+import { ChevronRight, ChevronDown, Plus } from "lucide-react";
 import { m } from "#/paraglide/messages";
-import type { ElementType, ElementStatus } from "#/lib/element.validators";
+import { ELEMENT_TYPE_ICONS, STATUS_DOT_COLORS } from "#/lib/display/element.display";
+import { VALID_CHILDREN } from "@archvault/shared/elements";
+import type { ElementType, ElementStatus } from "@archvault/shared/elements";
 
 interface TreeElement {
   id: string;
@@ -25,19 +27,6 @@ interface FlatNode {
   isExpanded: boolean;
 }
 
-const TYPE_ICONS: Record<ElementType, typeof User> = {
-  actor: User,
-  system: Server,
-  app: Package,
-  store: Database,
-  component: Cpu,
-};
-
-const STATUS_DOT_COLORS: Record<ElementStatus, string> = {
-  planned: "bg-blue-500",
-  live: "bg-green-500",
-  deprecated: "bg-red-500",
-};
 
 function buildTree(elements: TreeElement[]): TreeNode[] {
   const map = new Map<string, TreeNode>();
@@ -76,14 +65,6 @@ function flattenTree(
   return result;
 }
 
-// Valid child types for "Add Child" button
-const VALID_CHILDREN: Record<ElementType, ElementType[]> = {
-  actor: [],
-  system: ["app", "store"],
-  app: ["component"],
-  store: [],
-  component: [],
-};
 
 interface ElementTreeProps {
   elements: TreeElement[];
@@ -149,7 +130,7 @@ export function ElementTree({
           >
             {virtualizer.getVirtualItems().map((virtualRow) => {
               const node = flatNodes[virtualRow.index];
-              const Icon = TYPE_ICONS[node.element.elementType];
+              const Icon = ELEMENT_TYPE_ICONS[node.element.elementType];
               const validChildren = VALID_CHILDREN[node.element.elementType];
               const isSelected = node.element.id === selectedId;
 

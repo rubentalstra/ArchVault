@@ -1,17 +1,10 @@
+import { createElement } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEditorStore } from "#/stores/editor-store";
 import { getConnections } from "#/lib/connection.functions";
-import { ArrowRight, ArrowLeft, ArrowLeftRight, Minus } from "lucide-react";
 import { m } from "#/paraglide/messages";
-import type { ConnectionDirection } from "#/lib/connection.validators";
-
-const DIRECTION_ICONS: Record<ConnectionDirection, React.ReactNode> = {
-  outgoing: <ArrowRight className="size-4 shrink-0 text-muted-foreground" />,
-  incoming: <ArrowLeft className="size-4 shrink-0 text-muted-foreground" />,
-  bidirectional: <ArrowLeftRight className="size-4 shrink-0 text-muted-foreground" />,
-  none: <Minus className="size-4 shrink-0 text-muted-foreground" />,
-};
+import { CONNECTION_DIRECTION_ICONS } from "#/lib/display/connection.display";
 
 export function ElementConnections({ elementId }: { elementId: string }) {
   const workspaceId = useEditorStore((s) => s.workspaceId);
@@ -58,7 +51,7 @@ export function ElementConnections({ elementId }: { elementId: string }) {
               }
             }}
           >
-            {DIRECTION_ICONS[rel.direction]}
+            {createElement(CONNECTION_DIRECTION_ICONS[rel.direction], { className: "size-4 shrink-0 text-muted-foreground" })}
             <span className="min-w-0 flex-1 truncate">{otherName}</span>
             {rel.description && (
               <span className="truncate text-xs text-muted-foreground">

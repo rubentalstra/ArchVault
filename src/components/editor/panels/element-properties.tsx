@@ -50,12 +50,12 @@ import {StatusDot} from "#/components/editor/nodes/status-dot";
 import {InlineEditable} from "./inline-editable";
 import {
     X, Plus, ExternalLink, BookOpen, History, Tag, Check,
-    Box, Package, Cpu, Database, User, ChevronRight,
-    MoreHorizontal, ImageIcon, Trash2,
+    ChevronRight, MoreHorizontal, ImageIcon, Trash2,
 } from "lucide-react";
 import {m} from "#/paraglide/messages";
 import {ElementConnections} from "./element-connections";
-import type {ElementStatus} from "#/lib/element.validators";
+import {ELEMENT_TYPE_LABELS, ELEMENT_TYPE_NAV_ICONS, STATUS_OPTIONS} from "#/lib/display/element.display";
+import type {ElementStatus} from "@archvault/shared/elements";
 import type {AppNode} from "#/lib/types/diagram-nodes";
 
 interface ElementDetails {
@@ -68,36 +68,14 @@ interface ElementDetails {
     tags?: { tagId: string }[];
 }
 
-const STATUS_OPTIONS: { value: ElementStatus; label: () => string }[] = [
-    {value: "planned", label: () => m.element_status_planned()},
-    {value: "live", label: () => m.element_status_live()},
-    {value: "deprecated", label: () => m.element_status_deprecated()},
-];
-
 function getNodeTypeIcon(type: string | undefined, className = "size-10 shrink-0 text-foreground") {
-    switch (type) {
-        case "system":
-            return <Box className={className}/>;
-        case "app":
-            return <Package className={className}/>;
-        case "component":
-            return <Cpu className={className}/>;
-        case "store":
-            return <Database className={className}/>;
-        case "actor":
-            return <User className={className}/>;
-        default:
-            return <Box className={className}/>;
+    const Icon = ELEMENT_TYPE_NAV_ICONS[type ?? ""];
+    if (!Icon) {
+        const FallbackIcon = ELEMENT_TYPE_NAV_ICONS["system"]!;
+        return <FallbackIcon className={className}/>;
     }
+    return <Icon className={className}/>;
 }
-
-const ELEMENT_TYPE_LABELS: Record<string, () => string> = {
-    actor: () => m.element_type_actor(),
-    system: () => m.element_type_system(),
-    app: () => m.element_type_app(),
-    store: () => m.element_type_store(),
-    component: () => m.element_type_component(),
-};
 
 export function ElementProperties({node}: { node: AppNode }) {
     const workspaceId = useEditorStore((s) => s.workspaceId);
@@ -351,7 +329,7 @@ function ParentElementCard({parentElementId}: { parentElementId: string }) {
                 <div className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-medium">{parentNode.data.name}</span>
                     <span className="text-xs text-muted-foreground">
-                        {ELEMENT_TYPE_LABELS[parentNode.type]?.() ?? parentNode.type}
+                        {ELEMENT_TYPE_LABELS[parentNode.type as keyof typeof ELEMENT_TYPE_LABELS]?.() ?? parentNode.type}
                     </span>
                 </div>
                 <ChevronRight className="size-4 shrink-0 text-muted-foreground"/>

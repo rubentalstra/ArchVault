@@ -1,15 +1,10 @@
-import type { ElementStatus } from "#/lib/element.validators";
-
-const STATUS_COLORS: Record<ElementStatus, string> = {
-  planned: "bg-blue-500",
-  live: "bg-green-500",
-  deprecated: "bg-red-500",
-};
+import { STATUS_DOT_COLORS } from "#/lib/display/element.display";
+import type { ElementStatus } from "@archvault/shared/elements";
 
 export function StatusDot({ status }: { status: ElementStatus }) {
   return (
     <span
-      className={`inline-block size-2 shrink-0 rounded-full ${STATUS_COLORS[status]}`}
+      className={`inline-block size-2 shrink-0 rounded-full ${STATUS_DOT_COLORS[status]}`}
       title={status}
     />
   );

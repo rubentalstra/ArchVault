@@ -25,6 +25,7 @@
     "docs:preview": "pnpm --filter @archvault/docs preview"
   },
   "dependencies": {
+    "@archvault/shared": "workspace:*",
     "@archvault/transactional": "workspace:*",
     "@base-ui/react": "^1.3.0",
     "@better-auth/scim": "^1.5.5",

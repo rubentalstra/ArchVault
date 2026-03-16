@@ -28,9 +28,10 @@ import { m } from "#/paraglide/messages";
 import {
   elementTypes,
   elementStatuses,
-  validateElementHierarchy,
 } from "#/lib/element.validators";
-import type { ElementType, ElementStatus } from "#/lib/element.validators";
+import { validateElementHierarchy } from "@archvault/shared/elements";
+import { ELEMENT_TYPE_LABELS, ELEMENT_STATUS_LABELS } from "#/lib/display/element.display";
+import type { ElementType, ElementStatus } from "@archvault/shared/elements";
 import {
   createElement,
   updateElement,
@@ -90,19 +91,6 @@ interface ElementFormDialogProps {
   onSuccess: () => void;
 }
 
-const TYPE_LABELS: Record<ElementType, () => string> = {
-  actor: () => m.element_type_actor(),
-  system: () => m.element_type_system(),
-  app: () => m.element_type_app(),
-  store: () => m.element_type_store(),
-  component: () => m.element_type_component(),
-};
-
-const STATUS_LABELS: Record<ElementStatus, () => string> = {
-  planned: () => m.element_status_planned(),
-  live: () => m.element_status_live(),
-  deprecated: () => m.element_status_deprecated(),
-};
 
 export function ElementFormDialog({
   open,
@@ -319,7 +307,7 @@ export function ElementFormDialog({
               {(field) => {
                 const typeItems = elementTypes.map((type) => ({
                   value: type,
-                  label: TYPE_LABELS[type](),
+                  label: ELEMENT_TYPE_LABELS[type](),
                 }));
                 return (
                   <Field>
@@ -412,7 +400,7 @@ export function ElementFormDialog({
             {(field) => {
               const statusItems = elementStatuses.map((status) => ({
                 value: status,
-                label: STATUS_LABELS[status](),
+                label: ELEMENT_STATUS_LABELS[status](),
               }));
               return (
                 <Field>
@@ -450,7 +438,7 @@ export function ElementFormDialog({
                     { value: "__none__", label: m.element_no_parent() },
                     ...validParents.map((p) => ({
                       value: p.id,
-                      label: `${p.name} (${TYPE_LABELS[p.elementType]()})`,
+                      label: `${p.name} (${ELEMENT_TYPE_LABELS[p.elementType]()})`,
                     })),
                   ];
                   return (

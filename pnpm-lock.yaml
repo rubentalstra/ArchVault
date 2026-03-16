@@ -11,6 +11,9 @@ importers:
 
   .:
     dependencies:
+      '@archvault/shared':
+        specifier: workspace:*
+        version: link:packages/shared
       '@archvault/transactional':
         specifier: workspace:*
         version: link:packages/transactional
@@ -328,6 +331,18 @@ importers:
       eslint-plugin-astro:
         specifier: ^1.6.0
         version: 1.6.0(eslint@10.0.3(jiti@2.6.1))
+
+  packages/shared:
+    devDependencies:
+      eslint:
+        specifier: ^10.0.3
+        version: 10.0.3(jiti@2.6.1)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      typescript-eslint:
+        specifier: ^8.57.1
+        version: 8.57.1(eslint@10.0.3(jiti@2.6.1))(typescript@5.9.3)
 
   packages/transactional:
     dependencies:

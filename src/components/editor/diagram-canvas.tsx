@@ -40,6 +40,7 @@ import { PanelRight } from "lucide-react";
 import { m } from "#/paraglide/messages";
 import { useAutosave } from "#/hooks/use-autosave";
 import { useEditorHotkeys } from "#/hooks/use-editor-hotkeys";
+import { ELEMENT_TYPE_COLORS } from "@archvault/shared/elements";
 import type { AppNode, AppEdge } from "#/lib/types/diagram-nodes";
 
 interface CreatedConnection { id: string }
@@ -50,16 +51,8 @@ interface DiagramCanvasProps {
   navBar: DiagramNavBarProps;
 }
 
-const NODE_COLOR_MAP: Record<string, string> = {
-  actor: "#60a5fa",
-  system: "#34d399",
-  app: "#a78bfa",
-  store: "#22c55e",
-  component: "#fb923c",
-};
-
 function getNodeColor(node: { type?: string }) {
-  return NODE_COLOR_MAP[node.type ?? ""] ?? "#94a3b8";
+  return ELEMENT_TYPE_COLORS[node.type as keyof typeof ELEMENT_TYPE_COLORS] ?? "#94a3b8";
 }
 
 export function DiagramCanvas({ readOnly = false, navBar }: DiagramCanvasProps) {

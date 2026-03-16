@@ -13,19 +13,11 @@ import {workspace} from "./workspaces";
 import {user} from "./auth-schema";
 import {technology} from "./technologies";
 
-export const elementTypeEnum = pgEnum("element_type", [
-    "actor",
-    "system",
-    "app",
-    "store",
-    "component",
-]);
+import { ELEMENT_TYPES, ELEMENT_STATUSES } from "@archvault/shared/elements";
 
-export const elementStatusEnum = pgEnum("element_status", [
-    "planned",
-    "live",
-    "deprecated",
-]);
+export const elementTypeEnum = pgEnum("element_type", [...ELEMENT_TYPES]);
+
+export const elementStatusEnum = pgEnum("element_status", [...ELEMENT_STATUSES]);
 
 export const element = pgTable(
     "element",

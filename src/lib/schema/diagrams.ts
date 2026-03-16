@@ -12,11 +12,9 @@ import {workspace} from "./workspaces";
 import {user} from "./auth-schema";
 import {diagramRevision} from "./diagram-revisions";
 
-export const diagramTypeEnum = pgEnum("diagram_type", [
-    "system_context",
-    "container",
-    "component",
-]);
+import { DIAGRAM_TYPES } from "@archvault/shared/diagrams";
+
+export const diagramTypeEnum = pgEnum("diagram_type", [...DIAGRAM_TYPES]);
 
 export const diagram = pgTable(
     "diagram",

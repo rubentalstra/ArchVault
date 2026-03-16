@@ -4,11 +4,7 @@ import { Panel } from "@xyflow/react";
 import {
   FolderOpen,
   ChevronDown,
-  User,
   Box,
-  Package,
-  Database,
-  Cpu,
 } from "lucide-react";
 import { Badge } from "#/components/ui/badge";
 import { Separator } from "#/components/ui/separator";
@@ -40,22 +36,9 @@ import {
   CommandList,
 } from "#/components/ui/command";
 import { m } from "#/paraglide/messages";
-import type { AncestrySegment } from "#/lib/diagram.validators";
-import type { DiagramType } from "#/lib/diagram.validators";
-
-const ELEMENT_TYPE_ICONS: Record<string, typeof User> = {
-  actor: User,
-  system: Box,
-  app: Package,
-  store: Database,
-  component: Cpu,
-};
-
-const DIAGRAM_TYPE_ICONS: Record<DiagramType, typeof Box> = {
-  system_context: Box,
-  container: Package,
-  component: Cpu,
-};
+import { ELEMENT_TYPE_NAV_ICONS } from "#/lib/display/element.display";
+import { DIAGRAM_TYPE_ICONS } from "#/lib/display/diagram.display";
+import type { AncestrySegment, DiagramType } from "@archvault/shared/diagrams";
 
 export interface DiagramNavBarProps {
   workspaceSlug: string;
@@ -188,7 +171,7 @@ function AncestorSegment({
                 <CommandGroup key={diagramName} heading={diagramName}>
                   {items.map((sibling) => {
                     const SibIcon =
-                      ELEMENT_TYPE_ICONS[sibling.elementType] ?? Box;
+                      ELEMENT_TYPE_NAV_ICONS[sibling.elementType] ?? Box;
                     const isCurrent =
                       sibling.deeperDiagramId === currentDiagramId;
                     return (

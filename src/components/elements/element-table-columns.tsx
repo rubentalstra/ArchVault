@@ -13,10 +13,11 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
-import {MoreHorizontal, Pencil, Trash2, User, Server, Package, Database, Cpu} from "lucide-react";
+import {MoreHorizontal, Pencil, Trash2} from "lucide-react";
 import {formatRelativeDate} from "#/lib/admin.utils";
 import {m} from "#/paraglide/messages";
-import type {ElementType, ElementStatus} from "#/lib/element.validators";
+import {ELEMENT_TYPE_ICONS, ELEMENT_TYPE_LABELS, ELEMENT_STATUS_LABELS, STATUS_BADGE_COLORS} from "#/lib/display/element.display";
+import type {ElementType, ElementStatus} from "@archvault/shared/elements";
 import {TagBadge} from "#/components/tags/tag-badge";
 
 export interface ElementRow {
@@ -41,33 +42,6 @@ export interface ElementTableActions {
     parentNameMap: Map<string, string>;
 }
 
-const TYPE_ICONS: Record<ElementType, typeof User> = {
-    actor: User,
-    system: Server,
-    app: Package,
-    store: Database,
-    component: Cpu,
-};
-
-const TYPE_LABELS: Record<ElementType, () => string> = {
-    actor: () => m.element_type_actor(),
-    system: () => m.element_type_system(),
-    app: () => m.element_type_app(),
-    store: () => m.element_type_store(),
-    component: () => m.element_type_component(),
-};
-
-const STATUS_COLORS: Record<ElementStatus, string> = {
-    planned: "text-blue-600 bg-blue-100 dark:bg-blue-900/30",
-    live: "text-green-600 bg-green-100 dark:bg-green-900/30",
-    deprecated: "text-red-600 bg-red-100 dark:bg-red-900/30",
-};
-
-const STATUS_LABELS: Record<ElementStatus, () => string> = {
-    planned: () => m.element_status_planned(),
-    live: () => m.element_status_live(),
-    deprecated: () => m.element_status_deprecated(),
-};
 
 const columnHelper = createColumnHelper<ElementRow>();
 
@@ -78,7 +52,7 @@ export function getElementColumns(actions: ElementTableActions) {
             enableSorting: true,
             cell: (info) => {
                 const el = info.row.original;
-                const Icon = TYPE_ICONS[el.elementType];
+                const Icon = ELEMENT_TYPE_ICONS[el.elementType];
                 return (
                     <div className="flex items-center gap-2">
                         <Icon className="size-4 shrink-0 text-muted-foreground"/>
@@ -92,7 +66,7 @@ export function getElementColumns(actions: ElementTableActions) {
             enableSorting: true,
             cell: (info) => {
                 const type = info.getValue();
-                return <Badge variant="secondary">{TYPE_LABELS[type]()}</Badge>;
+                return <Badge variant="secondary">{ELEMENT_TYPE_LABELS[type]()}</Badge>;
             },
         }),
         columnHelper.accessor("status", {
@@ -101,8 +75,8 @@ export function getElementColumns(actions: ElementTableActions) {
             cell: (info) => {
                 const status = info.getValue();
                 return (
-                    <Badge variant="outline" className={STATUS_COLORS[status]}>
-                        {STATUS_LABELS[status]()}
+                    <Badge variant="outline" className={STATUS_BADGE_COLORS[status]}>
+                        {ELEMENT_STATUS_LABELS[status]()}
                     </Badge>
                 );
             },

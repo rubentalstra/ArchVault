@@ -3,8 +3,9 @@ import { Panel } from "@xyflow/react";
 import { useEditorStore } from "#/stores/editor-store";
 import { useHistoryStore } from "#/stores/history-store";
 import { useEditorActions } from "#/hooks/use-editor-actions";
-import { validateElementForDiagram } from "#/lib/diagram.validators";
+import { validateElementForDiagram } from "@archvault/shared/diagrams";
 import { useDnD, useCreateElementAtPosition } from "#/components/editor/dnd-context";
+import { ADD_ELEMENT_OPTIONS } from "#/lib/display/editor.display";
 import { SaveIndicator } from "#/components/editor/save-indicator";
 import { Button } from "#/components/ui/button";
 import { Toggle } from "#/components/ui/toggle";
@@ -28,29 +29,11 @@ import {
   Grid3x3,
   Map,
   LayoutList,
-  User,
-  Box,
-  Package,
-  Database,
-  Cpu,
   Undo2,
   Redo2,
   Keyboard,
 } from "lucide-react";
 import { m } from "#/paraglide/messages";
-import type { ElementType } from "#/lib/element.validators";
-
-const ADD_ELEMENT_OPTIONS: {
-  type: ElementType;
-  label: () => string;
-  icon: React.ReactNode;
-}[] = [
-  { type: "actor", label: () => m.editor_toolbar_add_actor(), icon: <User className="mr-2 size-4" /> },
-  { type: "system", label: () => m.editor_toolbar_add_system(), icon: <Box className="mr-2 size-4" /> },
-  { type: "app", label: () => m.editor_toolbar_add_app(), icon: <Package className="mr-2 size-4" /> },
-  { type: "store", label: () => m.editor_toolbar_add_store(), icon: <Database className="mr-2 size-4" /> },
-  { type: "component", label: () => m.editor_toolbar_add_component(), icon: <Cpu className="mr-2 size-4" /> },
-];
 
 interface EditorToolbarProps {
   autosaveStatus: "idle" | "saving" | "saved" | "error";

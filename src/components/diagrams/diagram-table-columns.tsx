@@ -17,7 +17,8 @@ import {
 import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { formatRelativeDate } from "#/lib/admin.utils";
 import { m } from "#/paraglide/messages";
-import type { DiagramType } from "#/lib/diagram.validators";
+import { DIAGRAM_TYPE_LABELS, DIAGRAM_TYPE_COLORS } from "#/lib/display/diagram.display";
+import type { DiagramType } from "@archvault/shared/diagrams";
 
 export interface DiagramRow {
   id: string;
@@ -35,17 +36,6 @@ export interface DiagramTableActions {
   workspaceSlug: string;
 }
 
-const TYPE_LABELS: Record<DiagramType, () => string> = {
-  system_context: () => `${m.diagram_level_1()} — ${m.diagram_type_system_context()}`,
-  container: () => `${m.diagram_level_2()} — ${m.diagram_type_container()}`,
-  component: () => `${m.diagram_level_3()} — ${m.diagram_type_component()}`,
-};
-
-const TYPE_COLORS: Record<DiagramType, string> = {
-  system_context: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-  container: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-  component: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
-};
 
 const columnHelper = createColumnHelper<DiagramRow>();
 
@@ -73,8 +63,8 @@ export function getDiagramColumns(actions: DiagramTableActions) {
       cell: (info) => {
         const type = info.getValue();
         return (
-          <Badge variant="secondary" className={TYPE_COLORS[type]}>
-            {TYPE_LABELS[type]()}
+          <Badge variant="secondary" className={DIAGRAM_TYPE_COLORS[type]}>
+            {DIAGRAM_TYPE_LABELS[type]()}
           </Badge>
         );
       },

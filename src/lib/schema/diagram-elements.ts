@@ -11,7 +11,9 @@ import {
 import {diagram} from "./diagrams";
 import {element} from "./elements";
 
-export const displayModeEnum = pgEnum("display_mode", ["normal", "sub_flow"]);
+import { DISPLAY_MODES } from "@archvault/shared/diagrams";
+
+export const displayModeEnum = pgEnum("display_mode", [...DISPLAY_MODES]);
 
 export const diagramElement = pgTable(
     "diagram_element",
