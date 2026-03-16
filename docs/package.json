@@ -18,7 +18,6 @@
     "eslint-plugin-mdx": "^3.7.0",
     "sharp": "^0.34.5",
     "starlight-changelogs": "^0.5.0",
-    "starlight-heading-badges": "^0.7.0",
     "starlight-image-zoom": "^0.14.1",
     "starlight-kbd": "^0.4.0",
     "starlight-links-validator": "^0.20.1",

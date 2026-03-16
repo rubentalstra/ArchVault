@@ -5,7 +5,6 @@ import starlightLinksValidator from 'starlight-links-validator';
 import starlightImageZoom from 'starlight-image-zoom';
 import starlightLlmsTxt from 'starlight-llms-txt';
 import starlightKbd from 'starlight-kbd';
-import starlightHeadingBadges from 'starlight-heading-badges';
 // starlight-versions is installed but not active yet — enable when docs are ready for versioning
 // import starlightVersions from 'starlight-versions';
 import starlightScrollToTop from 'starlight-scroll-to-top';
@@ -46,7 +45,6 @@ export default defineConfig({
                         },
                     ],
                 }),
-                starlightHeadingBadges(),
                 starlightScrollToTop({
                     position: 'right',
                     threshold: 30,
