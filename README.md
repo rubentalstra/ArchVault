@@ -26,7 +26,9 @@
 
 ---
 
-<!-- TODO: Add screenshot -->
+<p align="center">
+  <img src=".github/screenshots/12-editor-level2-container.png" alt="ArchVault — Visual C4 diagram editor" width="800" />
+</p>
 
 ArchVault is an open-source, self-hosted platform for modeling software architecture using
 the [C4 model](https://c4model.com) (Levels 1-3). Users create systems, diagrams, and reusable architecture blocks
@@ -42,6 +44,43 @@ entirely through a visual UI — no code required.
 - **Internationalization** — English and Dutch out of the box, powered by Paraglide JS (compile-time, type-safe)
 - **Dark & Light Theme** — Automatic theme switching
 - **Planned: Blocks Registry** — Save and share reusable architecture blocks with the community
+
+<details> 
+<summary><strong>More Screenshots</strong></summary>
+
+<br />
+
+| Dashboard                                          | Workspace                                                    |
+|----------------------------------------------------|--------------------------------------------------------------|
+| ![Dashboard](.github/screenshots/01-dashboard.png) | ![Workspace](.github/screenshots/04-workspace-dashboard.png) |
+
+| Elements                                         | Connections                                            |
+|--------------------------------------------------|--------------------------------------------------------|
+| ![Elements](.github/screenshots/06-elements.png) | ![Connections](.github/screenshots/07-connections.png) |
+
+| Diagrams                                         | Tags                                     |
+|--------------------------------------------------|------------------------------------------|
+| ![Diagrams](.github/screenshots/05-diagrams.png) | ![Tags](.github/screenshots/08-tags.png) |
+
+| Technologies                                             | Workspace Settings                                         |
+|----------------------------------------------------------|------------------------------------------------------------|
+| ![Technologies](.github/screenshots/09-technologies.png) | ![Settings](.github/screenshots/10-workspace-settings.png) |
+
+| Members                                        | Teams                                      |
+|------------------------------------------------|--------------------------------------------|
+| ![Members](.github/screenshots/02-members.png) | ![Teams](.github/screenshots/03-teams.png) |
+
+**Diagram Editor**
+
+| Level 1 — System Context                                       | Level 2 — Container                                       | Level 3 — Component                                       |
+|----------------------------------------------------------------|-----------------------------------------------------------|-----------------------------------------------------------|
+| ![L1](.github/screenshots/11-editor-level1-system-context.png) | ![L2](.github/screenshots/12-editor-level2-container.png) | ![L3](.github/screenshots/13-editor-level3-component.png) |
+
+> [!NOTE]
+> ArchVault is under active development. Features like autosave, keyboard shortcuts, versioning, and a community blocks
+> registry are coming soon. See the [Roadmap](#roadmap) for details.
+
+</details>
 
 ## Quick Start (Docker Compose)
 
@@ -85,13 +124,14 @@ pnpm dev
 
 ## Roadmap
 
-ArchVault is built in phases. See the full phase tracker and dependency graph in [
-`docs/phases/README.md`](docs/phases/README.md).
+See **[ROADMAP.md](ROADMAP.md)** for the full list of planned features and current progress.
 
 **Completed:** Project scaffold, auth, organizations, workspaces, model objects, connections, tags, diagrams, canvas
-editor, i18n, Docker setup.
+editor, autosave, keyboard shortcuts, i18n, Docker setup.
 
-**Next up:** Autosave & hotkeys (3f), node focus & animation (3g), versions & timeline (6a).
+**In progress:** Autosave & keyboard shortcuts UI/UX polish, undo/redo.
+
+**Up next:** Node focus & animation, versions & timeline.
 
 **Future ideas:** Flows & navigation, tech catalog, import/export, blocks registry, community platform.
 
