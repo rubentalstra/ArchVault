@@ -18,6 +18,11 @@
   --sl-color-black: oklch(0.985 0 0);
 }
 
+.site-title {
+  color: var(--sl-color-white) !important;
+  font-weight: 700;
+}
+
 :root[data-theme='dark'] {
   --sl-color-accent-low: oklch(0.269 0.06 264.376);
   --sl-color-accent: oklch(0.546 0.245 262.881);
