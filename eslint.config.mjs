@@ -17,8 +17,8 @@ export default tseslint.config(
       "src/paraglide/",
       "migrations/",
       "packages/",
-      "eslint.config.mjs",
       "docs/",
+      "eslint.config.mjs",
     ],
   },
 

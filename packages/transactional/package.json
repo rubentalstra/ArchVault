@@ -3,7 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "email dev"
+    "dev": "email dev",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "dependencies": {
     "@react-email/components": "^1.0.9",
@@ -12,6 +14,9 @@
   },
   "devDependencies": {
     "@react-email/preview-server": "5.2.9",
-    "react-email": "^5.2.9"
+    "eslint": "^10.0.3",
+    "react-email": "^5.2.9",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.57.1"
   }
 }
