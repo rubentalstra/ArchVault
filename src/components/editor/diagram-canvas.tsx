@@ -42,8 +42,8 @@ import { useAutosave } from "#/hooks/use-autosave";
 import { useEditorHotkeys } from "#/hooks/use-editor-hotkeys";
 import type { AppNode, AppEdge } from "#/lib/types/diagram-nodes";
 
-type CreatedConnection = { id: string };
-type CreatedDiagramConnection = { id: string };
+interface CreatedConnection { id: string }
+interface CreatedDiagramConnection { id: string }
 
 interface DiagramCanvasProps {
   readOnly?: boolean;
@@ -318,7 +318,7 @@ export function DiagramCanvas({ readOnly = false, navBar }: DiagramCanvasProps) 
     (changes: import("@xyflow/react").NodeChange<AppNode>[]) => {
       // Track resize start for undo
       for (const change of changes) {
-        if (change.type === "dimensions" && (change as NodeDimensionChange).resizing === true) {
+        if (change.type === "dimensions" && (change).resizing === true) {
           const dimChange = change as NodeDimensionChange & { id: string };
           if (!resizeStartRef.current.has(dimChange.id)) {
             const node = useEditorStore.getState().nodes.find((n) => n.id === dimChange.id);
@@ -338,7 +338,7 @@ export function DiagramCanvas({ readOnly = false, navBar }: DiagramCanvasProps) 
 
       // Track resize end for undo
       for (const change of changes) {
-        if (change.type === "dimensions" && (change as NodeDimensionChange).resizing === false) {
+        if (change.type === "dimensions" && (change).resizing === false) {
           const dimChange = change as NodeDimensionChange & { id: string };
           const startData = resizeStartRef.current.get(dimChange.id);
           const node = useEditorStore.getState().nodes.find((n) => n.id === dimChange.id);

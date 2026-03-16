@@ -1,9 +1,9 @@
 import type { SocialProviderId } from "./auth.social";
 
-type OAuthProviderConfig = {
+interface OAuthProviderConfig {
   clientId: string;
   clientSecret: string;
-};
+}
 
 type MicrosoftProviderConfig = OAuthProviderConfig & {
   tenantId: string;
@@ -15,13 +15,13 @@ type SocialProvidersConfig = Partial<{
   microsoft: MicrosoftProviderConfig;
 }>;
 
-type ProviderEnvConfig = {
+interface ProviderEnvConfig {
   provider: SocialProviderId;
   enabled: string | undefined;
   clientId: string | undefined;
   clientSecret: string | undefined;
   tenantId?: string | undefined;
-};
+}
 
 function parseOptionalBoolean(value: string | undefined, envName: string): boolean | undefined {
   if (value === undefined || value.trim() === "") {

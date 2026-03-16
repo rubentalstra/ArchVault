@@ -58,7 +58,7 @@ export function ElementConnections({ elementId }: { elementId: string }) {
               }
             }}
           >
-            {DIRECTION_ICONS[rel.direction as ConnectionDirection]}
+            {DIRECTION_ICONS[rel.direction]}
             <span className="min-w-0 flex-1 truncate">{otherName}</span>
             {rel.description && (
               <span className="truncate text-xs text-muted-foreground">

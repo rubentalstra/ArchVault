@@ -26,7 +26,7 @@ async function handleTelemetryProxy(request: Request): Promise<Response> {
         break;
       case "bearer":
         if (config.bearerToken) {
-          headers["Authorization"] = `Bearer ${config.bearerToken}`;
+          headers.Authorization = `Bearer ${config.bearerToken}`;
         }
         break;
       case "basic":
@@ -34,7 +34,7 @@ async function handleTelemetryProxy(request: Request): Promise<Response> {
           const encoded = Buffer.from(
             `${config.basicUser}:${config.basicPass}`,
           ).toString("base64");
-          headers["Authorization"] = `Basic ${encoded}`;
+          headers.Authorization = `Basic ${encoded}`;
         }
         break;
       case "api_key":

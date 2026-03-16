@@ -20,7 +20,7 @@ interface DiagramHoverCardProps {
 }
 
 export function DiagramHoverCard({ diagrams, level }: DiagramHoverCardProps) {
-  const { workspaceSlug } = useParams({ strict: false }) as { workspaceSlug: string };
+  const { workspaceSlug } = useParams({ strict: false });
 
   const levelLabel = level === "container"
     ? m.editor_hover_level_2()

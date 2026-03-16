@@ -11,7 +11,7 @@ import { TechIcon } from "#/components/technologies/tech-icon";
 import { m } from "#/paraglide/messages";
 import iconsIndex from "#/components/technologies/simple-icons-index.json";
 
-type IconEntry = { slug: string; title: string };
+interface IconEntry { slug: string; title: string }
 
 const ALL_ICONS: IconEntry[] = (iconsIndex as [string, string][]).map(
   ([slug, title]) => ({ slug, title }),

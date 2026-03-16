@@ -44,7 +44,7 @@ import { SidebarTrigger } from "#/components/ui/sidebar";
 import { m } from "#/paraglide/messages";
 import type { ElementType } from "#/lib/element.validators";
 
-type WorkspaceTag = { id: string; name: string; color: string; icon: string | null };
+interface WorkspaceTag { id: string; name: string; color: string; icon: string | null }
 type WorkspaceElement = ElementRow & { tags?: WorkspaceTag[] };
 
 export const Route = createFileRoute(

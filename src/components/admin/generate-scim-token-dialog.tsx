@@ -218,7 +218,7 @@ export function GenerateScimTokenDialog({
 
             <form.Field name="organizationId">
               {(field) => {
-                type OrgItem = { id: string; name: string; slug: string };
+                interface OrgItem { id: string; name: string; slug: string }
                 const selectedOrg = field.state.value
                   ? organizations.find((o) => o.id === field.state.value) ??
                     null

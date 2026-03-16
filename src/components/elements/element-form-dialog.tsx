@@ -42,7 +42,7 @@ import { addElementTag, removeElementTag } from "#/lib/tag.functions";
 import { TagPicker } from "#/components/tags/tag-picker";
 import { TechnologyPicker } from "#/components/technologies/technology-picker";
 
-type CreatedElement = { id: string };
+interface CreatedElement { id: string }
 
 interface ElementData {
   id: string;

@@ -16,13 +16,13 @@ import {m} from "#/paraglide/messages";
 import type {AppNode} from "#/lib/types/diagram-nodes";
 import type {ElementType, ElementStatus} from "#/lib/element.validators";
 
-type CreatedElement = {
+interface CreatedElement {
     id: string;
     name: string;
     status: ElementStatus;
     external: boolean;
-};
-type CreatedDiagramElement = { id: string };
+}
+interface CreatedDiagramElement { id: string }
 
 export const DEFAULT_SIZES: Record<
     ElementType,

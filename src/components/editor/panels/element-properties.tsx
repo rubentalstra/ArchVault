@@ -63,9 +63,9 @@ interface ElementDetails {
     parentElementId: string | null;
     description: string | null;
     iconTechnologyId: string | null;
-    technologies: Array<{ technologyId: string; name: string; iconSlug: string | null }>;
-    links: Array<{ id: string; url: string; label: string | null }>;
-    tags?: Array<{ tagId: string }>;
+    technologies: { technologyId: string; name: string; iconSlug: string | null }[];
+    links: { id: string; url: string; label: string | null }[];
+    tags?: { tagId: string }[];
 }
 
 const STATUS_OPTIONS: { value: ElementStatus; label: () => string }[] = [
@@ -372,7 +372,7 @@ function TechnologiesSection({
                              }: {
     elementId: string;
     workspaceId: string | null;
-    technologies: Array<{ technologyId: string; name: string; iconSlug: string | null }>;
+    technologies: { technologyId: string; name: string; iconSlug: string | null }[];
     iconTechnologyId: string | null;
     nodeId: string;
     updateNodeData: (nodeId: string, data: Record<string, unknown>) => void;
@@ -603,7 +603,7 @@ function TagsSection({
     const elementTagIds = useMemo(
         () =>
             new Set(
-                (element as { tags?: Array<{ tagId: string }> })?.tags?.map((t) => t.tagId) ?? [],
+                (element as { tags?: { tagId: string }[] })?.tags?.map((t) => t.tagId) ?? [],
             ),
         [element],
     );
@@ -674,7 +674,7 @@ function LinksSection({
                           links,
                       }: {
     elementId: string;
-    links: Array<{ id: string; url: string; label: string | null }>;
+    links: { id: string; url: string; label: string | null }[];
 }) {
     const [newUrl, setNewUrl] = useState("");
     const queryClient = useQueryClient();

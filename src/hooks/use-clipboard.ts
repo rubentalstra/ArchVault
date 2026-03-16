@@ -18,7 +18,7 @@ interface ClipboardPayload {
   version: 1;
   diagramType: DiagramType;
   workspaceId: string;
-  nodes: Array<{
+  nodes: {
     relativeX: number;
     relativeY: number;
     width: number;
@@ -31,8 +31,8 @@ interface ClipboardPayload {
     isSubFlow: boolean;
     originalId: string;
     parentOriginalId: string | null;
-  }>;
-  edges: Array<{
+  }[];
+  edges: {
     sourceOriginalId: string;
     targetOriginalId: string;
     pathType: string;
@@ -41,18 +41,18 @@ interface ClipboardPayload {
     description: string | null;
     sourceAnchor: string;
     targetAnchor: string;
-  }>;
+  }[];
 }
 
-type CreatedElement = {
+interface CreatedElement {
   id: string;
   name: string;
   status: ElementStatus;
   external: boolean;
-};
-type CreatedDiagramElement = { id: string };
-type CreatedConnection = { id: string };
-type CreatedDiagramConnection = { id: string };
+}
+interface CreatedDiagramElement { id: string }
+interface CreatedConnection { id: string }
+interface CreatedDiagramConnection { id: string }
 
 export function useClipboard() {
   const clipboardRef = useRef<ClipboardPayload | null>(null);

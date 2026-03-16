@@ -46,8 +46,8 @@ import { Plus } from "lucide-react";
 import { m } from "#/paraglide/messages";
 import type { ElementType } from "#/lib/element.validators";
 
-type WorkspaceTag = { id: string; name: string; color: string; icon: string | null };
-type WorkspaceElement = { id: string; name: string; elementType: ElementType };
+interface WorkspaceTag { id: string; name: string; color: string; icon: string | null }
+interface WorkspaceElement { id: string; name: string; elementType: ElementType }
 type WorkspaceConnection = ConnectionRow & { tags?: WorkspaceTag[] };
 
 export const Route = createFileRoute(

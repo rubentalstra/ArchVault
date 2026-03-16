@@ -21,7 +21,7 @@ import type { AppNode } from "#/lib/types/diagram-nodes";
 import type { ElementType } from "#/lib/element.validators";
 import type { DiagramType, DisplayMode } from "#/lib/diagram.validators";
 
-type CreatedDiagramElement = { id: string };
+interface CreatedDiagramElement { id: string }
 
 interface WorkspaceElement {
   id: string;

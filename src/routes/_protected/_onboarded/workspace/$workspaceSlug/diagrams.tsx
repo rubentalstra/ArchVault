@@ -41,7 +41,7 @@ import { SidebarTrigger } from "#/components/ui/sidebar";
 import { Plus } from "lucide-react";
 import { m } from "#/paraglide/messages";
 
-type WorkspaceDiagram = {
+interface WorkspaceDiagram {
   id: string;
   name: string;
   diagramType: DiagramRow["diagramType"];
@@ -50,7 +50,7 @@ type WorkspaceDiagram = {
   gridSize: number;
   snapToGrid: boolean;
   updatedAt: string | Date;
-};
+}
 
 export const Route = createFileRoute(
   "/_protected/_onboarded/workspace/$workspaceSlug/diagrams",

@@ -35,8 +35,7 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
 
     // Merge rapid same-type actions within the merge window
     if (
-      last &&
-      last.type === action.type &&
+      last?.type === action.type &&
       now - last.timestamp < MERGE_WINDOW_MS
     ) {
       const merged: HistoryAction = {

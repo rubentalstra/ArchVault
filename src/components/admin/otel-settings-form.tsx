@@ -322,7 +322,7 @@ export function OtelSettingsForm({ initialData }: OtelSettingsFormProps) {
                 <Select
                   value={field.state.value}
                   onValueChange={(v) =>
-                    field.handleChange(v as OtelAuthType)
+                    field.handleChange(v!)
                   }
                 >
                   <SelectTrigger className="w-full">

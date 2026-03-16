@@ -23,7 +23,7 @@ export const getDiagramAncestrySchema = z.object({
   workspaceId: z.string(),
 });
 
-export type AncestrySegment = {
+export interface AncestrySegment {
   diagramId: string;
   diagramName: string;
   diagramType: string;
@@ -37,7 +37,7 @@ export type AncestrySegment = {
     deeperDiagramId: string | null;
     deeperDiagramName: string | null;
   }[];
-};
+}
 
 // ── Diagram CRUD schemas ────────────────────────────────────────────
 

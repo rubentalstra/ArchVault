@@ -14,6 +14,7 @@ export default tseslint.config(
       ".vinxi/",
       "node_modules/",
       "src/routeTree.gen.ts",
+      "src/paraglide/",
       "migrations/",
       "packages/",
       "eslint.config.mjs",
@@ -26,6 +27,7 @@ export default tseslint.config(
 
   // TypeScript recommended (type-checked)
   ...tseslint.configs.recommendedTypeChecked,
+  ...tseslint.configs.stylisticTypeChecked,
   {
     languageOptions: {
       parserOptions: {
@@ -40,7 +42,7 @@ export default tseslint.config(
   ...pluginRouter.configs["flat/recommended"],
 
   // React Hooks (flat config preset)
-  reactHooks.configs.flat.recommended,
+  { ...reactHooks.configs.flat["recommended-latest"] },
 
   // React Refresh
   {

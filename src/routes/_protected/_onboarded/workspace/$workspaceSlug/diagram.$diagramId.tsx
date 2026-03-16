@@ -61,7 +61,7 @@ function DiagramEditorPage() {
 
     const nodes = toFlowNodes(
       diagramData.elements,
-      diagramData.diagram.diagramType as DiagramType,
+      diagramData.diagram.diagramType,
       deeperDiagramsMap,
     );
     const elementIdToNodeId = buildElementIdToNodeIdMap(diagramData.elements);
@@ -71,7 +71,7 @@ function DiagramEditorPage() {
 
     initDiagram({
       diagramId: diagramData.diagram.id,
-      diagramType: diagramData.diagram.diagramType as DiagramType,
+      diagramType: diagramData.diagram.diagramType,
       workspaceId: diagramData.diagram.workspaceId,
       nodes,
       edges,
@@ -103,7 +103,7 @@ function DiagramEditorPage() {
                   workspaceName: workspace.name,
                   currentDiagramId: diagramData.diagram.id,
                   currentDiagramName: diagramData.diagram.name,
-                  currentDiagramType: diagramData.diagram.diagramType as DiagramType,
+                  currentDiagramType: diagramData.diagram.diagramType,
                   ancestry,
                   readOnly,
                 }}
