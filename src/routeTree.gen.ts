@@ -24,6 +24,7 @@ import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ProtectedAdminUsersRouteImport } from './routes/_protected/admin/users'
 import { Route as ProtectedAdminSsoRouteImport } from './routes/_protected/admin/sso'
 import { Route as ProtectedAdminScimRouteImport } from './routes/_protected/admin/scim'
+import { Route as ProtectedAdminObservabilityRouteImport } from './routes/_protected/admin/observability'
 import { Route as ProtectedAcceptInvitationInvitationIdRouteImport } from './routes/_protected/accept-invitation.$invitationId'
 import { Route as ProtectedOnboardedOrgRouteImport } from './routes/_protected/_onboarded/org'
 import { Route as ProtectedOnboardedDashboardRouteImport } from './routes/_protected/_onboarded/dashboard'
@@ -120,6 +121,12 @@ const ProtectedAdminScimRoute = ProtectedAdminScimRouteImport.update({
   path: '/scim',
   getParentRoute: () => ProtectedAdminRoute,
 } as any)
+const ProtectedAdminObservabilityRoute =
+  ProtectedAdminObservabilityRouteImport.update({
+    id: '/observability',
+    path: '/observability',
+    getParentRoute: () => ProtectedAdminRoute,
+  } as any)
 const ProtectedAcceptInvitationInvitationIdRoute =
   ProtectedAcceptInvitationInvitationIdRouteImport.update({
     id: '/accept-invitation/$invitationId',
@@ -264,6 +271,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof ProtectedOnboardedDashboardRoute
   '/org': typeof ProtectedOnboardedOrgRouteWithChildren
   '/accept-invitation/$invitationId': typeof ProtectedAcceptInvitationInvitationIdRoute
+  '/admin/observability': typeof ProtectedAdminObservabilityRoute
   '/admin/scim': typeof ProtectedAdminScimRoute
   '/admin/sso': typeof ProtectedAdminSsoRoute
   '/admin/users': typeof ProtectedAdminUsersRoute
@@ -299,6 +307,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof ProtectedOnboardingRoute
   '/dashboard': typeof ProtectedOnboardedDashboardRoute
   '/accept-invitation/$invitationId': typeof ProtectedAcceptInvitationInvitationIdRoute
+  '/admin/observability': typeof ProtectedAdminObservabilityRoute
   '/admin/scim': typeof ProtectedAdminScimRoute
   '/admin/sso': typeof ProtectedAdminSsoRoute
   '/admin/users': typeof ProtectedAdminUsersRoute
@@ -337,6 +346,7 @@ export interface FileRoutesById {
   '/_protected/_onboarded/dashboard': typeof ProtectedOnboardedDashboardRoute
   '/_protected/_onboarded/org': typeof ProtectedOnboardedOrgRouteWithChildren
   '/_protected/accept-invitation/$invitationId': typeof ProtectedAcceptInvitationInvitationIdRoute
+  '/_protected/admin/observability': typeof ProtectedAdminObservabilityRoute
   '/_protected/admin/scim': typeof ProtectedAdminScimRoute
   '/_protected/admin/sso': typeof ProtectedAdminSsoRoute
   '/_protected/admin/users': typeof ProtectedAdminUsersRoute
@@ -376,6 +386,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/org'
     | '/accept-invitation/$invitationId'
+    | '/admin/observability'
     | '/admin/scim'
     | '/admin/sso'
     | '/admin/users'
@@ -411,6 +422,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/dashboard'
     | '/accept-invitation/$invitationId'
+    | '/admin/observability'
     | '/admin/scim'
     | '/admin/sso'
     | '/admin/users'
@@ -448,6 +460,7 @@ export interface FileRouteTypes {
     | '/_protected/_onboarded/dashboard'
     | '/_protected/_onboarded/org'
     | '/_protected/accept-invitation/$invitationId'
+    | '/_protected/admin/observability'
     | '/_protected/admin/scim'
     | '/_protected/admin/sso'
     | '/_protected/admin/users'
@@ -590,6 +603,13 @@ declare module '@tanstack/react-router' {
       path: '/scim'
       fullPath: '/admin/scim'
       preLoaderRoute: typeof ProtectedAdminScimRouteImport
+      parentRoute: typeof ProtectedAdminRoute
+    }
+    '/_protected/admin/observability': {
+      id: '/_protected/admin/observability'
+      path: '/observability'
+      fullPath: '/admin/observability'
+      preLoaderRoute: typeof ProtectedAdminObservabilityRouteImport
       parentRoute: typeof ProtectedAdminRoute
     }
     '/_protected/accept-invitation/$invitationId': {
@@ -847,6 +867,7 @@ const ProtectedOnboardedRouteWithChildren =
   ProtectedOnboardedRoute._addFileChildren(ProtectedOnboardedRouteChildren)
 
 interface ProtectedAdminRouteChildren {
+  ProtectedAdminObservabilityRoute: typeof ProtectedAdminObservabilityRoute
   ProtectedAdminScimRoute: typeof ProtectedAdminScimRoute
   ProtectedAdminSsoRoute: typeof ProtectedAdminSsoRoute
   ProtectedAdminUsersRoute: typeof ProtectedAdminUsersRoute
@@ -855,6 +876,7 @@ interface ProtectedAdminRouteChildren {
 }
 
 const ProtectedAdminRouteChildren: ProtectedAdminRouteChildren = {
+  ProtectedAdminObservabilityRoute: ProtectedAdminObservabilityRoute,
   ProtectedAdminScimRoute: ProtectedAdminScimRoute,
   ProtectedAdminSsoRoute: ProtectedAdminSsoRoute,
   ProtectedAdminUsersRoute: ProtectedAdminUsersRoute,

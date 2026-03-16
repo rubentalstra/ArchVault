@@ -9,8 +9,18 @@ const config = defineConfig({
   resolve: {
     tsconfigPaths: true,
   },
+  ssr: {
+    external: [/^@opentelemetry\//],
+  },
+  test: {
+    server: {
+      deps: {
+        external: [/^@opentelemetry\//],
+      },
+    },
+  },
   plugins: [
-    nitro({ rollupConfig: { external: [/^@sentry\//] } }),
+    nitro({ rollupConfig: { external: [/^@sentry\//, /^@opentelemetry\//] } }),
     paraglideVitePlugin({
       project: './project.inlang',
       outdir: './src/paraglide',
@@ -28,7 +38,11 @@ const config = defineConfig({
       ],
     }),
     tailwindcss(),
-    tanstackStart(),
+    tanstackStart({
+      serverFns: {
+        generateFunctionId: ({ functionName }) => functionName,
+      },
+    }),
     viteReact(),
   ],
 })

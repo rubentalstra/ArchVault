@@ -16,3 +16,5 @@ export * from "./diagram-revisions";
 export * from "./diagrams";
 export * from "./diagram-elements";
 export * from "./diagram-connections";
+// Platform settings
+export * from "./app-settings";

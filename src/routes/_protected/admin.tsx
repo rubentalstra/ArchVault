@@ -5,6 +5,7 @@ import {
   RefreshCw,
   ShieldCheck,
   ArrowLeft,
+  Activity,
 } from "lucide-react";
 import { NavUser } from "#/components/org/nav-user";
 import { adminUsersDefaultSearch } from "./admin/users";
@@ -67,7 +68,7 @@ function AdminLayout() {
 
         <SidebarContent>
           <SidebarGroup>
-            <SidebarGroupLabel>{m.org_nav_admin()}</SidebarGroupLabel>
+            <SidebarGroupLabel>{m.admin_nav_group_identity()}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
@@ -100,6 +101,23 @@ function AdminLayout() {
                   >
                     <RefreshCw />
                     <span>{m.admin_nav_scim()}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+
+          <SidebarGroup>
+            <SidebarGroupLabel>{m.admin_nav_group_platform()}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    tooltip={m.admin_nav_observability()}
+                    render={<Link to="/admin/observability" />}
+                  >
+                    <Activity />
+                    <span>{m.admin_nav_observability()}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>

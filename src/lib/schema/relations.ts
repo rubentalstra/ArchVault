@@ -24,6 +24,7 @@ import {diagram} from "./diagrams";
 import {diagramElement} from "./diagram-elements";
 import {diagramConnection} from "./diagram-connections";
 import {diagramRevision} from "./diagram-revisions";
+import {appSettings} from "./app-settings";
 
 export const relations = defineRelations(
     {
@@ -53,6 +54,7 @@ export const relations = defineRelations(
         diagramElement,
         diagramConnection,
         diagramRevision,
+        appSettings,
     },
     (r) => ({
         // ─────────────────────────────────────────────────────────────────
@@ -127,6 +129,16 @@ export const relations = defineRelations(
 
         // verification has no foreign-key relations
         verification: {},
+
+        // ─────────────────────────────────────────────────────────────────
+        // appSettings
+        // ─────────────────────────────────────────────────────────────────
+        appSettings: {
+            updatedByUser: r.one.user({
+                from: r.appSettings.updatedBy,
+                to: r.user.id,
+            }),
+        },
 
         // ─────────────────────────────────────────────────────────────────
         // organization
