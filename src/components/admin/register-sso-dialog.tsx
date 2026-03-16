@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { useForm } from "@tanstack/react-form";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { z } from "zod/v4";
 import { authClient } from "#/lib/auth-client";
+import { getAllOrganizations } from "#/lib/org.functions";
 import { Button } from "#/components/ui/button";
 import {
   Dialog,
@@ -13,6 +16,14 @@ import {
 } from "#/components/ui/dialog";
 import { Input } from "#/components/ui/input";
 import { Field, FieldDescription, FieldError, FieldLabel } from "#/components/ui/field";
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "#/components/ui/combobox";
 import {
   Select,
   SelectContent,
@@ -37,6 +48,13 @@ export function RegisterSSODialog({
   onSuccess,
 }: RegisterSSODialogProps) {
   const [showSecret, setShowSecret] = useState(false);
+  const getAllOrgsFn = useServerFn(getAllOrganizations);
+
+  const { data: organizations = [] } = useQuery({
+    queryKey: ["admin", "all-organizations"],
+    queryFn: () => getAllOrgsFn(),
+    enabled: open,
+  });
 
   const ssoSchema = z.object({
     providerId: z
@@ -144,7 +162,11 @@ export function RegisterSSODialog({
                   <Input
                     id="sso-provider-id"
                     value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
+                    onChange={(e) =>
+                      field.handleChange(
+                        e.target.value.toLowerCase().replace(/\s+/g, "-"),
+                      )
+                    }
                     onBlur={field.handleBlur}
                     placeholder={m.admin_sso_placeholder_provider_id()}
                     aria-invalid={isInvalid}
@@ -331,18 +353,47 @@ export function RegisterSSODialog({
           </form.Subscribe>
 
           <form.Field name="organizationId">
-            {(field) => (
-              <Field>
-                <FieldLabel htmlFor="sso-org-id">{m.admin_sso_label_org_id()}</FieldLabel>
-                <Input
-                  id="sso-org-id"
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  onBlur={field.handleBlur}
-                  placeholder={m.admin_sso_placeholder_org_link()}
-                />
-              </Field>
-            )}
+            {(field) => {
+              type OrgItem = { id: string; name: string; slug: string };
+              const selectedOrg = field.state.value
+                ? organizations.find((o) => o.id === field.state.value) ?? null
+                : null;
+
+              return (
+                <Field>
+                  <FieldLabel>{m.admin_sso_label_org_id()}</FieldLabel>
+                  <Combobox
+                    items={organizations}
+                    value={selectedOrg}
+                    onValueChange={(org: OrgItem | null) =>
+                      field.handleChange(org?.id ?? "")
+                    }
+                    itemToStringValue={(org: OrgItem) => org.name}
+                    itemToStringLabel={(org: OrgItem) => org.name}
+                  >
+                    <ComboboxInput
+                      placeholder={m.admin_sso_placeholder_org_link()}
+                      showClear={!!field.state.value}
+                    />
+                    <ComboboxContent>
+                      <ComboboxEmpty>
+                        {m.admin_scim_no_organizations()}
+                      </ComboboxEmpty>
+                      <ComboboxList>
+                        {(org: OrgItem) => (
+                          <ComboboxItem key={org.id} value={org}>
+                            <span>{org.name}</span>
+                            <span className="ml-auto text-xs text-muted-foreground">
+                              {org.slug}
+                            </span>
+                          </ComboboxItem>
+                        )}
+                      </ComboboxList>
+                    </ComboboxContent>
+                  </Combobox>
+                </Field>
+              );
+            }}
           </form.Field>
 
           <DialogFooter>
