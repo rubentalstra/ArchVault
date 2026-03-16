@@ -16,6 +16,12 @@ import {
 } from "#/components/ui/dialog";
 import { Input } from "#/components/ui/input";
 import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "#/components/ui/input-group";
+import {
   Field,
   FieldDescription,
   FieldError,
@@ -30,7 +36,7 @@ import {
   ComboboxEmpty,
 } from "#/components/ui/combobox";
 import { toast } from "sonner";
-import { Copy, AlertTriangle } from "lucide-react";
+import { Check, Copy, AlertTriangle } from "lucide-react";
 import { m } from "#/paraglide/messages";
 
 interface GenerateScimTokenDialogProps {
@@ -45,6 +51,7 @@ export function GenerateScimTokenDialog({
   onSuccess,
 }: GenerateScimTokenDialogProps) {
   const [generatedToken, setGeneratedToken] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const getAllOrgsFn = useServerFn(getAllOrganizations);
 
   const { data: organizations = [] } = useQuery({
@@ -98,7 +105,9 @@ export function GenerateScimTokenDialog({
   const handleCopyToken = async () => {
     if (!generatedToken) return;
     await navigator.clipboard.writeText(generatedToken);
+    setCopied(true);
     toast.success(m.admin_scim_token_copied());
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const handleClose = (nextOpen: boolean) => {
@@ -127,18 +136,26 @@ export function GenerateScimTokenDialog({
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
-              <code className="flex-1 overflow-x-auto rounded bg-muted p-3 text-xs break-all">
-                {generatedToken}
-              </code>
-              <Button
-                variant="outline"
-                size="icon-sm"
-                onClick={handleCopyToken}
-              >
-                <Copy className="size-4" />
-              </Button>
-            </div>
+            <InputGroup>
+              <InputGroupInput
+                readOnly
+                value={generatedToken}
+                className="font-mono text-xs"
+              />
+              <InputGroupAddon align="inline-end">
+                <InputGroupButton
+                  size="icon-xs"
+                  variant="ghost"
+                  onClick={() => void handleCopyToken()}
+                >
+                  {copied ? (
+                    <Check className="size-3.5" />
+                  ) : (
+                    <Copy className="size-3.5" />
+                  )}
+                </InputGroupButton>
+              </InputGroupAddon>
+            </InputGroup>
 
             <div className="rounded-lg border bg-muted/30 p-3">
               <p className="text-sm">
