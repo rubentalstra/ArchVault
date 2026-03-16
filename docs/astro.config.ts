@@ -1,10 +1,24 @@
 import {defineConfig} from 'astro/config';
 import starlight from '@astrojs/starlight';
+import starlightChangelogs from 'starlight-changelogs';
+import starlightLinksValidator from 'starlight-links-validator';
+import starlightImageZoom from 'starlight-image-zoom';
+import starlightLlmsTxt from 'starlight-llms-txt';
 
 export default defineConfig({
     site: 'https://archvault.dev',
     integrations: [
         starlight({
+            plugins: [
+                starlightChangelogs(),
+                starlightLinksValidator(),
+                starlightImageZoom(),
+                starlightLlmsTxt({
+                    projectName: 'ArchVault',
+                    description:
+                        'Visual C4 architecture platform for modeling software systems (Levels 1-3), creating diagrams, building reusable architecture blocks, and sharing via a community registry.',
+                }),
+            ],
             title: 'ArchVault',
             favicon: '/favicon.svg',
             logo: {
@@ -93,7 +107,13 @@ export default defineConfig({
                 {
                     label: 'Community',
                     collapsed: true,
-                    autogenerate: {directory: 'community'},
+                    items: [
+                        {label: 'Changelog', link: '/changelog/'},
+                        {
+                            label: 'Resources',
+                            autogenerate: {directory: 'community'},
+                        },
+                    ],
                 },
             ],
             head: [
