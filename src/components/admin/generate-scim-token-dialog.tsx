@@ -98,7 +98,6 @@ export function GenerateScimTokenDialog({
       const token = (data as { scimToken?: string })?.scimToken ?? "";
       setGeneratedToken(token);
       toast.success(m.admin_scim_generate_success());
-      onSuccess();
     },
   });
 
@@ -112,7 +111,11 @@ export function GenerateScimTokenDialog({
 
   const handleClose = (nextOpen: boolean) => {
     if (!nextOpen) {
+      if (generatedToken) {
+        onSuccess();
+      }
       setGeneratedToken(null);
+      setCopied(false);
     }
     onOpenChange(nextOpen);
   };

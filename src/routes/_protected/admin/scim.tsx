@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import {
   useReactTable,
   getCoreRowModel,
@@ -8,6 +9,7 @@ import {
   createColumnHelper,
 } from "@tanstack/react-table";
 import { authClient } from "#/lib/auth-client";
+import { listAllScimConnections } from "#/lib/scim.functions";
 import { Button } from "#/components/ui/button";
 import {
   Table,
@@ -54,7 +56,10 @@ interface SCIMConnectionRow {
   id: string;
   providerId: string;
   organizationId: string | null;
+  organizationName: string | null;
   userId: string | null;
+  userName: string | null;
+  userEmail: string | null;
 }
 
 const columnHelper = createColumnHelper<SCIMConnectionRow>();
@@ -64,13 +69,10 @@ function SCIMPage() {
   const [generateOpen, setGenerateOpen] = useState(false);
   const [deleteConnection, setDeleteConnection] = useState<SCIMConnectionRow | null>(null);
 
+  const listConnectionsFn = useServerFn(listAllScimConnections);
   const { data: connections = [], isLoading: loading } = useQuery({
     queryKey: ["admin", "scim-connections"],
-    queryFn: async () => {
-      const { data, error } = await authClient.scim.listProviderConnections();
-      if (error) throw new Error("Failed to load SCIM connections");
-      return (data ?? []) as unknown as SCIMConnectionRow[];
-    },
+    queryFn: () => listConnectionsFn(),
   });
 
   const refetchConnections = useCallback(
@@ -99,23 +101,29 @@ function SCIMPage() {
         <span className="font-mono text-sm">{info.getValue()}</span>
       ),
     }),
-    columnHelper.accessor("organizationId", {
+    columnHelper.accessor("organizationName", {
       header: m.admin_scim_column_organization(),
       cell: (info) => {
-        const val = info.getValue();
-        return val ? (
-          <span className="font-mono text-xs">{val}</span>
+        const name = info.getValue();
+        return name ? (
+          <span className="text-sm">{name}</span>
         ) : (
           <span className="text-muted-foreground">—</span>
         );
       },
     }),
-    columnHelper.accessor("userId", {
+    columnHelper.accessor("userName", {
       header: m.admin_scim_column_owner(),
       cell: (info) => {
-        const val = info.getValue();
-        return val ? (
-          <span className="font-mono text-xs">{val}</span>
+        const name = info.getValue();
+        const email = info.row.original.userEmail;
+        return name ? (
+          <div className="flex flex-col">
+            <span className="text-sm">{name}</span>
+            {email && (
+              <span className="text-xs text-muted-foreground">{email}</span>
+            )}
+          </div>
         ) : (
           <span className="text-muted-foreground">—</span>
         );
