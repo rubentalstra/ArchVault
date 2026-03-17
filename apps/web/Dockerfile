@@ -3,6 +3,7 @@ FROM node:24-alpine AS pruner
 RUN corepack enable && corepack prepare pnpm@10.32.1 --activate
 WORKDIR /app
 COPY . .
+ENV TURBO_TELEMETRY_DISABLED=1
 RUN pnpm dlx turbo prune @archvault/web --docker
 
 # Stage 2: Install dependencies from pruned lockfile
@@ -18,6 +19,7 @@ RUN corepack enable && corepack prepare pnpm@10.32.1 --activate
 WORKDIR /app
 COPY --from=deps /app/ .
 COPY --from=pruner /app/out/full/ .
+ENV TURBO_TELEMETRY_DISABLED=1
 RUN pnpm turbo build --filter=@archvault/web
 
 # Stage 4: Production runner

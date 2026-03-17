@@ -28,7 +28,7 @@ const config = defineConfig({
     ],
   },
   plugins: [
-    nitro({ rollupConfig: { external: [/^@sentry\//, /^@opentelemetry\//] } }),
+    nitro({ rollupConfig: { external: [/^@sentry\//, /^@opentelemetry\//, /^protobufjs/, /^@protobufjs\//] } }),
     paraglideVitePlugin({
       project: './project.inlang',
       outdir: './src/paraglide',
