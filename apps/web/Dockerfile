@@ -1,10 +1,9 @@
 # Stage 1: Prune the monorepo for just @archvault/web
 FROM node:24-alpine AS pruner
 RUN corepack enable && corepack prepare pnpm@10.32.1 --activate
-RUN pnpm add -g turbo
 WORKDIR /app
 COPY . .
-RUN turbo prune @archvault/web --docker
+RUN pnpm dlx turbo prune @archvault/web --docker
 
 # Stage 2: Install dependencies from pruned lockfile
 FROM node:24-alpine AS deps

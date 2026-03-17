@@ -5,8 +5,167 @@ sidebar:
   order: 2
 ---
 
-ArchVault uses Drizzle ORM for database schema management. Migrations are generated from schema changes and applied with the CLI.
+import { Tabs, TabItem, Steps, LinkCard } from '@astrojs/starlight/components';
 
-:::note
-This page is a stub. Detailed content will be added soon.
+ArchVault uses [Drizzle ORM](https://orm.drizzle.team/) for database schema management. Migrations are **generated** from TypeScript schema definitions — you never write SQL by hand.
+
+## How It Works
+
+```
+Schema files (TypeScript) → drizzle-kit generate → SQL migration files → drizzle-kit migrate → Database
+```
+
+1. You define tables in `apps/web/src/lib/schema/*.ts` using Drizzle's TypeScript API
+2. `drizzle-kit generate` diffs the schema against existing migrations and produces new SQL
+3. `drizzle-kit migrate` (dev) or `migrate.mjs` (production) applies pending SQL to the database
+
+:::danger
+**Never edit generated SQL files.** Never write migrations manually. Always use `pnpm db:generate` to create migrations from schema changes. Manually edited migrations will cause drift between your schema definitions and your database.
 :::
+
+## Development Workflow
+
+<Steps>
+
+1. **Edit the schema** in `apps/web/src/lib/schema/`:
+
+   ```ts title="apps/web/src/lib/schema/example.ts"
+   import { pgTable, text, timestamp } from "drizzle-orm/pg-core";
+
+   export const example = pgTable("example", {
+     id: text("id").primaryKey(),
+     name: text("name").notNull(),
+     createdAt: timestamp("created_at").defaultNow().notNull(),
+   });
+   ```
+
+2. **Generate the migration:**
+
+   ```bash
+   pnpm db:generate
+   ```
+
+   This creates a new timestamped folder in `apps/web/drizzle/` containing `migration.sql`.
+
+3. **Review the generated SQL** — verify it matches your intent:
+
+   ```bash
+   cat apps/web/drizzle/$(ls -t apps/web/drizzle | head -1)/migration.sql
+   ```
+
+4. **Apply the migration:**
+
+   ```bash
+   pnpm db:migrate
+   ```
+
+5. **Commit** both the schema changes and the generated migration files to git.
+
+</Steps>
+
+## Running Migrations
+
+<Tabs>
+<TabItem label="Development">
+
+Uses `drizzle-kit` (a dev dependency):
+
+```bash
+# Generate migration from schema changes
+pnpm db:generate
+
+# Apply pending migrations
+pnpm db:migrate
+```
+
+Both commands use the config in `apps/web/drizzle.config.ts` and read `DATABASE_URL` from `apps/web/.env`.
+
+</TabItem>
+<TabItem label="Production (Docker)">
+
+Production containers use `migrate.mjs` — a standalone script that does not require `drizzle-kit`:
+
+```bash
+# Runs automatically on container start when AUTO_MIGRATE=true (default)
+# To run manually:
+docker compose -f compose.prod.yaml exec app node migrate.mjs
+```
+
+### Auto-migration
+
+By default, the Docker entrypoint runs all pending migrations before starting the app:
+
+```sh title="docker-entrypoint.sh"
+if [ "${AUTO_MIGRATE:-true}" = "true" ]; then
+  echo "Running database migrations..."
+  node migrate.mjs
+fi
+exec node .output/server/index.mjs
+```
+
+To disable auto-migration, set `AUTO_MIGRATE=false` in your `.env`. This is useful if you prefer to run migrations manually or in a separate CI step.
+
+</TabItem>
+</Tabs>
+
+## Migration Files
+
+Migrations live in `apps/web/drizzle/`. Each migration is a timestamped folder:
+
+```
+apps/web/drizzle/
+├── 20260314122457_powerful_silverclaw/
+│   └── migration.sql
+├── 20260314142206_bitter_thunderbolt/
+│   └── migration.sql
+├── ...
+└── meta/
+    ├── _journal.json    ← tracks migration order and applied status
+    └── *.json           ← snapshot of schema at each migration
+```
+
+The `meta/_journal.json` file tracks which migrations have been applied. Drizzle uses this to determine which migrations are pending.
+
+:::caution
+**Never delete migration files** that have been applied to any database (dev, staging, or production). Deleting applied migrations breaks the migration journal and causes errors.
+:::
+
+## Troubleshooting
+
+### Migration failed mid-way
+
+If a migration fails partway through (e.g. a constraint violation), the database may be in a partially migrated state:
+
+1. Check what was applied by looking at the error output
+2. Fix the issue in your schema
+3. Generate a new corrective migration with `pnpm db:generate`
+4. Apply it with `pnpm db:migrate`
+
+### Resetting the dev database
+
+To start fresh during development:
+
+```bash
+# Stop and remove the database volume
+pnpm docker:compose:down:v
+
+# Restart the database
+pnpm docker:compose:up
+
+# Re-apply all migrations
+pnpm db:migrate
+```
+
+### Schema drift
+
+If your database gets out of sync with the migrations (e.g. manual DDL changes), the safest fix is to reset the dev database (above). In production, always use migrations — never run DDL directly.
+
+### "No config path" error
+
+Ensure you're running `pnpm db:generate` or `pnpm db:migrate` from the **repo root**, not from `apps/web/`. The Turborepo scripts handle the working directory.
+
+<LinkCard
+  title="Backups & Restore"
+  description="How to back up your database before upgrades and restore from backups."
+  href="/admin/database/backups/"
+/>

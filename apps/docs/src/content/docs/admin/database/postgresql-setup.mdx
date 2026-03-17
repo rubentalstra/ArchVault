@@ -5,8 +5,160 @@ sidebar:
   order: 1
 ---
 
-ArchVault uses PostgreSQL as its primary database. This page covers initial setup, connection configuration, and performance tuning.
+import { Tabs, TabItem, Steps, LinkCard } from '@astrojs/starlight/components';
 
-:::note
-This page is a stub. Detailed content will be added soon.
+ArchVault uses **PostgreSQL 18** as its primary database, accessed through [Drizzle ORM](https://orm.drizzle.team/). All schema definitions live in `apps/web/src/lib/schema/` and are managed via generated migrations.
+
+## Getting Started
+
+<Tabs>
+<TabItem label="Docker (recommended)">
+
+The dev `compose.yaml` includes a pre-configured PostgreSQL service. This is the fastest way to get started.
+
+<Steps>
+
+1. Start the database container:
+
+   ```bash
+   pnpm docker:compose:up
+   ```
+
+2. Copy the environment template:
+
+   ```bash
+   cp apps/web/.env.example apps/web/.env
+   ```
+
+   The default `DATABASE_URL` already matches the Docker container:
+
+   ```
+   DATABASE_URL=postgres://c4user:c4pass@localhost:5432/c4platform
+   ```
+
+3. Run migrations to create the schema:
+
+   ```bash
+   pnpm db:migrate
+   ```
+
+4. Start the dev server:
+
+   ```bash
+   pnpm dev:web
+   ```
+
+</Steps>
+
+The database container exposes port `5432` on localhost. Data is persisted in the `pgdata` Docker volume — it survives `docker compose down` but is removed with `docker compose down -v`.
+
+</TabItem>
+<TabItem label="Native install">
+
+If you prefer a locally installed PostgreSQL instead of Docker:
+
+<Steps>
+
+1. Install PostgreSQL 16+ via your package manager:
+
+   ```bash
+   # macOS
+   brew install postgresql@18
+
+   # Debian / Ubuntu
+   sudo apt install postgresql-18
+
+   # Fedora
+   sudo dnf install postgresql18-server
+   ```
+
+2. Create a user and database:
+
+   ```bash
+   createuser -s c4user
+   createdb -O c4user c4platform
+   ```
+
+3. Set the connection string in `apps/web/.env`:
+
+   ```
+   DATABASE_URL=postgres://c4user@localhost:5432/c4platform
+   ```
+
+4. Run migrations:
+
+   ```bash
+   pnpm db:migrate
+   ```
+
+</Steps>
+
+</TabItem>
+</Tabs>
+
+## Connection Configuration
+
+ArchVault connects to PostgreSQL via a single `DATABASE_URL` environment variable in standard connection string format:
+
+```
+postgres://USER:PASSWORD@HOST:PORT/DATABASE
+```
+
+The connection is initialized in `apps/web/src/lib/database.ts`:
+
+```ts
+import { drizzle } from "drizzle-orm/node-postgres";
+export const db = drizzle(process.env.DATABASE_URL!);
+```
+
+:::tip
+In production Docker deployments, `DATABASE_URL` is constructed automatically from `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `POSTGRES_DB` in `compose.prod.yaml` — you don't set it directly. See [Environment Variables](/admin/deployment/environment-variables/#database-docker-compose).
 :::
+
+## Drizzle Studio
+
+Drizzle Studio provides a visual interface to browse and edit your database:
+
+```bash
+pnpm db:studio
+```
+
+This opens a web UI where you can inspect tables, run queries, and view relationships. Useful for debugging during development.
+
+## Schema Overview
+
+The database contains **27 tables** organized by domain:
+
+| Domain | Tables | Description |
+|--------|--------|-------------|
+| **Authentication** | 12 | Users, sessions, accounts, organizations, teams, members, invitations, 2FA, SSO, SCIM |
+| **Workspaces** | 1 | Architecture projects scoped to an organization |
+| **Core Domain** | 8 | Elements, connections, technologies, tags, links — the C4 model data |
+| **Diagrams** | 4 | Visual layouts, element/connection placement, revision history |
+| **Platform** | 1 | Global application settings (key-value store) |
+
+Key design patterns used throughout:
+- **Soft deletes** — workspaces, elements, connections, and diagrams use a `deletedAt` timestamp
+- **Audit trails** — `createdBy`, `updatedBy`, `createdAt`, `updatedAt` on most domain tables
+- **Multi-tenancy** — all content is scoped to an organization via the workspace
+- **Cascade deletes** — deleting a workspace removes all its elements, connections, tags, and diagrams
+
+## Stopping the Database
+
+```bash
+# Stop containers (data preserved)
+pnpm docker:compose:down
+
+# Stop and delete all data
+pnpm docker:compose:down:v
+```
+
+:::caution
+`docker:compose:down:v` permanently deletes the database volume. All data will be lost.
+:::
+
+<LinkCard
+  title="Migrations"
+  description="How to generate and apply database schema changes."
+  href="/admin/database/migrations/"
+/>

@@ -5,8 +5,196 @@ sidebar:
   order: 3
 ---
 
-Regular database backups are essential for any production deployment. This page covers backup strategies and restore procedures.
+import { Tabs, TabItem, Steps, LinkCard } from '@astrojs/starlight/components';
 
-:::note
-This page is a stub. Detailed content will be added soon.
+Regular database backups are essential for any production deployment. Drizzle migrations are **forward-only** — there is no automatic rollback. Backups are your safety net.
+
+:::tip
+**Always back up before upgrading.** New image versions may include migrations that alter your schema. See the [Upgrading](/admin/deployment/upgrading/) guide.
 :::
+
+## Quick Backup
+
+<Tabs>
+<TabItem label="Docker Compose">
+
+```bash
+docker compose -f compose.prod.yaml exec db \
+  pg_dump -U ${POSTGRES_USER:-archvault} ${POSTGRES_DB:-archvault} \
+  > backup-$(date +%Y%m%d-%H%M%S).sql
+```
+
+</TabItem>
+<TabItem label="Remote host">
+
+If PostgreSQL is running on a separate server:
+
+```bash
+pg_dump -h db.example.com -U archvault archvault > backup-$(date +%Y%m%d-%H%M%S).sql
+```
+
+</TabItem>
+</Tabs>
+
+## Quick Restore
+
+:::caution
+Restoring a backup **overwrites** the current database contents. Make sure you're targeting the right database.
+:::
+
+<Tabs>
+<TabItem label="Docker Compose">
+
+```bash
+docker compose -f compose.prod.yaml exec -T db \
+  psql -U ${POSTGRES_USER:-archvault} ${POSTGRES_DB:-archvault} \
+  < backup-20260317-143000.sql
+```
+
+</TabItem>
+<TabItem label="Remote host">
+
+```bash
+psql -h db.example.com -U archvault archvault < backup-20260317-143000.sql
+```
+
+</TabItem>
+</Tabs>
+
+## Backup Formats
+
+PostgreSQL supports two backup formats. Choose based on your needs:
+
+<Tabs>
+<TabItem label="Plain SQL (default)">
+
+Human-readable SQL dump. Easy to inspect and edit.
+
+```bash
+# Backup
+pg_dump -U archvault archvault > backup.sql
+
+# Restore
+psql -U archvault archvault < backup.sql
+```
+
+**Pros:** readable, portable, easy to grep/edit
+**Cons:** larger file size, slower restore on large databases
+
+</TabItem>
+<TabItem label="Custom format">
+
+Compressed binary format with parallel restore support.
+
+```bash
+# Backup (compressed)
+pg_dump -U archvault -Fc archvault > backup.dump
+
+# Restore
+pg_restore -U archvault -d archvault --clean --if-exists backup.dump
+```
+
+**Pros:** smaller files (~3-5x compression), faster parallel restore, selective table restore
+**Cons:** not human-readable
+
+</TabItem>
+</Tabs>
+
+## Automated Backups
+
+Set up a cron job for daily backups with 7-day retention:
+
+<Steps>
+
+1. Create a backup script:
+
+   ```bash title="backup-archvault.sh"
+   #!/bin/sh
+   set -e
+
+   BACKUP_DIR="/opt/archvault/backups"
+   COMPOSE_FILE="/opt/archvault/compose.prod.yaml"
+   RETENTION_DAYS=7
+
+   mkdir -p "$BACKUP_DIR"
+
+   # Create backup
+   docker compose -f "$COMPOSE_FILE" exec -T db \
+     pg_dump -U archvault -Fc archvault \
+     > "$BACKUP_DIR/archvault-$(date +%Y%m%d-%H%M%S).dump"
+
+   # Remove backups older than retention period
+   find "$BACKUP_DIR" -name "archvault-*.dump" -mtime +$RETENTION_DAYS -delete
+
+   echo "Backup complete. $(ls -1 "$BACKUP_DIR"/archvault-*.dump | wc -l) backups retained."
+   ```
+
+2. Make it executable:
+
+   ```bash
+   chmod +x backup-archvault.sh
+   ```
+
+3. Add a cron job (daily at 3 AM):
+
+   ```bash
+   crontab -e
+   ```
+
+   ```
+   0 3 * * * /opt/archvault/backup-archvault.sh >> /var/log/archvault-backup.log 2>&1
+   ```
+
+</Steps>
+
+## Verifying Backups
+
+An untested backup is not a backup. Periodically verify by restoring to a throwaway container:
+
+```bash
+# Start a temporary PostgreSQL container
+docker run --rm -d \
+  --name archvault-backup-test \
+  -e POSTGRES_USER=archvault \
+  -e POSTGRES_PASSWORD=testpass \
+  -e POSTGRES_DB=archvault \
+  postgres:18-alpine
+
+# Wait for it to be ready
+sleep 3
+
+# Restore the backup
+docker exec -i archvault-backup-test \
+  pg_restore -U archvault -d archvault --clean --if-exists \
+  < /opt/archvault/backups/archvault-20260317-030000.dump
+
+# Verify table count
+docker exec archvault-backup-test \
+  psql -U archvault -d archvault -c "\dt" | tail -3
+
+# Clean up
+docker stop archvault-backup-test
+```
+
+## Offsite Storage
+
+For disaster recovery, copy backups to cloud storage:
+
+```bash
+# AWS S3
+aws s3 cp backup.dump s3://my-bucket/archvault/backup-$(date +%Y%m%d).dump
+
+# Google Cloud Storage
+gsutil cp backup.dump gs://my-bucket/archvault/backup-$(date +%Y%m%d).dump
+
+# Backblaze B2
+b2 upload-file my-bucket backup.dump archvault/backup-$(date +%Y%m%d).dump
+```
+
+Add the upload command to the end of your automated backup script for hands-off offsite copies.
+
+<LinkCard
+  title="Upgrading"
+  description="How to safely upgrade ArchVault, including pre-upgrade backup steps."
+  href="/admin/deployment/upgrading/"
+/>
