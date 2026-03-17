@@ -48,10 +48,11 @@ jobs:
     runs-on: ${{ matrix.runner }}
 
     steps:
-      - name: Prepare platform pair
+      - name: Prepare environment
         run: |
           platform=${{ matrix.platform }}
           echo "PLATFORM_PAIR=${platform//\//-}" >> $GITHUB_ENV
+          echo "IMAGE_NAME=${IMAGE_NAME,,}" >> $GITHUB_ENV
 
       - name: Checkout
         uses: actions/checkout@v6
@@ -109,6 +110,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Prepare environment
+        run: echo "IMAGE_NAME=${IMAGE_NAME,,}" >> $GITHUB_ENV
+
       - name: Download digests
         uses: actions/download-artifact@v8
         with:
