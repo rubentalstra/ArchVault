@@ -76,8 +76,8 @@ When making changes to the app, always check if the docs need updating:
 
 ## Environment Variables
 
-- Use `BETTER_AUTH_SECRET` for Better Auth secret configuration (see `.env.example`).
-- `.env` lives at repo root only. Turbo's `globalDotEnv` passes it to all tasks.
+- Use `BETTER_AUTH_SECRET` for Better Auth secret configuration (see `apps/web/.env.example`).
+- `.env` lives in **`apps/web/`** per [Turborepo best practice](https://turborepo.dev/docs/crafting-your-repository/using-environment-variables). Vite, Nitro, and drizzle-kit all load it from their project root (`apps/web/`). Turbo tracks it via the build task's `inputs` for cache invalidation. Docker Compose references it as `apps/web/.env`.
 
 ## Architecture
 

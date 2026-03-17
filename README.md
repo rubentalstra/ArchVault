@@ -87,7 +87,7 @@ entirely through a visual UI — no code required.
 ```bash
 git clone https://github.com/rubentalstra/ArchVault.git
 cd ArchVault
-cp .env.example .env    # Edit with your secrets
+cp apps/web/.env.example apps/web/.env    # Edit with your secrets
 docker compose up -d
 ```
 
@@ -101,9 +101,9 @@ Open [http://localhost:3000](http://localhost:3000).
 git clone https://github.com/rubentalstra/ArchVault.git
 cd ArchVault
 pnpm install
-cp .env.example .env    # Configure DATABASE_URL, BETTER_AUTH_SECRET, etc.
+cp apps/web/.env.example apps/web/.env    # Configure DATABASE_URL, BETTER_AUTH_SECRET, etc.
 pnpm db:migrate
-pnpm dev
+pnpm dev:web
 ```
 
 ## Tech Stack

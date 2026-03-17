@@ -27,8 +27,8 @@ pnpm install
 docker compose up -d db
 
 # Configure environment
-cp .env.example .env
-# Edit .env with your DATABASE_URL, BETTER_AUTH_SECRET, etc.
+cp apps/web/.env.example apps/web/.env
+# Edit apps/web/.env with your DATABASE_URL, BETTER_AUTH_SECRET, etc.
 
 # Run migrations
 pnpm db:migrate
