@@ -1,0 +1,10 @@
+{
+  "name": "@archvault/typescript-config",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./base.json": "./base.json",
+    "./react.json": "./react.json",
+    "./library.json": "./library.json"
+  }
+}

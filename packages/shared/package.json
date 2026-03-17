@@ -9,12 +9,14 @@
     "./diagrams": "./src/diagrams.ts"
   },
   "scripts": {
+    "check-types": "tsc --noEmit",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },
   "devDependencies": {
+    "@archvault/eslint-config": "workspace:*",
+    "@archvault/typescript-config": "workspace:*",
     "eslint": "^10.0.3",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.57.1"
+    "typescript": "^5.9.3"
   }
 }

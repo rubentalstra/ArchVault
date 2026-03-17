@@ -1,12 +1,8 @@
-import js from "@eslint/js";
-import tseslint from "typescript-eslint";
+import { libraryConfig } from "@archvault/eslint-config/library";
 
-export default tseslint.config(
-  {
-    ignores: ["node_modules/", "eslint.config.mjs"],
-  },
-  js.configs.recommended,
-  ...tseslint.configs.recommendedTypeChecked,
+export default [
+  { ignores: ["node_modules/", "eslint.config.mjs"] },
+  ...libraryConfig,
   {
     languageOptions: {
       parserOptions: {
@@ -15,12 +11,4 @@ export default tseslint.config(
       },
     },
   },
-  {
-    rules: {
-      "@typescript-eslint/no-unused-vars": [
-        "error",
-        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
-      ],
-    },
-  },
-);
+];

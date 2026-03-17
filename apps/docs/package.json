@@ -6,6 +6,7 @@
     "dev": "astro dev",
     "build": "astro check && astro build",
     "preview": "astro preview",
+    "check-types": "astro check",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "check": "astro check"

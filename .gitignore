@@ -3,12 +3,14 @@ node_modules/
 
 # Build output
 dist/
-dist-ssr/
 .output/
 .nitro/
 .tanstack/
 .vinxi/
 .wrangler/
+
+# Turborepo
+.turbo/
 
 # Environment
 .env
@@ -35,7 +37,13 @@ coverage/
 *.tsbuildinfo
 
 # Paraglide (auto-generated)
-src/paraglide/
+apps/web/src/paraglide/
+
+# TanStack Router (auto-generated)
+apps/web/src/routeTree.gen.ts
+
+# Route tree generation temp files
+.tanstack/
 
 # Misc
 __unconfig*

@@ -2,8 +2,8 @@ name: Deploy Docs to GitHub Pages
 
 on:
   push:
-    branches: [ main ]
-    paths: [ 'docs/**' ]
+    branches: [main]
+    paths: ['apps/docs/**']
   workflow_dispatch:
 
 permissions:
@@ -24,7 +24,7 @@ jobs:
       - name: Build docs with Astro
         uses: withastro/action@v5
         with:
-          path: ./docs
+          path: ./apps/docs
           node-version: 24
           package-manager: pnpm@latest
 
