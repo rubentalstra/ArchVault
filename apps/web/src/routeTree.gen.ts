@@ -17,6 +17,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as ProtectedRouteImport } from './routes/_protected'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiTelemetryRouteImport } from './routes/api/telemetry'
+import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ProtectedOnboardingRouteImport } from './routes/_protected/onboarding'
 import { Route as ProtectedAdminRouteImport } from './routes/_protected/admin'
 import { Route as ProtectedOnboardedRouteImport } from './routes/_protected/_onboarded'
@@ -86,6 +87,11 @@ const IndexRoute = IndexRouteImport.update({
 const ApiTelemetryRoute = ApiTelemetryRouteImport.update({
   id: '/api/telemetry',
   path: '/api/telemetry',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiHealthRoute = ApiHealthRouteImport.update({
+  id: '/api/health',
+  path: '/api/health',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProtectedOnboardingRoute = ProtectedOnboardingRouteImport.update({
@@ -274,6 +280,7 @@ export interface FileRoutesByFullPath {
   '/verify-email': typeof VerifyEmailRoute
   '/admin': typeof ProtectedAdminRouteWithChildren
   '/onboarding': typeof ProtectedOnboardingRoute
+  '/api/health': typeof ApiHealthRoute
   '/api/telemetry': typeof ApiTelemetryRoute
   '/dashboard': typeof ProtectedOnboardedDashboardRoute
   '/org': typeof ProtectedOnboardedOrgRouteWithChildren
@@ -312,6 +319,7 @@ export interface FileRoutesByTo {
   '/two-factor': typeof TwoFactorRoute
   '/verify-email': typeof VerifyEmailRoute
   '/onboarding': typeof ProtectedOnboardingRoute
+  '/api/health': typeof ApiHealthRoute
   '/api/telemetry': typeof ApiTelemetryRoute
   '/dashboard': typeof ProtectedOnboardedDashboardRoute
   '/accept-invitation/$invitationId': typeof ProtectedAcceptInvitationInvitationIdRoute
@@ -351,6 +359,7 @@ export interface FileRoutesById {
   '/_protected/_onboarded': typeof ProtectedOnboardedRouteWithChildren
   '/_protected/admin': typeof ProtectedAdminRouteWithChildren
   '/_protected/onboarding': typeof ProtectedOnboardingRoute
+  '/api/health': typeof ApiHealthRoute
   '/api/telemetry': typeof ApiTelemetryRoute
   '/_protected/_onboarded/dashboard': typeof ProtectedOnboardedDashboardRoute
   '/_protected/_onboarded/org': typeof ProtectedOnboardedOrgRouteWithChildren
@@ -392,6 +401,7 @@ export interface FileRouteTypes {
     | '/verify-email'
     | '/admin'
     | '/onboarding'
+    | '/api/health'
     | '/api/telemetry'
     | '/dashboard'
     | '/org'
@@ -430,6 +440,7 @@ export interface FileRouteTypes {
     | '/two-factor'
     | '/verify-email'
     | '/onboarding'
+    | '/api/health'
     | '/api/telemetry'
     | '/dashboard'
     | '/accept-invitation/$invitationId'
@@ -468,6 +479,7 @@ export interface FileRouteTypes {
     | '/_protected/_onboarded'
     | '/_protected/admin'
     | '/_protected/onboarding'
+    | '/api/health'
     | '/api/telemetry'
     | '/_protected/_onboarded/dashboard'
     | '/_protected/_onboarded/org'
@@ -507,6 +519,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   TwoFactorRoute: typeof TwoFactorRoute
   VerifyEmailRoute: typeof VerifyEmailRoute
+  ApiHealthRoute: typeof ApiHealthRoute
   ApiTelemetryRoute: typeof ApiTelemetryRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
@@ -567,6 +580,13 @@ declare module '@tanstack/react-router' {
       path: '/api/telemetry'
       fullPath: '/api/telemetry'
       preLoaderRoute: typeof ApiTelemetryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/health': {
+      id: '/api/health'
+      path: '/api/health'
+      fullPath: '/api/health'
+      preLoaderRoute: typeof ApiHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_protected/onboarding': {
@@ -935,6 +955,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   TwoFactorRoute: TwoFactorRoute,
   VerifyEmailRoute: VerifyEmailRoute,
+  ApiHealthRoute: ApiHealthRoute,
   ApiTelemetryRoute: ApiTelemetryRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }

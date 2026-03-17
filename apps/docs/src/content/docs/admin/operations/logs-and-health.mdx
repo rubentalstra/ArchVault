@@ -5,8 +5,107 @@ sidebar:
   order: 1
 ---
 
-Monitoring your ArchVault instance helps you identify issues early. This page covers log configuration and health check endpoints.
+Monitoring your ArchVault instance helps you identify issues early. This page covers log access and the built-in health check endpoint.
 
-:::note
-This page is a stub. Detailed content will be added soon.
-:::
+## Health Check Endpoint
+
+ArchVault exposes a health check at `GET /api/health` that verifies both the application and database connectivity.
+
+### Healthy Response (200)
+
+```json
+{
+  "status": "healthy",
+  "database": "connected",
+  "uptime": 3600,
+  "version": "abc1234def5678"
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `status` | `"healthy"` when all checks pass |
+| `database` | `"connected"` when the database query succeeds |
+| `uptime` | Server uptime in seconds |
+| `version` | Git commit SHA of the running build (or `"dev"` in development) |
+
+### Unhealthy Response (503)
+
+```json
+{
+  "status": "unhealthy",
+  "database": "disconnected"
+}
+```
+
+Returned when the database connectivity check fails.
+
+### Docker Health Check
+
+The production Docker image includes a built-in health check that queries `/api/health` every 30 seconds. Docker uses this to determine container health status.
+
+Check the container health:
+
+```bash
+docker inspect --format='{{.State.Health.Status}}' archvault-app-1
+```
+
+View health check logs:
+
+```bash
+docker inspect --format='{{json .State.Health}}' archvault-app-1 | jq
+```
+
+## Viewing Logs
+
+### Docker Compose
+
+View logs from all services:
+
+```bash
+docker compose -f compose.prod.yaml logs
+```
+
+Follow logs in real-time:
+
+```bash
+docker compose -f compose.prod.yaml logs -f
+```
+
+View logs for a specific service:
+
+```bash
+# Application logs
+docker compose -f compose.prod.yaml logs -f app
+
+# Database logs
+docker compose -f compose.prod.yaml logs -f db
+```
+
+Limit output to recent entries:
+
+```bash
+docker compose -f compose.prod.yaml logs --tail=100 app
+```
+
+### Log Output
+
+ArchVault logs to stdout/stderr, which Docker captures automatically. Key log events include:
+
+- **Startup:** migration status, server listening confirmation
+- **Requests:** HTTP access logs from the Nitro server
+- **Errors:** unhandled exceptions, database connection failures
+
+### External Log Aggregation
+
+For production deployments, consider forwarding logs to a centralized system:
+
+- **Docker logging drivers:** Configure `json-file`, `syslog`, or `fluentd` drivers in your Compose file
+- **OpenTelemetry:** Enable `OTEL_LOGS_ENABLED=true` to send structured logs via OTLP (see [Environment Variables](/admin/deployment/environment-variables/#opentelemetry-optional))
+
+## Monitoring Tips
+
+- Set up an external uptime monitor that polls `/api/health` regularly
+- Configure alerts for 503 responses from the health endpoint
+- Monitor disk usage on the `pgdata` Docker volume
+- Review logs after each upgrade for migration errors

@@ -1,12 +1,356 @@
 ---
 title: Reverse Proxy
-description: Configure Nginx, Traefik, or Caddy as a reverse proxy for ArchVault.
+description: Configure Caddy, Nginx, or Traefik as a reverse proxy for ArchVault.
 sidebar:
   order: 3
 ---
 
-Running ArchVault behind a reverse proxy is recommended for production deployments. This page provides example configurations for popular proxies.
+import { Tabs, TabItem, Steps, LinkCard } from '@astrojs/starlight/components';
+
+Running ArchVault behind a reverse proxy is **required** for production deployments. A reverse proxy handles TLS termination (HTTPS), so traffic between clients and your server is encrypted. Without one, credentials and session tokens are sent in plain text.
+
+:::tip
+**Don't know which to pick?** Caddy is the easiest — it handles TLS certificates automatically with zero configuration. Nginx is the most widely deployed. Traefik is ideal if you're already using it for Docker service discovery.
+:::
+
+## Prerequisites
+
+- ArchVault running via [Docker Compose](/admin/deployment/docker-compose-production/) on port `3000`
+- A domain name pointing to your server (e.g. `archvault.example.com`)
+- Ports `80` and `443` open on your firewall
+
+## How It Works
+
+```
+Client → (HTTPS :443) → Reverse Proxy → (HTTP :3000) → ArchVault container
+```
+
+The reverse proxy terminates TLS and forwards requests to ArchVault over the internal Docker network. Make sure `BETTER_AUTH_URL` in your `.env` matches the public URL (e.g. `https://archvault.example.com`).
+
+---
+
+<Tabs>
+<TabItem label="Caddy (recommended)" icon="seti:default">
+
+[Caddy](https://caddyserver.com/) automatically obtains and renews TLS certificates via Let's Encrypt — no manual setup needed.
+
+### Built-in Compose profile (easiest)
+
+The production Compose file includes a Caddy service as an optional [profile](https://docs.docker.com/compose/how-tos/profiles/). This is the fastest way to get HTTPS running.
+
+<Steps>
+
+1. Download the Caddyfile template alongside your `compose.prod.yaml`:
+
+   ```bash
+   curl -o Caddyfile https://raw.githubusercontent.com/rubentalstra/Archvault/main/Caddyfile.example
+   ```
+
+2. Replace the domain in the `Caddyfile`:
+
+   ```nginx title="Caddyfile"
+   archvault.example.com {
+       reverse_proxy app:3000
+
+       encode gzip zstd
+
+       header {
+           X-Content-Type-Options nosniff
+           X-Frame-Options DENY
+           Referrer-Policy strict-origin-when-cross-origin
+           Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+           -Server
+       }
+   }
+   ```
+
+3. Start the stack with the `caddy` profile:
+
+   ```bash
+   docker compose -f compose.prod.yaml --profile caddy up -d
+   ```
+
+</Steps>
+
+That's it. Caddy automatically provisions a TLS certificate, redirects HTTP to HTTPS, and proxies to ArchVault. Certificate data is persisted in the `caddy_data` Docker volume so renewals survive restarts.
+
+:::tip
+When using the Caddy profile, port 3000 is still exposed on the host by default. For extra security, you can remove the host port binding by overriding the app service with an additional Compose file or by editing `compose.prod.yaml` to remove the `ports` section from `app`.
+:::
+
+### Standalone Caddyfile (without Docker)
+
+If Caddy is installed directly on the host instead of Docker:
+
+<Steps>
+
+1. Install Caddy on your server ([install guide](https://caddyserver.com/docs/install)).
+
+2. Create a `Caddyfile`:
+
+   ```nginx title="Caddyfile"
+   archvault.example.com {
+       reverse_proxy localhost:3000
+   }
+   ```
+
+3. Start Caddy:
+
+   ```bash
+   caddy start
+   ```
+
+</Steps>
+
+</TabItem>
+<TabItem label="Nginx" icon="seti:nginx">
+
+[Nginx](https://nginx.org/) is the most widely used reverse proxy. TLS certificates must be managed separately — [Certbot](https://certbot.eff.org/) is the recommended tool for Let's Encrypt.
+
+### Option A: Standalone install
+
+<Steps>
+
+1. Install Nginx and Certbot:
+
+   ```bash
+   # Debian / Ubuntu
+   sudo apt install nginx certbot python3-certbot-nginx
+
+   # RHEL / Fedora
+   sudo dnf install nginx certbot python3-certbot-nginx
+   ```
+
+2. Create the site configuration:
+
+   ```nginx title="/etc/nginx/sites-available/archvault"
+   server {
+       listen 80;
+       server_name archvault.example.com;
+
+       location / {
+           proxy_pass http://127.0.0.1:3000;
+           proxy_set_header Host $host;
+           proxy_set_header X-Real-IP $remote_addr;
+           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+           proxy_set_header X-Forwarded-Proto $scheme;
+           proxy_set_header Upgrade $http_upgrade;
+           proxy_set_header Connection "upgrade";
+       }
+   }
+   ```
+
+3. Enable the site and obtain a certificate:
+
+   ```bash
+   sudo ln -s /etc/nginx/sites-available/archvault /etc/nginx/sites-enabled/
+   sudo nginx -t && sudo systemctl reload nginx
+   sudo certbot --nginx -d archvault.example.com
+   ```
+
+   Certbot automatically modifies the config to add TLS and sets up auto-renewal.
+
+</Steps>
+
+### Option B: Docker Compose sidecar
+
+Add Nginx as a service in your `compose.prod.yaml`:
+
+```yaml title="compose.prod.yaml"
+services:
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./certs:/etc/nginx/certs:ro
+    networks:
+      - archvault
+
+  app:
+    # ... existing app config ...
+    ports: []  # Remove host port binding — Nginx handles it
+    networks:
+      - archvault
+```
+
+```nginx title="nginx.conf"
+upstream archvault {
+    server app:3000;
+}
+
+server {
+    listen 80;
+    server_name archvault.example.com;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    http2 on;
+    server_name archvault.example.com;
+
+    ssl_certificate /etc/nginx/certs/fullchain.pem;
+    ssl_certificate_key /etc/nginx/certs/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+
+    # Security headers
+    add_header X-Content-Type-Options nosniff always;
+    add_header X-Frame-Options DENY always;
+    add_header Referrer-Policy strict-origin-when-cross-origin always;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains; preload" always;
+
+    location / {
+        proxy_pass http://archvault;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+
+        # Timeouts
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 60s;
+    }
+}
+```
 
 :::note
-This page is a stub. Detailed content will be added soon.
+When using Nginx in Docker, you need to manage TLS certificates yourself. Consider mounting certificates from [Certbot](https://certbot.eff.org/) or using [acme-companion](https://github.com/nginx-proxy/acme-companion) for automated Let's Encrypt.
 :::
+
+</TabItem>
+<TabItem label="Traefik" icon="seti:default">
+
+[Traefik](https://traefik.io/traefik/) is a cloud-native reverse proxy that integrates with Docker via label-based configuration. It automatically discovers services and provisions TLS certificates.
+
+### Docker Compose setup
+
+Add Traefik and configure ArchVault with Docker labels in your `compose.prod.yaml`:
+
+```yaml title="compose.prod.yaml"
+services:
+  traefik:
+    image: traefik:v3
+    restart: unless-stopped
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=archvault"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--certificatesresolvers.letsencrypt.acme.email=admin@example.com"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - letsencrypt:/letsencrypt
+    networks:
+      - archvault
+
+  app:
+    # ... existing app config ...
+    ports: []  # Remove host port binding — Traefik handles it
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.archvault.rule=Host(`archvault.example.com`)"
+      - "traefik.http.routers.archvault.entrypoints=websecure"
+      - "traefik.http.routers.archvault.tls.certresolver=letsencrypt"
+      - "traefik.http.services.archvault.loadbalancer.server.port=3000"
+      # Security headers
+      - "traefik.http.middlewares.archvault-headers.headers.stsSeconds=31536000"
+      - "traefik.http.middlewares.archvault-headers.headers.stsIncludeSubdomains=true"
+      - "traefik.http.middlewares.archvault-headers.headers.stsPreload=true"
+      - "traefik.http.middlewares.archvault-headers.headers.frameDeny=true"
+      - "traefik.http.middlewares.archvault-headers.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.archvault-headers.headers.referrerPolicy=strict-origin-when-cross-origin"
+      - "traefik.http.routers.archvault.middlewares=archvault-headers"
+    networks:
+      - archvault
+
+volumes:
+  letsencrypt:
+```
+
+:::caution
+Traefik requires access to the Docker socket (`/var/run/docker.sock`). This gives it control over Docker — only use this in trusted environments. For hardened setups, consider using [Traefik's socket proxy](https://doc.traefik.io/traefik/providers/docker/#docker-api-access).
+:::
+
+### How Traefik labels work
+
+| Label | Purpose |
+|-------|---------|
+| `traefik.enable=true` | Opt this service into Traefik discovery |
+| `traefik.http.routers.archvault.rule` | Match requests by hostname |
+| `traefik.http.routers.archvault.tls.certresolver` | Use Let's Encrypt for TLS |
+| `traefik.http.services.archvault.loadbalancer.server.port` | Forward to port 3000 |
+
+### Traefik dashboard (optional)
+
+To enable the Traefik dashboard for monitoring, add:
+
+```yaml
+command:
+  # ... existing commands ...
+  - "--api.dashboard=true"
+  - "--api.insecure=false"
+labels:
+  - "traefik.http.routers.dashboard.rule=Host(`traefik.example.com`)"
+  - "traefik.http.routers.dashboard.service=api@internal"
+  - "traefik.http.routers.dashboard.entrypoints=websecure"
+  - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
+```
+
+:::tip
+Protect the dashboard with basic auth or IP allowlisting in production.
+:::
+
+</TabItem>
+</Tabs>
+
+---
+
+## Verifying Your Setup
+
+After configuring your reverse proxy, verify everything works:
+
+```bash
+# Check HTTPS is working
+curl -I https://archvault.example.com
+
+# Check health endpoint through the proxy
+curl https://archvault.example.com/api/health
+
+# Verify TLS certificate
+openssl s_client -connect archvault.example.com:443 -servername archvault.example.com < /dev/null 2>/dev/null | openssl x509 -noout -dates
+```
+
+You should see:
+- HTTP 200 from the health endpoint
+- A valid TLS certificate
+- `Strict-Transport-Security` in the response headers
+
+## Common Issues
+
+| Issue | Solution |
+|-------|----------|
+| 502 Bad Gateway | ArchVault container isn't running or isn't on the same Docker network |
+| Certificate errors | Ensure your domain's DNS A record points to the server's public IP |
+| Mixed content warnings | Set `BETTER_AUTH_URL` to your `https://` URL in `.env` |
+| WebSocket errors | Ensure `Upgrade` and `Connection` headers are forwarded (see Nginx config) |
+
+<LinkCard
+  title="Docker Compose (Production)"
+  description="Full deployment guide including database, auto-migration, and backups."
+  href="/admin/deployment/docker-compose-production/"
+/>

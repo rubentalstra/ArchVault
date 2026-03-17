@@ -5,8 +5,99 @@ sidebar:
   order: 4
 ---
 
-This guide covers the process for upgrading your ArchVault installation, including backup steps and migration handling.
+This guide covers how to upgrade your self-hosted ArchVault installation to a new version.
 
-:::note
-This page is a stub. Detailed content will be added soon.
+## Before You Upgrade
+
+1. **Check the release notes** for breaking changes or required manual steps.
+2. **Back up your database** before upgrading:
+
+```bash
+docker compose -f compose.prod.yaml exec db \
+  pg_dump -U archvault archvault > backup-$(date +%Y%m%d).sql
+```
+
+## Upgrade Procedure
+
+### Using `latest` Tag
+
+If your `compose.prod.yaml` uses `ghcr.io/rubentalstra/archvault:latest`:
+
+```bash
+# Pull the new image
+docker compose -f compose.prod.yaml pull app
+
+# Restart with the new image (migrations run automatically)
+docker compose -f compose.prod.yaml up -d app
+```
+
+### Using a Pinned Version
+
+Update the image tag in your `compose.prod.yaml`:
+
+```yaml
+services:
+  app:
+    image: ghcr.io/rubentalstra/archvault:1.1.0  # new version
+```
+
+Then apply:
+
+```bash
+docker compose -f compose.prod.yaml up -d app
+```
+
+## What Happens During Upgrade
+
+1. Docker pulls the new image
+2. The old container stops
+3. A new container starts from the updated image
+4. If `AUTO_MIGRATE=true` (default), pending database migrations run automatically
+5. The application starts serving requests
+
+The health check ensures the container is marked healthy only after the app is fully ready.
+
+## Rollback
+
+If something goes wrong after upgrading:
+
+1. **Stop the app:**
+
+```bash
+docker compose -f compose.prod.yaml stop app
+```
+
+2. **Restore the database backup:**
+
+```bash
+docker compose -f compose.prod.yaml exec -T db \
+  psql -U archvault archvault < backup-20260317.sql
+```
+
+3. **Pin the previous version** in `compose.prod.yaml`:
+
+```yaml
+services:
+  app:
+    image: ghcr.io/rubentalstra/archvault:1.0.0  # previous version
+```
+
+4. **Restart:**
+
+```bash
+docker compose -f compose.prod.yaml up -d app
+```
+
+:::caution
+Database migrations cannot be automatically reversed. Always back up before upgrading so you can restore if needed.
 :::
+
+## Checking Your Current Version
+
+Query the health endpoint to see the running version:
+
+```bash
+curl -s http://localhost:3000/api/health | jq .version
+```
+
+The version corresponds to the git commit SHA of the build.

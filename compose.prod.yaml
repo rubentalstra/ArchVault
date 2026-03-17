@@ -1,0 +1,60 @@
+services:
+  app:
+    image: ghcr.io/rubentalstra/archvault:latest
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file: .env
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-archvault}:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-archvault}
+      AUTO_MIGRATE: ${AUTO_MIGRATE:-true}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - archvault
+
+  db:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-archvault}
+      POSTGRES_USER: ${POSTGRES_USER:-archvault}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-archvault} -d ${POSTGRES_DB:-archvault}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - archvault
+
+  # Optional: Caddy reverse proxy with automatic HTTPS
+  # Activate with: docker compose -f compose.prod.yaml --profile caddy up -d
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    profiles: [caddy]
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - app
+    networks:
+      - archvault
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:
+
+networks:
+  archvault:
+    driver: bridge

@@ -5,11 +5,72 @@ sidebar:
   order: 2
 ---
 
-ArchVault is configured through environment variables. This page provides a comprehensive reference of every available variable.
+ArchVault is configured through environment variables. In Docker deployments, set these in your `.env` file (see `.env.production.example`). In development, use `apps/web/.env`.
 
-:::note
-This page is a stub. A full variable reference table will be added soon.
-:::
+## Required
+
+These must be set for ArchVault to start.
+
+| Variable | Description |
+|----------|-------------|
+| `BETTER_AUTH_SECRET` | Secret key for session signing. Generate with `openssl rand -base64 32`. |
+| `BETTER_AUTH_URL` | Public URL where ArchVault is accessible (e.g. `https://archvault.example.com`). No trailing slash. |
+| `DATABASE_URL` | PostgreSQL connection string. In `compose.prod.yaml`, this is constructed automatically from the Postgres variables below. |
+
+## Database (Docker Compose)
+
+Used by both the `app` and `db` services in `compose.prod.yaml`. The app service builds `DATABASE_URL` from these automatically.
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `POSTGRES_USER` | `archvault` | PostgreSQL username. |
+| `POSTGRES_PASSWORD` | _(required)_ | PostgreSQL password. |
+| `POSTGRES_DB` | `archvault` | PostgreSQL database name. |
+
+## Application
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `AUTO_MIGRATE` | `true` | Run database migrations on container startup. Set to `false` to manage migrations manually. |
+| `APP_VERSION` | `dev` | Set automatically during Docker builds to the git commit SHA. |
+
+## OAuth Providers
+
+Configure one or more OAuth providers for social login. A provider auto-enables when both its client ID and secret are set. Use the toggle variables to override this behavior.
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `GITHUB_CLIENT_ID` | _(empty)_ | GitHub OAuth app client ID. |
+| `GITHUB_CLIENT_SECRET` | _(empty)_ | GitHub OAuth app client secret. |
+| `GOOGLE_CLIENT_ID` | _(empty)_ | Google OAuth client ID. |
+| `GOOGLE_CLIENT_SECRET` | _(empty)_ | Google OAuth client secret. |
+| `MICROSOFT_CLIENT_ID` | _(empty)_ | Microsoft Entra ID client ID. |
+| `MICROSOFT_CLIENT_SECRET` | _(empty)_ | Microsoft Entra ID client secret. |
+| `MICROSOFT_TENANT_ID` | `common` | Microsoft tenant ID. Use `common` for multi-tenant, or a specific tenant UUID. |
+| `AUTH_SOCIAL_GITHUB_ENABLED` | _(auto)_ | Explicitly enable/disable GitHub OAuth. |
+| `AUTH_SOCIAL_GOOGLE_ENABLED` | _(auto)_ | Explicitly enable/disable Google OAuth. |
+| `AUTH_SOCIAL_MICROSOFT_ENABLED` | _(auto)_ | Explicitly enable/disable Microsoft OAuth. |
+
+## Email (SMTP)
+
+Required for email verification, password resets, and organization invitations.
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `SMTP_HOST` | _(empty)_ | SMTP server hostname. |
+| `SMTP_PORT` | _(empty)_ | SMTP server port (typically `587` for STARTTLS). |
+| `SMTP_USER` | _(empty)_ | SMTP username. |
+| `SMTP_PASS` | _(empty)_ | SMTP password. |
+| `EMAIL_FROM` | `noreply@archvault.dev` | Sender address for outgoing emails. |
+
+## Blocks Registry
+
+Used for the community blocks registry (Phase 5).
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `GITHUB_PAT` | _(empty)_ | GitHub personal access token for registry operations. |
+| `REGISTRY_REPO` | _(empty)_ | GitHub repository for the blocks registry. |
 
 ## OpenTelemetry (optional)
 

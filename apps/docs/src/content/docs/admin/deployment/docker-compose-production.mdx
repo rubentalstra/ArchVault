@@ -5,8 +5,147 @@ sidebar:
   order: 1
 ---
 
-This guide walks you through deploying ArchVault in production using Docker Compose, including resource limits, restart policies, and volume mounts.
+This guide walks you through deploying ArchVault in production using Docker Compose. The pre-built image is published to GitHub Container Registry at `ghcr.io/rubentalstra/archvault`.
 
-:::note
-This page is a stub. Detailed content will be added soon.
-:::
+## Prerequisites
+
+- Docker Engine 24+ and Docker Compose v2
+- A server with at least 1 GB RAM and 10 GB disk
+- A domain name (recommended) with a reverse proxy for TLS
+
+## Quick Start
+
+1. Create a directory for your deployment:
+
+```bash
+mkdir archvault && cd archvault
+```
+
+2. Download the production Compose file and environment template:
+
+```bash
+curl -O https://raw.githubusercontent.com/rubentalstra/Archvault/main/compose.prod.yaml
+curl -o .env https://raw.githubusercontent.com/rubentalstra/Archvault/main/.env.production.example
+```
+
+3. Edit `.env` and fill in the required values:
+
+```bash
+# Generate a secret key
+openssl rand -base64 32
+```
+
+Set at minimum:
+- `BETTER_AUTH_SECRET` — paste the generated secret
+- `BETTER_AUTH_URL` — your public URL (e.g. `https://archvault.example.com`)
+- `POSTGRES_PASSWORD` — a strong database password
+
+4. Start the stack:
+
+```bash
+docker compose -f compose.prod.yaml up -d
+```
+
+5. Verify the deployment:
+
+```bash
+curl http://localhost:3000/api/health
+```
+
+You should see `{"status":"healthy","database":"connected",...}`.
+
+## Architecture
+
+The production Compose stack consists of two services:
+
+| Service | Image | Purpose |
+|---------|-------|---------|
+| `app` | `ghcr.io/rubentalstra/archvault:latest` | ArchVault application server |
+| `db` | `postgres:18-alpine` | PostgreSQL database |
+
+Key characteristics:
+- The database is **not exposed** to the host — only accessible within the `archvault` bridge network
+- Data is persisted in a named Docker volume (`pgdata`)
+- The app waits for the database health check before starting
+- Database migrations run automatically on startup (configurable via `AUTO_MIGRATE`)
+
+## Auto-Migration
+
+By default, the container runs pending database migrations on every start. This ensures your database schema stays in sync when upgrading to a new image version.
+
+To disable auto-migration (e.g. if you prefer to run migrations manually):
+
+```yaml
+environment:
+  AUTO_MIGRATE: "false"
+```
+
+Run migrations manually:
+
+```bash
+docker compose -f compose.prod.yaml exec app node migrate.mjs
+```
+
+## Reverse Proxy
+
+The app listens on port 3000. In production, you should place a reverse proxy in front for TLS termination — never expose port 3000 directly to the internet.
+
+### Quick setup with Caddy
+
+The Compose file includes a built-in Caddy profile for zero-config HTTPS:
+
+```bash
+# Download the Caddyfile template
+curl -o Caddyfile https://raw.githubusercontent.com/rubentalstra/Archvault/main/Caddyfile.example
+
+# Edit it — replace archvault.example.com with your domain
+nano Caddyfile
+
+# Start with the caddy profile
+docker compose -f compose.prod.yaml --profile caddy up -d
+```
+
+Caddy automatically obtains and renews TLS certificates via Let's Encrypt.
+
+See the [Reverse Proxy](/admin/deployment/reverse-proxy/) guide for full configuration examples with Caddy, Nginx, and Traefik.
+
+## Pinning a Version
+
+Instead of `latest`, pin to a specific version or commit SHA for reproducible deployments:
+
+```yaml
+services:
+  app:
+    image: ghcr.io/rubentalstra/archvault:1.0.0
+```
+
+Available tag formats:
+- `latest` — latest build from `main`
+- `1.0.0` — exact semver release
+- `1.0` — latest patch in minor
+- `1` — latest minor in major
+- `abc1234` — specific commit SHA
+
+## Backup & Restore
+
+### Backup
+
+```bash
+docker compose -f compose.prod.yaml exec db \
+  pg_dump -U archvault archvault > backup-$(date +%Y%m%d).sql
+```
+
+### Restore
+
+```bash
+docker compose -f compose.prod.yaml exec -T db \
+  psql -U archvault archvault < backup-20260317.sql
+```
+
+## Security Notes
+
+- The application runs as a **non-root user** (UID 1001) inside the container
+- The database has **no exposed ports** — it is only accessible via the internal Docker network
+- Always use a strong, unique `POSTGRES_PASSWORD`
+- Always use a strong, unique `BETTER_AUTH_SECRET`
+- Use TLS termination via a reverse proxy — never expose port 3000 directly to the internet
