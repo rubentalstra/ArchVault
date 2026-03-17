@@ -1,8 +1,8 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="public/logo/logo.svg" />
-    <source media="(prefers-color-scheme: light)" srcset="public/logo/logo-dark.svg" />
-    <img alt="ArchVault" src="public/logo/logo-dark.svg" width="48" height="48" />
+    <source media="(prefers-color-scheme: dark)" srcset="apps/web/public/logo/logo.svg" />
+    <source media="(prefers-color-scheme: light)" srcset="apps/web/public/logo/logo-dark.svg" />
+    <img alt="ArchVault" src="apps/web/public/logo/logo-dark.svg" width="48" height="48" />
   </picture>
 </p>
 
@@ -27,7 +27,7 @@
 ---
 
 <p align="center">
-  <img src="docs/src/assets/screenshots/12-editor-level2-container.png" alt="ArchVault — Visual C4 diagram editor" width="800" />
+  <img src="apps/docs/src/assets/screenshots/12-editor-level2-container.png" alt="ArchVault — Visual C4 diagram editor" width="800" />
 </p>
 
 ArchVault is an open-source, self-hosted platform for modeling software architecture using
@@ -52,29 +52,29 @@ entirely through a visual UI — no code required.
 
 | Dashboard                                          | Workspace                                                    |
 |----------------------------------------------------|--------------------------------------------------------------|
-| ![Dashboard](docs/src/assets/screenshots/01-dashboard.png) | ![Workspace](docs/src/assets/screenshots/04-workspace-dashboard.png) |
+| ![Dashboard](apps/docs/src/assets/screenshots/01-dashboard.png) | ![Workspace](apps/docs/src/assets/screenshots/04-workspace-dashboard.png) |
 
 | Elements                                         | Connections                                            |
 |--------------------------------------------------|--------------------------------------------------------|
-| ![Elements](docs/src/assets/screenshots/06-elements.png) | ![Connections](docs/src/assets/screenshots/07-connections.png) |
+| ![Elements](apps/docs/src/assets/screenshots/06-elements.png) | ![Connections](apps/docs/src/assets/screenshots/07-connections.png) |
 
 | Diagrams                                         | Tags                                     |
 |--------------------------------------------------|------------------------------------------|
-| ![Diagrams](docs/src/assets/screenshots/05-diagrams.png) | ![Tags](docs/src/assets/screenshots/08-tags.png) |
+| ![Diagrams](apps/docs/src/assets/screenshots/05-diagrams.png) | ![Tags](apps/docs/src/assets/screenshots/08-tags.png) |
 
 | Technologies                                             | Workspace Settings                                         |
 |----------------------------------------------------------|------------------------------------------------------------|
-| ![Technologies](docs/src/assets/screenshots/09-technologies.png) | ![Settings](docs/src/assets/screenshots/10-workspace-settings.png) |
+| ![Technologies](apps/docs/src/assets/screenshots/09-technologies.png) | ![Settings](apps/docs/src/assets/screenshots/10-workspace-settings.png) |
 
 | Members                                        | Teams                                      |
 |------------------------------------------------|--------------------------------------------|
-| ![Members](docs/src/assets/screenshots/02-members.png) | ![Teams](docs/src/assets/screenshots/03-teams.png) |
+| ![Members](apps/docs/src/assets/screenshots/02-members.png) | ![Teams](apps/docs/src/assets/screenshots/03-teams.png) |
 
 **Diagram Editor**
 
 | Level 1 — System Context                                       | Level 2 — Container                                       | Level 3 — Component                                       |
 |----------------------------------------------------------------|-----------------------------------------------------------|-----------------------------------------------------------|
-| ![L1](docs/src/assets/screenshots/11-editor-level1-system-context.png) | ![L2](docs/src/assets/screenshots/12-editor-level2-container.png) | ![L3](docs/src/assets/screenshots/13-editor-level3-component.png) |
+| ![L1](apps/docs/src/assets/screenshots/11-editor-level1-system-context.png) | ![L2](apps/docs/src/assets/screenshots/12-editor-level2-container.png) | ![L3](apps/docs/src/assets/screenshots/13-editor-level3-component.png) |
 
 > [!NOTE]
 > ArchVault is under active development. Features like autosave, keyboard shortcuts, versioning, and a community blocks
@@ -142,9 +142,9 @@ via [Paraglide JS](https://inlang.com/m/gerre34r/paraglide-js). All locales use 
 
 Adding a new locale:
 
-1. Add the locale to `project.inlang/settings.json`
-2. Add a URL pattern in `vite.config.ts`
-3. Create `messages/{locale}.json`
+1. Add the locale to `apps/web/project.inlang/settings.json`
+2. Add a URL pattern in `apps/web/vite.config.ts`
+3. Create `apps/web/messages/{locale}.json`
 
 ## Contributing
 
