@@ -90,24 +90,22 @@ docker compose -f compose.prod.yaml exec app node migrate.mjs
 
 The app listens on port 3000. In production, you should place a reverse proxy in front for TLS termination — never expose port 3000 directly to the internet.
 
-### Quick setup with Caddy
+### Quick setup with Traefik
 
-The Compose file includes a built-in Caddy profile for zero-config HTTPS:
+The Compose file includes a built-in Traefik profile for automatic HTTPS — no config files needed:
 
 ```bash
-# Download the Caddyfile template
-curl -o Caddyfile https://raw.githubusercontent.com/rubentalstra/Archvault/main/Caddyfile.example
+# Set your domain and Let's Encrypt email in .env
+DOMAIN=archvault.example.com
+ACME_EMAIL=admin@example.com
 
-# Edit it — replace archvault.example.com with your domain
-nano Caddyfile
-
-# Start with the caddy profile
-docker compose -f compose.prod.yaml --profile caddy up -d
+# Start with the traefik profile
+docker compose -f compose.prod.yaml --profile traefik up -d
 ```
 
-Caddy automatically obtains and renews TLS certificates via Let's Encrypt.
+Traefik automatically obtains and renews TLS certificates via Let's Encrypt, redirects HTTP to HTTPS, and adds security headers.
 
-See the [Reverse Proxy](/admin/deployment/reverse-proxy/) guide for full configuration examples with Caddy, Nginx, and Traefik.
+See the [Reverse Proxy](/admin/deployment/reverse-proxy/) guide for full configuration examples with Traefik, Nginx, and Caddy.
 
 ## Pinning a Version
 

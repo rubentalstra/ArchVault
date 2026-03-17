@@ -1,6 +1,6 @@
 ---
 title: Reverse Proxy
-description: Configure Caddy, Nginx, or Traefik as a reverse proxy for ArchVault.
+description: Configure Traefik, Nginx, or Caddy as a reverse proxy for ArchVault.
 sidebar:
   order: 3
 ---
@@ -10,7 +10,7 @@ import { Tabs, TabItem, Steps, LinkCard } from '@astrojs/starlight/components';
 Running ArchVault behind a reverse proxy is **required** for production deployments. A reverse proxy handles TLS termination (HTTPS), so traffic between clients and your server is encrypted. Without one, credentials and session tokens are sent in plain text.
 
 :::tip
-**Don't know which to pick?** Caddy is the easiest — it handles TLS certificates automatically with zero configuration. Nginx is the most widely deployed. Traefik is ideal if you're already using it for Docker service discovery.
+**Don't know which to pick?** Traefik is the recommended option — it integrates natively with Docker, auto-discovers services via labels, and handles TLS automatically. Nginx is the most widely deployed. Caddy is the easiest standalone option.
 :::
 
 ## Prerequisites
@@ -30,77 +30,123 @@ The reverse proxy terminates TLS and forwards requests to ArchVault over the int
 ---
 
 <Tabs>
-<TabItem label="Caddy (recommended)" icon="seti:default">
+<TabItem label="Traefik (recommended)" icon="seti:default">
 
-[Caddy](https://caddyserver.com/) automatically obtains and renews TLS certificates via Let's Encrypt — no manual setup needed.
+[Traefik](https://traefik.io/traefik/) is a cloud-native reverse proxy that integrates with Docker via label-based configuration. It automatically discovers services and provisions TLS certificates.
 
 ### Built-in Compose profile (easiest)
 
-The production Compose file includes a Caddy service as an optional [profile](https://docs.docker.com/compose/how-tos/profiles/). This is the fastest way to get HTTPS running.
+The production Compose file includes a Traefik service as an optional [profile](https://docs.docker.com/compose/how-tos/profiles/). This is the fastest way to get HTTPS running — no config files to create or copy.
 
 <Steps>
 
-1. Download the Caddyfile template alongside your `compose.prod.yaml`:
+1. Set `DOMAIN` and `ACME_EMAIL` in your `.env`:
 
-   ```bash
-   curl -o Caddyfile https://raw.githubusercontent.com/rubentalstra/Archvault/main/Caddyfile.example
+   ```bash title=".env"
+   DOMAIN=archvault.example.com
+   ACME_EMAIL=admin@example.com
    ```
 
-2. Replace the domain in the `Caddyfile`:
-
-   ```nginx title="Caddyfile"
-   archvault.example.com {
-       reverse_proxy app:3000
-
-       encode gzip zstd
-
-       header {
-           X-Content-Type-Options nosniff
-           X-Frame-Options DENY
-           Referrer-Policy strict-origin-when-cross-origin
-           Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-           -Server
-       }
-   }
-   ```
-
-3. Start the stack with the `caddy` profile:
+2. Start the stack with the `traefik` profile:
 
    ```bash
-   docker compose -f compose.prod.yaml --profile caddy up -d
+   docker compose -f compose.prod.yaml --profile traefik up -d
    ```
 
 </Steps>
 
-That's it. Caddy automatically provisions a TLS certificate, redirects HTTP to HTTPS, and proxies to ArchVault. Certificate data is persisted in the `caddy_data` Docker volume so renewals survive restarts.
+That's it. Traefik automatically provisions a TLS certificate via Let's Encrypt, redirects HTTP to HTTPS, and proxies to ArchVault. Certificate data is persisted in the `letsencrypt` Docker volume so renewals survive restarts.
 
 :::tip
-When using the Caddy profile, port 3000 is still exposed on the host by default. For extra security, you can remove the host port binding by overriding the app service with an additional Compose file or by editing `compose.prod.yaml` to remove the `ports` section from `app`.
+When using the Traefik profile, port 3000 is still exposed on the host by default. For extra security, you can remove the host port binding by overriding the app service with an additional Compose file or by editing `compose.prod.yaml` to remove the `ports` section from `app`.
 :::
 
-### Standalone Caddyfile (without Docker)
+:::caution
+Traefik requires access to the Docker socket (`/var/run/docker.sock`). This gives it control over Docker — only use this in trusted environments. For hardened setups, consider using [Traefik's socket proxy](https://doc.traefik.io/traefik/providers/docker/#docker-api-access).
+:::
 
-If Caddy is installed directly on the host instead of Docker:
+### Standalone Docker Compose setup
 
-<Steps>
+If you prefer to configure Traefik yourself rather than using the built-in profile:
 
-1. Install Caddy on your server ([install guide](https://caddyserver.com/docs/install)).
+```yaml title="compose.prod.yaml"
+services:
+  traefik:
+    image: traefik:v3
+    restart: unless-stopped
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--providers.docker.network=archvault"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--certificatesresolvers.letsencrypt.acme.email=admin@example.com"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - letsencrypt:/letsencrypt
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - archvault
 
-2. Create a `Caddyfile`:
+  app:
+    # ... existing app config ...
+    ports: []  # Remove host port binding — Traefik handles it
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.archvault.rule=Host(`archvault.example.com`)"
+      - "traefik.http.routers.archvault.entrypoints=websecure"
+      - "traefik.http.routers.archvault.tls.certresolver=letsencrypt"
+      - "traefik.http.services.archvault.loadbalancer.server.port=3000"
+      # Security headers
+      - "traefik.http.middlewares.archvault-headers.headers.stsSeconds=31536000"
+      - "traefik.http.middlewares.archvault-headers.headers.stsIncludeSubdomains=true"
+      - "traefik.http.middlewares.archvault-headers.headers.stsPreload=true"
+      - "traefik.http.middlewares.archvault-headers.headers.frameDeny=true"
+      - "traefik.http.middlewares.archvault-headers.headers.contentTypeNosniff=true"
+      - "traefik.http.middlewares.archvault-headers.headers.referrerPolicy=strict-origin-when-cross-origin"
+      - "traefik.http.routers.archvault.middlewares=archvault-headers"
+    networks:
+      - archvault
 
-   ```nginx title="Caddyfile"
-   archvault.example.com {
-       reverse_proxy localhost:3000
-   }
-   ```
+volumes:
+  letsencrypt:
+```
 
-3. Start Caddy:
+### How Traefik labels work
 
-   ```bash
-   caddy start
-   ```
+| Label | Purpose |
+|-------|---------|
+| `traefik.enable=true` | Opt this service into Traefik discovery |
+| `traefik.http.routers.archvault.rule` | Match requests by hostname |
+| `traefik.http.routers.archvault.tls.certresolver` | Use Let's Encrypt for TLS |
+| `traefik.http.services.archvault.loadbalancer.server.port` | Forward to port 3000 |
 
-</Steps>
+### Traefik dashboard (optional)
+
+To enable the Traefik dashboard for monitoring, add:
+
+```yaml
+command:
+  # ... existing commands ...
+  - "--api.dashboard=true"
+  - "--api.insecure=false"
+labels:
+  - "traefik.http.routers.dashboard.rule=Host(`traefik.example.com`)"
+  - "traefik.http.routers.dashboard.service=api@internal"
+  - "traefik.http.routers.dashboard.entrypoints=websecure"
+  - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
+```
+
+:::tip
+Protect the dashboard with basic auth or IP allowlisting in production.
+:::
 
 </TabItem>
 <TabItem label="Nginx" icon="seti:nginx">
@@ -226,94 +272,88 @@ When using Nginx in Docker, you need to manage TLS certificates yourself. Consid
 :::
 
 </TabItem>
-<TabItem label="Traefik" icon="seti:default">
+<TabItem label="Caddy" icon="seti:default">
 
-[Traefik](https://traefik.io/traefik/) is a cloud-native reverse proxy that integrates with Docker via label-based configuration. It automatically discovers services and provisions TLS certificates.
+[Caddy](https://caddyserver.com/) automatically obtains and renews TLS certificates via Let's Encrypt — no manual setup needed.
 
-### Docker Compose setup
+### Standalone Caddyfile
 
-Add Traefik and configure ArchVault with Docker labels in your `compose.prod.yaml`:
+<Steps>
+
+1. Install Caddy on your server ([install guide](https://caddyserver.com/docs/install)).
+
+2. Create a `Caddyfile`:
+
+   ```nginx title="Caddyfile"
+   archvault.example.com {
+       reverse_proxy localhost:3000
+
+       encode gzip zstd
+
+       header {
+           X-Content-Type-Options nosniff
+           X-Frame-Options DENY
+           Referrer-Policy strict-origin-when-cross-origin
+           Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+           -Server
+       }
+   }
+   ```
+
+3. Start Caddy:
+
+   ```bash
+   caddy start
+   ```
+
+</Steps>
+
+### Docker Compose sidecar
+
+Add Caddy as a service in your `compose.prod.yaml`:
 
 ```yaml title="compose.prod.yaml"
 services:
-  traefik:
-    image: traefik:v3
+  caddy:
+    image: caddy:2-alpine
     restart: unless-stopped
-    command:
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--providers.docker.network=archvault"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
-      - "--certificatesresolvers.letsencrypt.acme.email=admin@example.com"
-      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
-      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
     ports:
       - "80:80"
       - "443:443"
+      - "443:443/udp"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - letsencrypt:/letsencrypt
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
     networks:
       - archvault
 
   app:
     # ... existing app config ...
-    ports: []  # Remove host port binding — Traefik handles it
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.archvault.rule=Host(`archvault.example.com`)"
-      - "traefik.http.routers.archvault.entrypoints=websecure"
-      - "traefik.http.routers.archvault.tls.certresolver=letsencrypt"
-      - "traefik.http.services.archvault.loadbalancer.server.port=3000"
-      # Security headers
-      - "traefik.http.middlewares.archvault-headers.headers.stsSeconds=31536000"
-      - "traefik.http.middlewares.archvault-headers.headers.stsIncludeSubdomains=true"
-      - "traefik.http.middlewares.archvault-headers.headers.stsPreload=true"
-      - "traefik.http.middlewares.archvault-headers.headers.frameDeny=true"
-      - "traefik.http.middlewares.archvault-headers.headers.contentTypeNosniff=true"
-      - "traefik.http.middlewares.archvault-headers.headers.referrerPolicy=strict-origin-when-cross-origin"
-      - "traefik.http.routers.archvault.middlewares=archvault-headers"
+    ports: []  # Remove host port binding — Caddy handles it
     networks:
       - archvault
 
 volumes:
-  letsencrypt:
+  caddy_data:
+  caddy_config:
 ```
 
-:::caution
-Traefik requires access to the Docker socket (`/var/run/docker.sock`). This gives it control over Docker — only use this in trusted environments. For hardened setups, consider using [Traefik's socket proxy](https://doc.traefik.io/traefik/providers/docker/#docker-api-access).
-:::
+```nginx title="Caddyfile"
+archvault.example.com {
+    reverse_proxy app:3000
 
-### How Traefik labels work
+    encode gzip zstd
 
-| Label | Purpose |
-|-------|---------|
-| `traefik.enable=true` | Opt this service into Traefik discovery |
-| `traefik.http.routers.archvault.rule` | Match requests by hostname |
-| `traefik.http.routers.archvault.tls.certresolver` | Use Let's Encrypt for TLS |
-| `traefik.http.services.archvault.loadbalancer.server.port` | Forward to port 3000 |
-
-### Traefik dashboard (optional)
-
-To enable the Traefik dashboard for monitoring, add:
-
-```yaml
-command:
-  # ... existing commands ...
-  - "--api.dashboard=true"
-  - "--api.insecure=false"
-labels:
-  - "traefik.http.routers.dashboard.rule=Host(`traefik.example.com`)"
-  - "traefik.http.routers.dashboard.service=api@internal"
-  - "traefik.http.routers.dashboard.entrypoints=websecure"
-  - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy strict-origin-when-cross-origin
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        -Server
+    }
+}
 ```
-
-:::tip
-Protect the dashboard with basic auth or IP allowlisting in production.
-:::
 
 </TabItem>
 </Tabs>

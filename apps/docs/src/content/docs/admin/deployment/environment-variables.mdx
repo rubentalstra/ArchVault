@@ -33,6 +33,8 @@ Used by both the `app` and `db` services in `compose.prod.yaml`. The app service
 |----------|---------|-------------|
 | `AUTO_MIGRATE` | `true` | Run database migrations on container startup. Set to `false` to manage migrations manually. |
 | `APP_VERSION` | `dev` | Set automatically during Docker builds to the git commit SHA. |
+| `DOMAIN` | _(empty)_ | Domain for the Traefik host rule (e.g. `archvault.example.com`). Required when using the built-in Traefik Compose profile. |
+| `ACME_EMAIL` | _(empty)_ | Email for Let's Encrypt certificate notifications. Required when using the built-in Traefik Compose profile. |
 
 ## OAuth Providers
 
